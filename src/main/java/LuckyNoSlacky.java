@@ -4,7 +4,7 @@
 public class LuckyNoSlacky {
     private static final String DIVIDER = "\n____________________________________________________________\n";
 
-    public static void main(String[] args) {
+    private void greet() {
         String banner = "     .--\"\"\"\"\"--.\n"
                 + "   /  /^\\   /^\\  \\\n"
                 + "  |  .---------.  |\n"
@@ -15,8 +15,16 @@ public class LuckyNoSlacky {
                 + " LuckyNoSlacky is here to help!";
         String hello = "  Hello, I'm LuckyNoSlacky!\n  What can I do for you?";
         System.out.print(DIVIDER + banner + DIVIDER + hello + DIVIDER);
+    }
 
+    private void exit() {
         String goodbye = "  Bye, hope to see you again soon!";
         System.out.print(DIVIDER + goodbye + DIVIDER);
+    }
+
+    public static void main(String[] args) {
+        LuckyNoSlacky lucky = new LuckyNoSlacky();
+        lucky.greet();
+        lucky.exit();
     }
 }
