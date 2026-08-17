@@ -5,17 +5,26 @@ import java.util.Scanner;
  */
 
 public class LuckyNoSlacky {
-    private static final String DIVIDER = "\n  ____________________________________________________________\n";
+    private static final String DIVIDER = "  ____________________________________________________________\n";
 
     private Scanner userScanner;
+    private final TaskMaster tmLucky;
 
     LuckyNoSlacky() {
         userScanner = new Scanner(System.in);
-    }
-    private static void printReply(String output) {
-        System.out.print(DIVIDER + "  " + output + DIVIDER);
+        tmLucky = new TaskMaster();
     }
 
+    private static void printReply(String output) {
+        String indentedOutput = output.replace("\n", "\n  ");
+        System.out.print(DIVIDER + "  " + indentedOutput + "\n" + DIVIDER);
+    }
+
+    /**
+     * Echoes a piece of user input as a chatbot reply.
+     *
+     * @param input user input to echo
+     */
     private static void echo(String input) {
         printReply(input);
     }
@@ -29,8 +38,8 @@ public class LuckyNoSlacky {
                 + "     '-._____.-'\n"
                 + "    [NO SLACKING]\n"
                 + "  LuckyNoSlacky is here to help!";
-        String hello = "Hello, I'm LuckyNoSlacky!\n  What can I do for you?";
-        System.out.print(DIVIDER + banner);
+        String hello = "Hello, I'm LuckyNoSlacky!\nWhat can I do for you?";
+        System.out.print(DIVIDER + banner + "\n");
         printReply(hello);
     }
 
@@ -42,12 +51,18 @@ public class LuckyNoSlacky {
     private void chatLoop() {
         while (userScanner.hasNextLine()) {
             String userInput = userScanner.nextLine();
+
             if (userInput.equalsIgnoreCase("bye")) {
                 return;
             }
-            echo(userInput);
+
+            if (userInput.equalsIgnoreCase("list")) {
+                printReply(tmLucky.listTasks());
+            } else {
+                tmLucky.addTask(userInput);
+                printReply("added: " + userInput);
+            }
         }
-        // TODO: possible improvement: for the chat loop to return error codes for exit handle
     }
 
     public static void main(String[] args) {
