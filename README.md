@@ -26,3 +26,8 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
 ```
 
 **Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.
+
+## AI Declaration
+This project is done on a AI-4 level:
+I will give the AI the level requirements as well as my general plan on how I want to work through the level,
+then my AI assistant would give me a more detailed rundown on the action plan before I ask it to generate the code snippets for my approval.
