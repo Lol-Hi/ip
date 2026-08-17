@@ -7,7 +7,7 @@ import java.util.Scanner;
 public class LuckyNoSlacky {
     private static final String DIVIDER = "  ____________________________________________________________\n";
 
-    private Scanner userScanner;
+    private final Scanner userScanner;
     private final TaskMaster tmLucky;
 
     LuckyNoSlacky() {
