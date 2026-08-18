@@ -53,6 +53,18 @@ class TaskMasterTest {
     }
 
     @Test
+    void unmarkedTaskIsShownAsNotDone() {
+        TaskMaster taskMaster = new TaskMaster();
+
+        taskMaster.addTask("read book");
+        taskMaster.markTaskDone(1);
+        taskMaster.unmarkTaskUndone(1);
+
+        assertEquals("Here are the tasks in your list:\n1.[ ] read book",
+                taskMaster.listTasks());
+    }
+
+    @Test
     void invalidTaskNumberCannotBeMarked() {
         TaskMaster taskMaster = new TaskMaster();
         taskMaster.addTask("read book");
@@ -61,6 +73,17 @@ class TaskMasterTest {
                 () -> taskMaster.markTaskDone(0));
         assertThrows(IllegalArgumentException.class,
                 () -> taskMaster.markTaskDone(2));
+    }
+
+    @Test
+    void invalidTaskNumberCannotBeUnmarked() {
+        TaskMaster taskMaster = new TaskMaster();
+        taskMaster.addTask("read book");
+
+        assertThrows(IllegalArgumentException.class,
+                () -> taskMaster.unmarkTaskUndone(0));
+        assertThrows(IllegalArgumentException.class,
+                () -> taskMaster.unmarkTaskUndone(2));
     }
 
     @Test

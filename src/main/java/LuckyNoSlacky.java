@@ -76,6 +76,21 @@ public class LuckyNoSlacky {
                 } catch (IllegalArgumentException exception) {
                     printReply("That task number is invalid.");
                 }
+            } else if (trimmedInput.split("\\s+")[0].equalsIgnoreCase("unmark")) {
+                String[] commandParts = trimmedInput.split("\\s+");
+
+                if (commandParts.length != 2) {
+                    printReply("Please provide a task number to unmark.");
+                    continue;
+                }
+
+                try {
+                    int taskNumber = Integer.parseInt(commandParts[1]);
+                    String task = tmLucky.unmarkTaskUndone(taskNumber);
+                    printReply("OK, I've marked this task as not done yet:\n  [ ] " + task);
+                } catch (IllegalArgumentException exception) {
+                    printReply("That task number is invalid.");
+                }
             } else {
                 tmLucky.addTask(userInput);
                 printReply("added: " + userInput);

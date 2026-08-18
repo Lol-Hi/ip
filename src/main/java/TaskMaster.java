@@ -83,4 +83,21 @@ public class TaskMaster {
         areTasksDone[taskIndex] = true;
         return tasks[taskIndex];
     }
+
+    /**
+     * Marks a task as not done.
+     *
+     * @param taskNumber one-based number of the task to unmark
+     * @return description of the task that was unmarked
+     */
+    public String unmarkTaskUndone(int taskNumber) {
+        int taskIndex = taskNumber - 1;
+
+        if (taskIndex < 0 || taskIndex >= taskCount) {
+            throw new IllegalArgumentException("Invalid task number.");
+        }
+
+        areTasksDone[taskIndex] = false;
+        return tasks[taskIndex];
+    }
 }
