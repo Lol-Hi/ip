@@ -48,6 +48,30 @@ public class LuckyNoSlacky {
         printReply(goodbye);
     }
 
+    private void handleTaskToggle(String[] commandParts, boolean markDone) {
+        String command = markDone ? "mark" : "unmark";
+
+        if (commandParts.length != 2) {
+            printReply("Please provide a task number to " + command + ".");
+            return;
+        }
+
+        try {
+            int taskNumber = Integer.parseInt(commandParts[1]);
+            String task = markDone
+                    ? tmLucky.markTaskDone(taskNumber)
+                    : tmLucky.unmarkTaskUndone(taskNumber);
+
+            String message = markDone
+                    ? "Nice! I've marked this task as done:"
+                    : "OK, I've marked this task as not done yet:";
+
+            printReply(message + "\n  " + task);
+        } catch (IllegalArgumentException exception) {
+            printReply("That task number is invalid.");
+        }
+    }
+
     private void chatLoop() {
         while (userScanner.hasNextLine()) {
             String userInput = userScanner.nextLine();
@@ -61,39 +85,18 @@ public class LuckyNoSlacky {
                 printReply(tmLucky.listTasks());
             } else if (trimmedInput.isEmpty()) {
                 printReply("Please enter a command.");
-            } else if (trimmedInput.split("\\s+")[0].equalsIgnoreCase("mark")) {
-                String[] commandParts = trimmedInput.split("\\s+");
-
-                if (commandParts.length != 2) {
-                    printReply("Please provide a task number to mark.");
-                    continue;
-                }
-
-                try {
-                    int taskNumber = Integer.parseInt(commandParts[1]);
-                    String task = tmLucky.markTaskDone(taskNumber);
-                    printReply("Nice! I've marked this task as done:\n  [X] " + task);
-                } catch (IllegalArgumentException exception) {
-                    printReply("That task number is invalid.");
-                }
-            } else if (trimmedInput.split("\\s+")[0].equalsIgnoreCase("unmark")) {
-                String[] commandParts = trimmedInput.split("\\s+");
-
-                if (commandParts.length != 2) {
-                    printReply("Please provide a task number to unmark.");
-                    continue;
-                }
-
-                try {
-                    int taskNumber = Integer.parseInt(commandParts[1]);
-                    String task = tmLucky.unmarkTaskUndone(taskNumber);
-                    printReply("OK, I've marked this task as not done yet:\n  [ ] " + task);
-                } catch (IllegalArgumentException exception) {
-                    printReply("That task number is invalid.");
-                }
             } else {
-                tmLucky.addTask(userInput);
-                printReply("added: " + userInput);
+                String[] commandParts = trimmedInput.split("\\s+");
+                String command = commandParts[0];
+
+                if (command.equalsIgnoreCase("mark")) {
+                    handleTaskToggle(commandParts, true);
+                } else if (command.equalsIgnoreCase("unmark")) {
+                    handleTaskToggle(commandParts, false);
+                } else {
+                    tmLucky.addTask(userInput);
+                    printReply("added: " + userInput);
+                }
             }
         }
     }

@@ -4,8 +4,7 @@
 public class TaskMaster {
     private static final int DEFAULT_MAX_TASKS = 100;
 
-    private final String[] tasks;
-    private final boolean[] areTasksDone;
+    private final Task[] taskRoster;
     private int taskCount = 0;
 
     /**
@@ -25,8 +24,7 @@ public class TaskMaster {
             throw new IllegalArgumentException("Maximum tasks must be positive.");
         }
 
-        tasks = new String[maxTasks];
-        areTasksDone = new boolean[maxTasks];
+        taskRoster = new Task[maxTasks];
     }
 
     /**
@@ -35,11 +33,11 @@ public class TaskMaster {
      * @param task task description entered by the user
      */
     public void addTask(String task) {
-        if (taskCount >= tasks.length) {
+        if (taskCount >= taskRoster.length) {
             throw new IllegalStateException("The task list is full.");
         }
 
-        tasks[taskCount] = task;
+        taskRoster[taskCount] = new Task(task);
         taskCount++;
     }
 
@@ -58,10 +56,8 @@ public class TaskMaster {
         for (int i = 0; i < taskCount; i++) {
             result.append("\n")
                     .append(i + 1)
-                    .append(".[")
-                    .append(areTasksDone[i] ? "X" : " ")
-                    .append("] ")
-                    .append(tasks[i]);
+                    .append(".")
+                    .append(taskRoster[i]);
         }
 
         return result.toString();
@@ -74,14 +70,9 @@ public class TaskMaster {
      * @return description of the task that was marked
      */
     public String markTaskDone(int taskNumber) {
-        int taskIndex = taskNumber - 1;
-
-        if (taskIndex < 0 || taskIndex >= taskCount) {
-            throw new IllegalArgumentException("Invalid task number.");
-        }
-
-        areTasksDone[taskIndex] = true;
-        return tasks[taskIndex];
+        Task task = getTask(taskNumber);
+        task.markAsDone();
+        return task.toString();
     }
 
     /**
@@ -91,13 +82,24 @@ public class TaskMaster {
      * @return description of the task that was unmarked
      */
     public String unmarkTaskUndone(int taskNumber) {
+        Task task = getTask(taskNumber);
+        task.unmarkAsUndone();
+        return task.toString();
+    }
+
+    /**
+     * Gets a task by its one-based task number.
+     *
+     * @param taskNumber one-based number of the task
+     * @return the requested task
+     */
+    private Task getTask(int taskNumber) {
         int taskIndex = taskNumber - 1;
 
         if (taskIndex < 0 || taskIndex >= taskCount) {
             throw new IllegalArgumentException("Invalid task number.");
         }
 
-        areTasksDone[taskIndex] = false;
-        return tasks[taskIndex];
+        return taskRoster[taskIndex];
     }
 }
