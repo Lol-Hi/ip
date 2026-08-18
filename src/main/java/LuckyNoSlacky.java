@@ -51,13 +51,31 @@ public class LuckyNoSlacky {
     private void chatLoop() {
         while (userScanner.hasNextLine()) {
             String userInput = userScanner.nextLine();
+            String trimmedInput = userInput.trim();
 
-            if (userInput.equalsIgnoreCase("bye")) {
+            if (trimmedInput.equalsIgnoreCase("bye")) {
                 return;
             }
 
-            if (userInput.equalsIgnoreCase("list")) {
+            if (trimmedInput.equalsIgnoreCase("list")) {
                 printReply(tmLucky.listTasks());
+            } else if (trimmedInput.isEmpty()) {
+                printReply("Please enter a command.");
+            } else if (trimmedInput.split("\\s+")[0].equalsIgnoreCase("mark")) {
+                String[] commandParts = trimmedInput.split("\\s+");
+
+                if (commandParts.length != 2) {
+                    printReply("Please provide a task number to mark.");
+                    continue;
+                }
+
+                try {
+                    int taskNumber = Integer.parseInt(commandParts[1]);
+                    String task = tmLucky.markTaskDone(taskNumber);
+                    printReply("Nice! I've marked this task as done:\n  [X] " + task);
+                } catch (IllegalArgumentException exception) {
+                    printReply("That task number is invalid.");
+                }
             } else {
                 tmLucky.addTask(userInput);
                 printReply("added: " + userInput);

@@ -5,6 +5,7 @@ public class TaskMaster {
     private static final int DEFAULT_MAX_TASKS = 100;
 
     private final String[] tasks;
+    private final boolean[] areTasksDone;
     private int taskCount = 0;
 
     /**
@@ -25,6 +26,7 @@ public class TaskMaster {
         }
 
         tasks = new String[maxTasks];
+        areTasksDone = new boolean[maxTasks];
     }
 
     /**
@@ -51,18 +53,34 @@ public class TaskMaster {
             return "No tasks yet.";
         }
 
-        StringBuilder result = new StringBuilder();
+        StringBuilder result = new StringBuilder("Here are the tasks in your list:");
 
         for (int i = 0; i < taskCount; i++) {
-            if (i > 0) {
-                result.append("\n");
-            }
-
-            result.append(i + 1)
-                    .append(". ")
+            result.append("\n")
+                    .append(i + 1)
+                    .append(".[")
+                    .append(areTasksDone[i] ? "X" : " ")
+                    .append("] ")
                     .append(tasks[i]);
         }
 
         return result.toString();
+    }
+
+    /**
+     * Marks a task as done.
+     *
+     * @param taskNumber one-based number of the task to mark
+     * @return description of the task that was marked
+     */
+    public String markTaskDone(int taskNumber) {
+        int taskIndex = taskNumber - 1;
+
+        if (taskIndex < 0 || taskIndex >= taskCount) {
+            throw new IllegalArgumentException("Invalid task number.");
+        }
+
+        areTasksDone[taskIndex] = true;
+        return tasks[taskIndex];
     }
 }

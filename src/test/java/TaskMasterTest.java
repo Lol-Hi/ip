@@ -21,7 +21,8 @@ class TaskMasterTest {
 
         taskMaster.addTask("read book");
 
-        assertEquals("1. read book", taskMaster.listTasks());
+        assertEquals("Here are the tasks in your list:\n1.[ ] read book",
+                taskMaster.listTasks());
     }
 
     @Test
@@ -31,7 +32,35 @@ class TaskMasterTest {
         taskMaster.addTask("read book");
         taskMaster.addTask("return book");
 
-        assertEquals("1. read book\n2. return book", taskMaster.listTasks());
+        assertEquals("Here are the tasks in your list:\n"
+                        + "1.[ ] read book\n"
+                        + "2.[ ] return book",
+                taskMaster.listTasks());
+    }
+
+    @Test
+    void markedTaskIsShownAsDone() {
+        TaskMaster taskMaster = new TaskMaster();
+
+        taskMaster.addTask("read book");
+        taskMaster.addTask("return book");
+        taskMaster.markTaskDone(2);
+
+        assertEquals("Here are the tasks in your list:\n"
+                        + "1.[ ] read book\n"
+                        + "2.[X] return book",
+                taskMaster.listTasks());
+    }
+
+    @Test
+    void invalidTaskNumberCannotBeMarked() {
+        TaskMaster taskMaster = new TaskMaster();
+        taskMaster.addTask("read book");
+
+        assertThrows(IllegalArgumentException.class,
+                () -> taskMaster.markTaskDone(0));
+        assertThrows(IllegalArgumentException.class,
+                () -> taskMaster.markTaskDone(2));
     }
 
     @Test
