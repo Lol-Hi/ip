@@ -1,4 +1,5 @@
 import java.util.Scanner;
+import java.util.function.Function;
 
 /**
  * Starts the LuckyNoSlacky chatbot.
@@ -81,44 +82,14 @@ public class LuckyNoSlacky {
                 + " tasks in the list.");
     }
 
-    private Task createDeadlineTask(String arguments) {
-        int byIndex = arguments.indexOf("/by");
-
-        if (byIndex <= 0) {
-            throw new IllegalArgumentException(
-                    "Please use: deadline <description> /by <date/time>.");
+    private void handleTaskCreation(String arguments,
+                                    Function<String, ? extends Task> taskCreator,
+                                    String errorMessage) {
+        try {
+            addTask(taskCreator.apply(arguments));
+        } catch (IllegalArgumentException exception) {
+            printReply(errorMessage);
         }
-
-        String description = arguments.substring(0, byIndex).trim();
-        String byTime = arguments.substring(byIndex + 3).trim();
-
-        if (description.isEmpty() || byTime.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Please provide both a description and a deadline.");
-        }
-
-        return new Task(description, byTime);
-    }
-
-    private Task createEventTask(String arguments) {
-        int fromIndex = arguments.indexOf("/from");
-        int toIndex = arguments.indexOf("/to");
-
-        if (fromIndex <= 0 || toIndex <= fromIndex) {
-            throw new IllegalArgumentException(
-                    "Please use: event <description> /from <start> /to <end>.");
-        }
-
-        String description = arguments.substring(0, fromIndex).trim();
-        String fromTime = arguments.substring(fromIndex + 5, toIndex).trim();
-        String toTime = arguments.substring(toIndex + 3).trim();
-
-        if (description.isEmpty() || fromTime.isEmpty() || toTime.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Please provide a description, start time, and end time.");
-        }
-
-        return new Task(description, fromTime, toTime);
     }
 
     private void chatLoop() {
@@ -159,22 +130,20 @@ public class LuckyNoSlacky {
                 if (arguments.isEmpty()) {
                     printReply("Please provide a task description.");
                 } else {
-                    addTask(new Task(arguments));
+                    addTask(new TodoTask(arguments));
                 }
                 break;
             case "deadline":
-                try {
-                    addTask(createDeadlineTask(arguments));
-                } catch (IllegalArgumentException exception) {
-                    printReply(exception.getMessage());
-                }
+                handleTaskCreation(
+                        arguments,
+                        DeadlineTask::createDeadlineTask,
+                        "Please use: deadline <description> /by <date/time>.");
                 break;
             case "event":
-                try {
-                    addTask(createEventTask(arguments));
-                } catch (IllegalArgumentException exception) {
-                    printReply(exception.getMessage());
-                }
+                handleTaskCreation(
+                        arguments,
+                        EventTask::createEventTask,
+                        "Please use: event <description> /from <start> /to <end>.");
                 break;
             case "mark":
                 handleTaskToggle(trimmedInput.split("\\s+"), true);

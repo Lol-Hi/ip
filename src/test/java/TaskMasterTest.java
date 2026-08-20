@@ -19,7 +19,7 @@ class TaskMasterTest {
     void addedTaskAppearsInList() {
         TaskMaster taskMaster = new TaskMaster();
 
-        taskMaster.addTask(new Task("read book"));
+        taskMaster.addTask(new TodoTask("read book"));
 
         assertEquals("Here are the tasks in your list:\n1.[T][ ] read book",
                 taskMaster.listTasks());
@@ -29,8 +29,8 @@ class TaskMasterTest {
     void multipleTasksAreListedInOrder() {
         TaskMaster taskMaster = new TaskMaster();
 
-        taskMaster.addTask(new Task("read book"));
-        taskMaster.addTask(new Task("return book"));
+        taskMaster.addTask(new TodoTask("read book"));
+        taskMaster.addTask(new TodoTask("return book"));
 
         assertEquals("Here are the tasks in your list:\n"
                         + "1.[T][ ] read book\n"
@@ -39,11 +39,26 @@ class TaskMasterTest {
     }
 
     @Test
+    void differentTaskTypesCanBeStoredTogether() {
+        TaskMaster taskMaster = new TaskMaster();
+
+        taskMaster.addTask(new TodoTask("borrow book"));
+        taskMaster.addTask(new DeadlineTask("return book", "Sunday"));
+        taskMaster.addTask(new EventTask("project meeting", "Mon 2pm", "4pm"));
+
+        assertEquals("Here are the tasks in your list:\n"
+                        + "1.[T][ ] borrow book\n"
+                        + "2.[D][ ] return book (by: Sunday)\n"
+                        + "3.[E][ ] project meeting (from: Mon 2pm to: 4pm)",
+                taskMaster.listTasks());
+    }
+
+    @Test
     void markedTaskIsShownAsDone() {
         TaskMaster taskMaster = new TaskMaster();
 
-        taskMaster.addTask(new Task("read book"));
-        taskMaster.addTask(new Task("return book"));
+        taskMaster.addTask(new TodoTask("read book"));
+        taskMaster.addTask(new TodoTask("return book"));
         taskMaster.markTaskDone(2);
 
         assertEquals("Here are the tasks in your list:\n"
@@ -56,7 +71,7 @@ class TaskMasterTest {
     void unmarkedTaskIsShownAsNotDone() {
         TaskMaster taskMaster = new TaskMaster();
 
-        taskMaster.addTask(new Task("read book"));
+        taskMaster.addTask(new TodoTask("read book"));
         taskMaster.markTaskDone(1);
         taskMaster.unmarkTaskUndone(1);
 
@@ -67,7 +82,7 @@ class TaskMasterTest {
     @Test
     void invalidTaskNumberCannotBeMarked() {
         TaskMaster taskMaster = new TaskMaster();
-        taskMaster.addTask(new Task("read book"));
+        taskMaster.addTask(new TodoTask("read book"));
 
         assertThrows(IllegalArgumentException.class,
                 () -> taskMaster.markTaskDone(0));
@@ -78,7 +93,7 @@ class TaskMasterTest {
     @Test
     void invalidTaskNumberCannotBeUnmarked() {
         TaskMaster taskMaster = new TaskMaster();
-        taskMaster.addTask(new Task("read book"));
+        taskMaster.addTask(new TodoTask("read book"));
 
         assertThrows(IllegalArgumentException.class,
                 () -> taskMaster.unmarkTaskUndone(0));
@@ -90,11 +105,11 @@ class TaskMasterTest {
     void customCapacityIsRespected() {
         TaskMaster taskMaster = new TaskMaster(2);
 
-        taskMaster.addTask(new Task("first"));
-        taskMaster.addTask(new Task("second"));
+        taskMaster.addTask(new TodoTask("first"));
+        taskMaster.addTask(new TodoTask("second"));
 
         assertThrows(IllegalStateException.class,
-                () -> taskMaster.addTask(new Task("third")));
+                () -> taskMaster.addTask(new TodoTask("third")));
     }
 
     @Test

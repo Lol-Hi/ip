@@ -5,13 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the state and display behavior of Task.
+ * Tests the ToDo task subclass and the common task state behavior it inherits.
  */
-class TaskTest {
+class TodoTaskTest {
 
     @Test
-    void newTaskIsNotDone() {
-        Task task = new Task("read book");
+    void newTodoTaskIsNotDone() {
+        TodoTask task = new TodoTask("read book");
 
         assertFalse(task.isDone());
         assertEquals(" ", task.getStatusIcon());
@@ -19,8 +19,8 @@ class TaskTest {
     }
 
     @Test
-    void taskCanBeMarkedAsDone() {
-        Task task = new Task("read book");
+    void todoTaskCanBeMarkedAsDone() {
+        TodoTask task = new TodoTask("read book");
 
         task.markAsDone();
 
@@ -30,8 +30,8 @@ class TaskTest {
     }
 
     @Test
-    void taskCanBeUnmarkedAsUndone() {
-        Task task = new Task("read book");
+    void todoTaskCanBeUnmarkedAsUndone() {
+        TodoTask task = new TodoTask("read book");
         task.markAsDone();
 
         task.unmarkAsUndone();
@@ -40,20 +40,4 @@ class TaskTest {
         assertEquals(" ", task.getStatusIcon());
         assertEquals("[T][ ] read book", task.toString());
     }
-
-    @Test
-    void deadlineTaskIncludesDeadlineInOutput() {
-        Task task = new Task("return book", "Sunday");
-
-        assertEquals("[D][ ] return book (by: Sunday)", task.toString());
-    }
-
-    @Test
-    void eventTaskIncludesStartAndEndTimesInOutput() {
-        Task task = new Task("project meeting", "Mon 2pm", "4pm");
-
-        assertEquals("[E][ ] project meeting (from: Mon 2pm to: 4pm)",
-                task.toString());
-    }
-
 }
