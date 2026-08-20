@@ -1,20 +1,39 @@
-# LuckyNoSlacky project template
+# LuckyNoSlacky
 
-This is a project template for a greenfield Java project customized for the LuckyNoSlacky chatbot. Given below are instructions on how to use it.
+LuckyNoSlacky is a command-line task manager for keeping track of ToDos,
+deadlines, and events. Tasks are stored in memory while the application is
+running and can be marked as done or not done.
 
-## Setting up in Intellij
+## Features
 
-Prerequisites: JDK 25, update Intellij to the most recent version.
+- Add ToDo tasks without a date or time.
+- Add Deadline tasks with a user-provided deadline description.
+- Add Event tasks with user-provided start and end time descriptions.
+- List tasks in the order they were added.
+- Mark tasks as done and reverse their done status.
+- Store up to 100 tasks during one application run.
 
-1. Open Intellij (if you are not in the welcome screen, click `File` > `Close Project` to close the existing project first)
-1. Open the project into Intellij as follows:
-   1. Click `Open`.
-   1. Select the project directory, and click `OK`.
-   1. If there are any further prompts, accept the defaults.
-1. Configure the project to use **JDK 25** (not other versions) as explained in [here](https://www.jetbrains.com/help/idea/sdk.html#set-up-jdk).<br>
-   In the same dialog, set the **Project language level** field to the `SDK default` option.
-1. After that, locate the `src/main/java/LuckyNoSlacky.java` file, right-click it, and choose `Run LuckyNoSlacky.main()` (if the code editor is showing compile errors, try restarting the IDE). If the setup is correct, you should see something like the below as the output:
-```
+## Getting started
+
+### Prerequisites
+
+- Java Development Kit (JDK) 25.
+- IntelliJ IDEA, if you want to run the application using the IDE.
+- Gradle is not required separately because the project includes the Gradle
+  wrapper.
+
+### Run using IntelliJ IDEA
+
+1. Open IntelliJ IDEA.
+2. Select **Open** and choose the project directory.
+3. Configure the project SDK and language level to use JDK 25. See the
+   [IntelliJ IDEA JDK instructions](https://www.jetbrains.com/help/idea/sdk.html#set-up-jdk).
+4. Open `src/main/java/LuckyNoSlacky.java`.
+5. Right-click the file and select **Run `LuckyNoSlacky.main()`**.
+
+The application starts with the following banner:
+
+```text
      .--"""""--.
    /  /^\   /^\  \
   |  .---------.  |
@@ -22,12 +41,134 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    \ '---------' /
      '-._____.-'
     [NO SLACKING]
- LuckyNoSlacky is here to help!
+  LuckyNoSlacky is here to help!
 ```
 
-**Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.
+### Run using the command line
 
-## AI Declaration
-This project is done on a AI-4 level:
-I will give the AI the level requirements as well as my general plan on how I want to work through the level,
-then my AI assistant would give me a more detailed rundown on the action plan before I ask it to generate the code snippets for my approval.
+From the project root, compile the project and run the chatbot with:
+
+```bash
+./gradlew build
+java -cp build/classes/java/main LuckyNoSlacky
+```
+
+On Windows, use `gradlew.bat build` instead of `./gradlew build`.
+
+## User guide
+
+Enter one command per line. Commands are case-insensitive, and leading or
+trailing spaces are ignored.
+
+| Command               | Format | Description |
+|-----------------------| --- | --- |
+| Create Todo Task      | `todo <description>` | Adds a task without date or time information. |
+| Create Deadline Task  | `deadline <description> /by <date/time>` | Adds a task with a deadline. |
+| Create Event Task     | `event <description> /from <start> /to <end>` | Adds a task with a start and end time. |
+| List Tasks            | `list` | Displays all tasks and their numbers. |
+| Mark Task as Done     | `mark <number>` | Marks the specified task as done. |
+| Unmark Task as Undone | `unmark <number>` | Marks the specified task as not done. |
+| Exit                  | `bye` | Exits the chatbot. |
+
+### Adding tasks
+
+To add a ToDo task:
+
+```text
+todo borrow book
+```
+
+To add a Deadline task:
+
+```text
+deadline return book /by Sunday
+```
+
+To add an Event task:
+
+```text
+event project meeting /from Mon 2pm /to 4pm
+```
+
+### Listing tasks
+
+Use `list` to display all tasks:
+
+```text
+list
+```
+
+Tasks are displayed using a type marker and a completion marker:
+
+```text
+1.[T][ ] borrow book
+2.[D][X] return book (by: Sunday)
+3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
+```
+Type Markers:
+- `[T]` represents a ToDo.
+- `[D]` represents a Deadline.
+- `[E]` represents an Event.
+
+Completion Markers:
+- `[ ]` means the task is not done.
+- `[X]` means the task is done.
+
+### Marking and Unmarking Tasks
+Mark and unmark tasks by writing the corresponding command, 
+followed by the task number based on the output of the `list` command:
+
+```text
+mark 1
+unmark 1
+```
+
+Both commands require exactly one valid task number.
+
+### Example session
+
+```text
+todo borrow book
+  ____________________________________________________________
+  Got it. I've added this task:
+    [T][ ] borrow book
+  ____________________________________________________________
+deadline return book /by Sunday
+  ____________________________________________________________
+  Got it. I've added this task:
+    [D][ ] return book (by: Sunday)
+  ____________________________________________________________
+list
+  ____________________________________________________________
+  Here are the tasks in your list:
+  1.[T][ ] borrow book
+  2.[D][ ] return book (by: Sunday)
+  ____________________________________________________________
+mark 1
+  ____________________________________________________________
+  Nice! I've marked this task as done:
+    [T][X] borrow book
+  ____________________________________________________________
+
+bye
+  Bye, hope to see you again soon!
+```
+
+## Running the tests
+
+Run the automated tests from the project root with:
+
+```bash
+./gradlew test
+```
+
+The tests cover task storage, completion state, task subclasses, task parsing,
+and invalid input.
+
+## Development notes
+
+### AI declaration
+
+This project was developed with AI assistance at AI-4 level. I provide the AI
+with the level requirements and my general plan, review a more detailed action
+plan and code snippets, and approve the changes before implementation.
