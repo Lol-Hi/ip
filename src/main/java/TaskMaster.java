@@ -32,13 +32,26 @@ public class TaskMaster {
      *
      * @param task task description entered by the user
      */
-    public void addTask(String task) {
+    public void addTask(Task task) {
         if (taskCount >= taskRoster.length) {
             throw new IllegalStateException("The task list is full.");
         }
 
-        taskRoster[taskCount] = new Task(task);
+        if (task == null) {
+            throw new IllegalArgumentException("Task cannot be null.");
+        }
+
+        taskRoster[taskCount] = task;
         taskCount++;
+    }
+
+    /**
+     * Returns the number of tasks currently stored.
+     *
+     * @return current task count
+     */
+    public int getTaskCount() {
+        return taskCount;
     }
 
     /**

@@ -19,9 +19,9 @@ class TaskMasterTest {
     void addedTaskAppearsInList() {
         TaskMaster taskMaster = new TaskMaster();
 
-        taskMaster.addTask("read book");
+        taskMaster.addTask(new Task("read book"));
 
-        assertEquals("Here are the tasks in your list:\n1.[ ] read book",
+        assertEquals("Here are the tasks in your list:\n1.[T][ ] read book",
                 taskMaster.listTasks());
     }
 
@@ -29,12 +29,12 @@ class TaskMasterTest {
     void multipleTasksAreListedInOrder() {
         TaskMaster taskMaster = new TaskMaster();
 
-        taskMaster.addTask("read book");
-        taskMaster.addTask("return book");
+        taskMaster.addTask(new Task("read book"));
+        taskMaster.addTask(new Task("return book"));
 
         assertEquals("Here are the tasks in your list:\n"
-                        + "1.[ ] read book\n"
-                        + "2.[ ] return book",
+                        + "1.[T][ ] read book\n"
+                        + "2.[T][ ] return book",
                 taskMaster.listTasks());
     }
 
@@ -42,13 +42,13 @@ class TaskMasterTest {
     void markedTaskIsShownAsDone() {
         TaskMaster taskMaster = new TaskMaster();
 
-        taskMaster.addTask("read book");
-        taskMaster.addTask("return book");
+        taskMaster.addTask(new Task("read book"));
+        taskMaster.addTask(new Task("return book"));
         taskMaster.markTaskDone(2);
 
         assertEquals("Here are the tasks in your list:\n"
-                        + "1.[ ] read book\n"
-                        + "2.[X] return book",
+                        + "1.[T][ ] read book\n"
+                        + "2.[T][X] return book",
                 taskMaster.listTasks());
     }
 
@@ -56,18 +56,18 @@ class TaskMasterTest {
     void unmarkedTaskIsShownAsNotDone() {
         TaskMaster taskMaster = new TaskMaster();
 
-        taskMaster.addTask("read book");
+        taskMaster.addTask(new Task("read book"));
         taskMaster.markTaskDone(1);
         taskMaster.unmarkTaskUndone(1);
 
-        assertEquals("Here are the tasks in your list:\n1.[ ] read book",
+        assertEquals("Here are the tasks in your list:\n1.[T][ ] read book",
                 taskMaster.listTasks());
     }
 
     @Test
     void invalidTaskNumberCannotBeMarked() {
         TaskMaster taskMaster = new TaskMaster();
-        taskMaster.addTask("read book");
+        taskMaster.addTask(new Task("read book"));
 
         assertThrows(IllegalArgumentException.class,
                 () -> taskMaster.markTaskDone(0));
@@ -78,7 +78,7 @@ class TaskMasterTest {
     @Test
     void invalidTaskNumberCannotBeUnmarked() {
         TaskMaster taskMaster = new TaskMaster();
-        taskMaster.addTask("read book");
+        taskMaster.addTask(new Task("read book"));
 
         assertThrows(IllegalArgumentException.class,
                 () -> taskMaster.unmarkTaskUndone(0));
@@ -90,11 +90,11 @@ class TaskMasterTest {
     void customCapacityIsRespected() {
         TaskMaster taskMaster = new TaskMaster(2);
 
-        taskMaster.addTask("first");
-        taskMaster.addTask("second");
+        taskMaster.addTask(new Task("first"));
+        taskMaster.addTask(new Task("second"));
 
         assertThrows(IllegalStateException.class,
-                () -> taskMaster.addTask("third"));
+                () -> taskMaster.addTask(new Task("third")));
     }
 
     @Test
