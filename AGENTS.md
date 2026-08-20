@@ -24,6 +24,18 @@ Unless the user says otherwise, assume that you are assisting a student working 
 
 # Project-specific requirements
 
+## Code update verification
+
+After every code update:
+
+1. Review `test/ui-test-plan.md` against the changed behavior.
+2. Update the test plan when the change adds, removes, or changes a user-visible
+   command, input rule, or console output. If no update is needed, state that
+   explicitly.
+3. Invoke the project-specific `$test-ui` skill to run the documented UI tests.
+4. Report the console input and output record and stop at the first failed UI
+   test case.
+
 ## Java version:
 
 Ensure that Java 25 is used when running the application or build tasks. On macOS, use `sdk use java 25.0.3.fx-zulu` to switch to Java 25 if needed.

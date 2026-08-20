@@ -168,7 +168,6 @@ and invalid input.
 ## Development notes
 
 ### AI declaration
-
 This project was developed with AI assistance at AI-4 level. I provide the AI
 with the level requirements and my general plan, review a more detailed action
 plan and code snippets, and approve the changes before implementation.
