@@ -1,5 +1,4 @@
 import java.util.Scanner;
-import java.util.function.Function;
 
 /**
  * Starts the LuckyNoSlacky chatbot.
@@ -10,10 +9,12 @@ public class LuckyNoSlacky {
 
     private final Scanner userScanner;
     private final TaskMaster tmLucky;
+    private final LuckyNoScanner luckyNoScanner;
 
     LuckyNoSlacky() {
         userScanner = new Scanner(System.in);
         tmLucky = new TaskMaster();
+        luckyNoScanner = new LuckyNoScanner();
     }
 
     private static void printReply(String output) {
@@ -49,28 +50,17 @@ public class LuckyNoSlacky {
         printReply(goodbye);
     }
 
-    private void handleTaskToggle(String[] commandParts, boolean markDone) {
-        String command = markDone ? "mark" : "unmark";
+    private void handleTaskToggle(LuckyNoMarkCommand command) {
+        boolean markDone = command.shouldMarkDone();
+        String task = markDone
+                ? tmLucky.markTaskDone(command.getTaskNumber())
+                : tmLucky.unmarkTaskUndone(command.getTaskNumber());
 
-        if (commandParts.length != 2) {
-            printReply("Please provide a task number to " + command + ".");
-            return;
-        }
+        String message = markDone
+                ? "Nice! I've marked this task as done:"
+                : "OK, I've marked this task as not done yet:";
 
-        try {
-            int taskNumber = Integer.parseInt(commandParts[1]);
-            String task = markDone
-                    ? tmLucky.markTaskDone(taskNumber)
-                    : tmLucky.unmarkTaskUndone(taskNumber);
-
-            String message = markDone
-                    ? "Nice! I've marked this task as done:"
-                    : "OK, I've marked this task as not done yet:";
-
-            printReply(message + "\n  " + task);
-        } catch (IllegalArgumentException exception) {
-            printReply("That task number is invalid.");
-        }
+        printReply(message + "\n  " + task);
     }
 
     private void addTask(Task task) {
@@ -82,79 +72,29 @@ public class LuckyNoSlacky {
                 + " tasks in the list.");
     }
 
-    private void handleTaskCreation(String arguments,
-                                    Function<String, ? extends Task> taskCreator,
-                                    String errorMessage) {
-        try {
-            addTask(taskCreator.apply(arguments));
-        } catch (IllegalArgumentException exception) {
-            printReply(errorMessage);
-        }
-    }
-
     private void chatLoop() {
         while (userScanner.hasNextLine()) {
             String userInput = userScanner.nextLine();
-            String trimmedInput = userInput.trim();
-
-            if (trimmedInput.equalsIgnoreCase("bye")) {
-                return;
-            }
-
-            if (trimmedInput.isEmpty()) {
-                printReply("Please enter a command.");
-                continue;
-            }
-
-            String[] commandParts = trimmedInput.split("\\s+", 2);
-            String command = commandParts[0].toLowerCase();
-            String arguments = commandParts.length == 2
-                    ? commandParts[1].trim()
-                    : "";
-
-            switch (command) {
-            case "bye":
-                if (arguments.isEmpty()) {
+            try {
+                LuckyNoCommand command = luckyNoScanner.parseCommand(
+                        userInput, tmLucky.getTaskCount());
+                switch (command.getCommandName()) {
+                case "bye":
                     return;
-                }
-                printReply("The bye command does not take arguments.");
-                break;
-            case "list":
-                if (arguments.isEmpty()) {
+                case "list":
                     printReply(tmLucky.listTasks());
-                } else {
-                    printReply("The list command does not take arguments.");
+                    break;
+                case "createTask":
+                    addTask(((LuckyNoTaskCommand) command).getTask());
+                    break;
+                case "toggleTask":
+                    handleTaskToggle((LuckyNoMarkCommand) command);
+                    break;
+                default:
+                    throw new IllegalStateException("Unknown parsed command.");
                 }
-                break;
-            case "todo":
-                if (arguments.isEmpty()) {
-                    printReply("Please provide a task description.");
-                } else {
-                    addTask(new TodoTask(arguments));
-                }
-                break;
-            case "deadline":
-                handleTaskCreation(
-                        arguments,
-                        DeadlineTask::createDeadlineTask,
-                        "Please use: deadline <description> /by <date/time>.");
-                break;
-            case "event":
-                handleTaskCreation(
-                        arguments,
-                        EventTask::createEventTask,
-                        "Please use: event <description> /from <start> /to <end>.");
-                break;
-            case "mark":
-                handleTaskToggle(trimmedInput.split("\\s+"), true);
-                break;
-            case "unmark":
-                handleTaskToggle(trimmedInput.split("\\s+"), false);
-                break;
-            default:
-                printReply("I don't recognize that command. "
-                        + "Please use todo, deadline, event, list, mark, unmark, or bye.");
-                break;
+            } catch (LuckyNoInputError exception) {
+                printReply(exception.getMessage());
             }
         }
     }

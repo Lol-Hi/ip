@@ -21,31 +21,6 @@ public class DeadlineTask extends Task {
     }
 
     /**
-     * Parses command arguments and creates a deadline task.
-     *
-     * @param arguments text following the deadline command
-     * @return a parsed deadline task
-     * @throws IllegalArgumentException if the arguments do not contain a
-     *         description and a /by time
-     */
-    public static DeadlineTask createDeadlineTask(String arguments) {
-        int byIndex = arguments.indexOf("/by");
-
-        if (byIndex <= 0) {
-            throw new IllegalArgumentException();
-        }
-
-        String description = arguments.substring(0, byIndex).trim();
-        String byTime = arguments.substring(byIndex + 3).trim();
-
-        if (description.isEmpty() || byTime.isEmpty()) {
-            throw new IllegalArgumentException();
-        }
-
-        return new DeadlineTask(description, byTime);
-    }
-
-    /**
      * Returns the deadline display representation.
      *
      * @return deadline type marker, common task representation, and deadline

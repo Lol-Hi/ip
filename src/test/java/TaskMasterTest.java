@@ -80,6 +80,30 @@ class TaskMasterTest {
     }
 
     @Test
+    void markingAlreadyDoneTaskKeepsItDone() {
+        TaskMaster taskMaster = new TaskMaster();
+        taskMaster.addTask(new TodoTask("read book"));
+
+        taskMaster.markTaskDone(1);
+        taskMaster.markTaskDone(1);
+
+        assertEquals("Here are the tasks in your list:\n1.[T][X] read book",
+                taskMaster.listTasks());
+    }
+
+    @Test
+    void unmarkingAlreadyUndoneTaskKeepsItUndone() {
+        TaskMaster taskMaster = new TaskMaster();
+        taskMaster.addTask(new TodoTask("read book"));
+
+        taskMaster.unmarkTaskUndone(1);
+        taskMaster.unmarkTaskUndone(1);
+
+        assertEquals("Here are the tasks in your list:\n1.[T][ ] read book",
+                taskMaster.listTasks());
+    }
+
+    @Test
     void invalidTaskNumberCannotBeMarked() {
         TaskMaster taskMaster = new TaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
