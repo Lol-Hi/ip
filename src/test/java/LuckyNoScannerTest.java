@@ -55,6 +55,15 @@ class LuckyNoScannerTest {
     }
 
     @Test
+    void acceptsCaseInsensitiveCommandsAndSurroundingWhitespace()
+            throws LuckyNoInputException {
+        LuckyNoTaskCommand command = assertInstanceOf(LuckyNoTaskCommand.class,
+                scanner.parseCommand("  ToDo   read book  ", 0));
+
+        assertEquals("[T][ ] read book", command.getTask().toString());
+    }
+
+    @Test
     void rejectsEmptyAndUnknownCommands() {
         assertInputError("Eh you mute issit?? Just say what you want lah!", "   ", 0);
         assertInputError("What talking you? I only understand todo, deadline, event, list, mark, unmark, or bye, ok?",
@@ -73,11 +82,23 @@ class LuckyNoScannerTest {
     }
 
     @Test
+    void rejectsMissingDeadlineAndEventTimes() {
+        assertInputError("Eh HELLO you know how to type command one anot? \n"
+                        + "Lai lai let me teach you: deadline <description> /by <date/time>.",
+                "deadline return book /by", 0);
+        assertInputError("Eh HELLO you know how to type command one anot? \n"
+                        + "Lai lai let me teach you: event <description> /from <start> /to <end>.",
+                "event meeting /from Mon 2pm /to", 0);
+    }
+
+    @Test
     void rejectsInvalidTaskNumbers() {
         assertInputError("Eh which task you talking about har? Can say clearly anot.", "mark", 1);
         assertInputError("You siao ah how to spin this task from thin air?", "mark 2", 1);
         assertInputError("Eh which task you talking about har? Can say clearly anot.",
                 "unmark 1 extra", 1);
+        assertInputError("You siao ah how to spin this task from thin air?", "unmark -1", 1);
+        assertInputError("You siao ah how to spin this task from thin air?", "mark one", 1);
     }
 
     @Test

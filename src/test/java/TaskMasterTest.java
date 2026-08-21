@@ -126,6 +126,23 @@ class TaskMasterTest {
     }
 
     @Test
+    void invalidStatusChangeDoesNotAlterTaskState() {
+        TaskMaster taskMaster = new TaskMaster();
+        taskMaster.addTask(new TodoTask("read book"));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> taskMaster.markTaskDone(2));
+        assertEquals("Nah all these stuff you need to do:\n1.[T][ ] read book",
+                taskMaster.listTasks());
+
+        taskMaster.markTaskDone(1);
+        assertThrows(IllegalArgumentException.class,
+                () -> taskMaster.unmarkTaskUndone(2));
+        assertEquals("Nah all these stuff you need to do:\n1.[T][X] read book",
+                taskMaster.listTasks());
+    }
+
+    @Test
     void customCapacityIsRespected() {
         TaskMaster taskMaster = new TaskMaster(2);
 
