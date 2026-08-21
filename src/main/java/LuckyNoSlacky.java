@@ -32,22 +32,12 @@ public class LuckyNoSlacky {
     }
 
     private void greet() {
-        String banner = "     .--\"\"\"\"\"--.\n"
-                + "   /  /^\\   /^\\  \\\n"
-                + "  |  .---------.  |\n"
-                + "  |  | | | | | |  |\n"
-                + "   \\ '---------' /\n"
-                + "     '-._____.-'\n"
-                + "    [NO SLACKING]\n"
-                + "  LuckyNoSlacky is here to help!";
-        String hello = "Hello, I'm LuckyNoSlacky!\nWhat can I do for you?";
-        System.out.print(DIVIDER + banner + "\n");
-        printReply(hello);
+        System.out.print(DIVIDER + LuckyNoMessages.banner() + "\n");
+        printReply(LuckyNoMessages.greeting());
     }
 
     private void exit() {
-        String goodbye = "Bye, hope to see you again soon!";
-        printReply(goodbye);
+        printReply(LuckyNoMessages.goodbye());
     }
 
     private void handleTaskToggle(LuckyNoMarkCommand command) {
@@ -57,19 +47,17 @@ public class LuckyNoSlacky {
                 : tmLucky.unmarkTaskUndone(command.getTaskNumber());
 
         String message = markDone
-                ? "Nice! I've marked this task as done:"
-                : "OK, I've marked this task as not done yet:";
+                ? LuckyNoMessages.markedTaskMessage(task)
+                : LuckyNoMessages.unmarkedTaskMessage(task);
 
-        printReply(message + "\n  " + task);
+        printReply(message);
     }
 
     private void addTask(Task task) {
         tmLucky.addTask(task);
 
-        printReply("Got it. I've added this task:\n"
-                + "  " + task
-                + "\nNow you have " + tmLucky.getTaskCount()
-                + " tasks in the list.");
+        printReply(LuckyNoMessages.addedTaskMessage(
+                task, tmLucky.getTaskCount()));
     }
 
     private void chatLoop() {

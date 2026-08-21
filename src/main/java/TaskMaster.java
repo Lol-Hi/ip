@@ -61,10 +61,10 @@ public class TaskMaster {
      */
     public String listTasks() {
         if (taskCount == 0) {
-            return "No tasks yet.";
+            return LuckyNoMessages.emptyTaskListMessage();
         }
 
-        StringBuilder result = new StringBuilder("Here are the tasks in your list:");
+        StringBuilder result = new StringBuilder(LuckyNoMessages.taskListHeader());
 
         for (int i = 0; i < taskCount; i++) {
             result.append("\n")

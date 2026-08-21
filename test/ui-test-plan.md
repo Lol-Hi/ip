@@ -30,11 +30,10 @@ bye
     [NO SLACKING]
   LuckyNoSlacky is here to help!
   ____________________________________________________________
-  Hello, I'm LuckyNoSlacky!
-  What can I do for you?
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
   ____________________________________________________________
   ____________________________________________________________
-  Bye, hope to see you again soon!
+  Huh so fast zao ah, rest well ah!
   ____________________________________________________________
 ```
 
@@ -65,32 +64,31 @@ bye
     [NO SLACKING]
   LuckyNoSlacky is here to help!
   ____________________________________________________________
-  Hello, I'm LuckyNoSlacky!
-  What can I do for you?
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
   ____________________________________________________________
   ____________________________________________________________
-  Got it. I've added this task:
+  Got one more thing to remember ah: 
     [T][ ] borrow book
-  Now you have 1 tasks in the list.
+  Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
-  Got it. I've added this task:
+  Got one more thing to remember ah: 
     [D][ ] return book (by: Sunday)
-  Now you have 2 tasks in the list.
+  Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
-  Got it. I've added this task:
+  Got one more thing to remember ah: 
     [E][ ] project meeting (from: Mon 2pm to: 4pm)
-  Now you have 3 tasks in the list.
+  Now you got 3 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
-  Here are the tasks in your list:
+  Nah all these stuff you need to do:
   1.[T][ ] borrow book
   2.[D][ ] return book (by: Sunday)
   3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
   ____________________________________________________________
   ____________________________________________________________
-  Bye, hope to see you again soon!
+  Huh so fast zao ah, rest well ah!
   ____________________________________________________________
 ```
 
@@ -121,28 +119,27 @@ bye
     [NO SLACKING]
   LuckyNoSlacky is here to help!
   ____________________________________________________________
-  Hello, I'm LuckyNoSlacky!
-  What can I do for you?
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
   ____________________________________________________________
   ____________________________________________________________
-  Got it. I've added this task:
+  Got one more thing to remember ah: 
     [T][ ] read book
-  Now you have 1 tasks in the list.
+  Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
-  Nice! I've marked this task as done:
+  Swee lah you're done with this task:
     [T][X] read book
   ____________________________________________________________
   ____________________________________________________________
-  OK, I've marked this task as not done yet:
+  Eh salah you're not done with this task ah, must remember to do ah!
     [T][ ] read book
   ____________________________________________________________
   ____________________________________________________________
-  Here are the tasks in your list:
+  Nah all these stuff you need to do:
   1.[T][ ] read book
   ____________________________________________________________
   ____________________________________________________________
-  Bye, hope to see you again soon!
+  Huh so fast zao ah, rest well ah!
   ____________________________________________________________
 ```
 
@@ -175,29 +172,30 @@ bye
     [NO SLACKING]
   LuckyNoSlacky is here to help!
   ____________________________________________________________
-  Hello, I'm LuckyNoSlacky!
-  What can I do for you?
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
   ____________________________________________________________
   ____________________________________________________________
-  I don't recognize that command. Please use todo, deadline, event, list, mark, unmark, or bye.
+  What talking you? I only understand todo, deadline, event, list, mark, unmark, or bye, ok?
   ____________________________________________________________
   ____________________________________________________________
-  Please use: deadline <description> /by <date/time>.
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: deadline <description> /by <date/time>.
   ____________________________________________________________
   ____________________________________________________________
-  Please use: event <description> /from <start> /to <end>.
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: event <description> /from <start> /to <end>.
   ____________________________________________________________
   ____________________________________________________________
-  That task number is invalid.
+  You siao ah how to spin this task from thin air?
   ____________________________________________________________
   ____________________________________________________________
-  Please provide a task description.
+  You don't tell me what to do how I know what to do???
   ____________________________________________________________
   ____________________________________________________________
-  The bye command does not take arguments.
+  Why you so losor! Leave the bye command to do its own thing lah
   ____________________________________________________________
   ____________________________________________________________
-  Bye, hope to see you again soon!
+  Huh so fast zao ah, rest well ah!
   ____________________________________________________________
 ```
 
@@ -230,35 +228,34 @@ bye
     [NO SLACKING]
   LuckyNoSlacky is here to help!
   ____________________________________________________________
-  Hello, I'm LuckyNoSlacky!
-  What can I do for you?
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
   ____________________________________________________________
   ____________________________________________________________
-  Got it. I've added this task:
+  Got one more thing to remember ah: 
     [T][ ] read book
-  Now you have 1 tasks in the list.
+  Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
-  Nice! I've marked this task as done:
+  Swee lah you're done with this task:
     [T][X] read book
   ____________________________________________________________
   ____________________________________________________________
-  Nice! I've marked this task as done:
+  Swee lah you're done with this task:
     [T][X] read book
   ____________________________________________________________
   ____________________________________________________________
-  OK, I've marked this task as not done yet:
+  Eh salah you're not done with this task ah, must remember to do ah!
     [T][ ] read book
   ____________________________________________________________
   ____________________________________________________________
-  OK, I've marked this task as not done yet:
+  Eh salah you're not done with this task ah, must remember to do ah!
     [T][ ] read book
   ____________________________________________________________
   ____________________________________________________________
-  Here are the tasks in your list:
+  Nah all these stuff you need to do:
   1.[T][ ] read book
   ____________________________________________________________
   ____________________________________________________________
-  Bye, hope to see you again soon!
+  Huh so fast zao ah, rest well ah!
   ____________________________________________________________
 ```

@@ -12,7 +12,7 @@ class TaskMasterTest {
     void emptyTaskListReturnsNoTasksMessage() {
         TaskMaster taskMaster = new TaskMaster();
 
-        assertEquals("No tasks yet.", taskMaster.listTasks());
+        assertEquals("Chill lah bro got nothing yet lah!", taskMaster.listTasks());
     }
 
     @Test
@@ -21,7 +21,7 @@ class TaskMasterTest {
 
         taskMaster.addTask(new TodoTask("read book"));
 
-        assertEquals("Here are the tasks in your list:\n1.[T][ ] read book",
+        assertEquals("Nah all these stuff you need to do:\n1.[T][ ] read book",
                 taskMaster.listTasks());
     }
 
@@ -32,7 +32,7 @@ class TaskMasterTest {
         taskMaster.addTask(new TodoTask("read book"));
         taskMaster.addTask(new TodoTask("return book"));
 
-        assertEquals("Here are the tasks in your list:\n"
+        assertEquals("Nah all these stuff you need to do:\n"
                         + "1.[T][ ] read book\n"
                         + "2.[T][ ] return book",
                 taskMaster.listTasks());
@@ -46,7 +46,7 @@ class TaskMasterTest {
         taskMaster.addTask(new DeadlineTask("return book", "Sunday"));
         taskMaster.addTask(new EventTask("project meeting", "Mon 2pm", "4pm"));
 
-        assertEquals("Here are the tasks in your list:\n"
+        assertEquals("Nah all these stuff you need to do:\n"
                         + "1.[T][ ] borrow book\n"
                         + "2.[D][ ] return book (by: Sunday)\n"
                         + "3.[E][ ] project meeting (from: Mon 2pm to: 4pm)",
@@ -61,7 +61,7 @@ class TaskMasterTest {
         taskMaster.addTask(new TodoTask("return book"));
         taskMaster.markTaskDone(2);
 
-        assertEquals("Here are the tasks in your list:\n"
+        assertEquals("Nah all these stuff you need to do:\n"
                         + "1.[T][ ] read book\n"
                         + "2.[T][X] return book",
                 taskMaster.listTasks());
@@ -75,7 +75,7 @@ class TaskMasterTest {
         taskMaster.markTaskDone(1);
         taskMaster.unmarkTaskUndone(1);
 
-        assertEquals("Here are the tasks in your list:\n1.[T][ ] read book",
+        assertEquals("Nah all these stuff you need to do:\n1.[T][ ] read book",
                 taskMaster.listTasks());
     }
 
@@ -87,7 +87,7 @@ class TaskMasterTest {
         taskMaster.markTaskDone(1);
         taskMaster.markTaskDone(1);
 
-        assertEquals("Here are the tasks in your list:\n1.[T][X] read book",
+        assertEquals("Nah all these stuff you need to do:\n1.[T][X] read book",
                 taskMaster.listTasks());
     }
 
@@ -99,7 +99,7 @@ class TaskMasterTest {
         taskMaster.unmarkTaskUndone(1);
         taskMaster.unmarkTaskUndone(1);
 
-        assertEquals("Here are the tasks in your list:\n1.[T][ ] read book",
+        assertEquals("Nah all these stuff you need to do:\n1.[T][ ] read book",
                 taskMaster.listTasks());
     }
 
