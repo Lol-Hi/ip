@@ -11,7 +11,7 @@ class LuckyNoScannerTest {
     private final LuckyNoScanner scanner = new LuckyNoScanner();
 
     @Test
-    void parsesTodoCommandIntoTaskCommand() throws LuckyNoInputError {
+    void parsesTodoCommandIntoTaskCommand() throws LuckyNoInputException {
         LuckyNoTaskCommand command = assertInstanceOf(LuckyNoTaskCommand.class,
                 scanner.parseCommand("todo borrow book", 0));
 
@@ -19,7 +19,7 @@ class LuckyNoScannerTest {
     }
 
     @Test
-    void parsesDeadlineCommandIntoDeadlineTask() throws LuckyNoInputError {
+    void parsesDeadlineCommandIntoDeadlineTask() throws LuckyNoInputException {
         LuckyNoTaskCommand command = assertInstanceOf(LuckyNoTaskCommand.class,
                 scanner.parseCommand("deadline return book /by Sunday", 0));
 
@@ -27,7 +27,7 @@ class LuckyNoScannerTest {
     }
 
     @Test
-    void parsesEventCommandIntoEventTask() throws LuckyNoInputError {
+    void parsesEventCommandIntoEventTask() throws LuckyNoInputException {
         LuckyNoTaskCommand command = assertInstanceOf(LuckyNoTaskCommand.class,
                 scanner.parseCommand("event project meeting /from Mon 2pm /to 4pm", 0));
 
@@ -36,7 +36,7 @@ class LuckyNoScannerTest {
     }
 
     @Test
-    void parsesMarkAndUnmarkAsExplicitStatuses() throws LuckyNoInputError {
+    void parsesMarkAndUnmarkAsExplicitStatuses() throws LuckyNoInputException {
         LuckyNoMarkCommand mark = assertInstanceOf(LuckyNoMarkCommand.class,
                 scanner.parseCommand("mark 1", 1));
         LuckyNoMarkCommand unmark = assertInstanceOf(LuckyNoMarkCommand.class,
@@ -49,7 +49,7 @@ class LuckyNoScannerTest {
     }
 
     @Test
-    void parsesListAndByeCommands() throws LuckyNoInputError {
+    void parsesListAndByeCommands() throws LuckyNoInputException {
         assertEquals("list", scanner.parseCommand("list", 0).getCommandName());
         assertEquals("bye", scanner.parseCommand("bye", 0).getCommandName());
     }
@@ -87,7 +87,7 @@ class LuckyNoScannerTest {
     }
 
     private void assertInputError(String message, String input, int taskCount) {
-        LuckyNoInputError error = assertThrows(LuckyNoInputError.class,
+        LuckyNoInputException error = assertThrows(LuckyNoInputException.class,
                 () -> scanner.parseCommand(input, taskCount));
         assertEquals(message, error.getMessage());
     }

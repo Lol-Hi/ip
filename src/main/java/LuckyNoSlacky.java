@@ -81,7 +81,7 @@ public class LuckyNoSlacky {
                 default:
                     throw new IllegalStateException("Unknown parsed command.");
                 }
-            } catch (LuckyNoInputError exception) {
+            } catch (LuckyNoInputException exception) {
                 printReply(exception.getMessage());
             }
         }

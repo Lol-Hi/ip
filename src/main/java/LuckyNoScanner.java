@@ -10,12 +10,12 @@ public class LuckyNoScanner {
      * @param input raw user input
      * @param taskCount number of tasks currently stored
      * @return parsed command
-     * @throws LuckyNoInputError if the input is invalid
+     * @throws LuckyNoInputException if the input is invalid
      */
     public LuckyNoCommand parseCommand(String input, int taskCount)
-            throws LuckyNoInputError {
+            throws LuckyNoInputException {
         if (input == null || input.trim().isEmpty()) {
-            throw new LuckyNoInputError(LuckyNoMessages.missingCommandMessage());
+            throw new LuckyNoInputException(LuckyNoMessages.missingCommandMessage());
         }
 
         String trimmedInput = input.trim();
@@ -43,22 +43,22 @@ public class LuckyNoScanner {
         case "unmark":
             return new LuckyNoMarkCommand(parseTaskNumber(arguments, taskCount), false);
         default:
-            throw new LuckyNoInputError(LuckyNoMessages.unknownCommandMessage());
+            throw new LuckyNoInputException(LuckyNoMessages.unknownCommandMessage());
         }
     }
 
     private void checkNoArguments(String arguments, String command)
-            throws LuckyNoInputError {
+            throws LuckyNoInputException {
         if (!arguments.isEmpty()) {
-            throw new LuckyNoInputError(
+            throw new LuckyNoInputException(
                     LuckyNoMessages.extraArgumentsMessage(command));
         }
     }
 
     private int parseTaskNumber(String arguments, int taskCount)
-            throws LuckyNoInputError {
+            throws LuckyNoInputException {
         if (arguments.isEmpty() || arguments.matches(".*\\s+.*")) {
-            throw new LuckyNoInputError(
+            throw new LuckyNoInputException(
                     LuckyNoMessages.missingTaskNumberMessage());
         }
 
@@ -69,23 +69,23 @@ public class LuckyNoScanner {
             }
             return taskNumber;
         } catch (NumberFormatException exception) {
-            throw new LuckyNoInputError(
+            throw new LuckyNoInputException(
                     LuckyNoMessages.invalidTaskNumberMessage());
         }
     }
 
-    private TodoTask parseTodo(String arguments) throws LuckyNoInputError {
+    private TodoTask parseTodo(String arguments) throws LuckyNoInputException {
         if (arguments.isEmpty()) {
-            throw new LuckyNoInputError(
+            throw new LuckyNoInputException(
                     LuckyNoMessages.missingTaskDescriptionMessage());
         }
         return new TodoTask(arguments);
     }
 
-    private DeadlineTask parseDeadline(String arguments) throws LuckyNoInputError {
+    private DeadlineTask parseDeadline(String arguments) throws LuckyNoInputException {
         int byIndex = arguments.indexOf("/by");
         if (byIndex <= 0) {
-            throw new LuckyNoInputError(
+            throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
                             "deadline", LuckyNoMessages.deadlineFormat()));
         }
@@ -93,18 +93,18 @@ public class LuckyNoScanner {
         String description = arguments.substring(0, byIndex).trim();
         String byTime = arguments.substring(byIndex + 3).trim();
         if (description.isEmpty() || byTime.isEmpty()) {
-            throw new LuckyNoInputError(
+            throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
                             "deadline", LuckyNoMessages.deadlineFormat()));
         }
         return new DeadlineTask(description, byTime);
     }
 
-    private EventTask parseEvent(String arguments) throws LuckyNoInputError {
+    private EventTask parseEvent(String arguments) throws LuckyNoInputException {
         int fromIndex = arguments.indexOf("/from");
         int toIndex = arguments.indexOf("/to");
         if (fromIndex <= 0 || toIndex <= fromIndex) {
-            throw new LuckyNoInputError(
+            throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
                             "event", LuckyNoMessages.eventFormat()));
         }
@@ -113,7 +113,7 @@ public class LuckyNoScanner {
         String fromTime = arguments.substring(fromIndex + 5, toIndex).trim();
         String toTime = arguments.substring(toIndex + 3).trim();
         if (description.isEmpty() || fromTime.isEmpty() || toTime.isEmpty()) {
-            throw new LuckyNoInputError(
+            throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
                             "event", LuckyNoMessages.eventFormat()));
         }
