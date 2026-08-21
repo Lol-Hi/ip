@@ -42,6 +42,8 @@ public class LuckyNoScanner {
             return new LuckyNoMarkCommand(parseTaskNumber(arguments, taskCount), true);
         case "unmark":
             return new LuckyNoMarkCommand(parseTaskNumber(arguments, taskCount), false);
+        case "delete":
+            return new LuckyNoDeleteCommand(parseTaskNumber(arguments, taskCount));
         default:
             throw new LuckyNoInputException(LuckyNoMessages.unknownCommandMessage());
         }

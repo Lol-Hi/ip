@@ -49,6 +49,15 @@ class LuckyNoScannerTest {
     }
 
     @Test
+    void parsesDeleteCommandIntoDeleteCommand() throws LuckyNoInputException {
+        LuckyNoDeleteCommand command = assertInstanceOf(LuckyNoDeleteCommand.class,
+                scanner.parseCommand("delete 3", 3));
+
+        assertEquals("deleteTask", command.getCommandName());
+        assertEquals(3, command.getTaskNumber());
+    }
+
+    @Test
     void parsesListAndByeCommands() throws LuckyNoInputException {
         assertEquals("list", scanner.parseCommand("list", 0).getCommandName());
         assertEquals("bye", scanner.parseCommand("bye", 0).getCommandName());
@@ -66,7 +75,7 @@ class LuckyNoScannerTest {
     @Test
     void rejectsEmptyAndUnknownCommands() {
         assertInputError("Eh you mute issit?? Just say what you want lah!", "   ", 0);
-        assertInputError("What talking you? I only understand todo, deadline, event, list, mark, unmark, or bye, ok?",
+        assertInputError("What talking you? I only understand todo, deadline, event, list, mark, unmark, delete, or bye, ok?",
                 "dance", 0);
     }
 
@@ -99,6 +108,12 @@ class LuckyNoScannerTest {
                 "unmark 1 extra", 1);
         assertInputError("You siao ah how to spin this task from thin air?", "unmark -1", 1);
         assertInputError("You siao ah how to spin this task from thin air?", "mark one", 1);
+        assertInputError("Eh which task you talking about har? Can say clearly anot.",
+                "delete", 1);
+        assertInputError("You siao ah how to spin this task from thin air?",
+                "delete 2", 1);
+        assertInputError("Eh which task you talking about har? Can say clearly anot.",
+                "delete 1 extra", 1);
     }
 
     @Test

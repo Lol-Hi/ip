@@ -11,6 +11,7 @@ running and can be marked as done or not done.
 - Add Event tasks with user-provided start and end time descriptions.
 - List tasks in the order they were added.
 - Mark tasks as done or explicitly mark them as not done.
+- Delete tasks by their task number.
 - Store up to 100 tasks during one application run.
 
 ## Getting started
@@ -74,6 +75,7 @@ trailing spaces are ignored.
 | List Tasks            | `list` | Displays all tasks and their numbers. |
 | Mark Task as Done     | `mark <number>` | Marks the specified task as done. |
 | Unmark Task as Undone | `unmark <number>` | Marks the specified task as not done. |
+| Delete Task           | `delete <number>` | Removes the specified task from the list. |
 | Exit                  | `bye` | Exits the chatbot. |
 
 ### Adding tasks
@@ -138,6 +140,18 @@ Both commands require exactly one valid task number.
 Marking an already completed task keeps it completed. Unmarking an incomplete
 task keeps it incomplete. These commands explicitly set the desired status
 instead of toggling the current status.
+
+### Deleting tasks
+
+Delete a task by using its number from the `list` output:
+
+```text
+delete 2
+```
+
+The deleted task is removed from memory, and later tasks are renumbered. The
+command requires a valid task number, and failed deletion commands do not
+change the task list.
 
 ### Invalid commands
 

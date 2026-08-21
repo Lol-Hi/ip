@@ -60,6 +60,12 @@ public class LuckyNoSlacky {
                 task, tmLucky.getTaskCount()));
     }
 
+    private void handleTaskDeletion(LuckyNoDeleteCommand command) {
+        String task = tmLucky.deleteTask(command.getTaskNumber());
+        printReply(LuckyNoMessages.deletedTaskMessage(
+                task, tmLucky.getTaskCount()));
+    }
+
     private void chatLoop() {
         while (userScanner.hasNextLine()) {
             String userInput = userScanner.nextLine();
@@ -77,6 +83,9 @@ public class LuckyNoSlacky {
                     break;
                 case "toggleTask":
                     handleTaskToggle((LuckyNoMarkCommand) command);
+                    break;
+                case "deleteTask":
+                    handleTaskDeletion((LuckyNoDeleteCommand) command);
                     break;
                 default:
                     throw new IllegalStateException("Unknown parsed command.");

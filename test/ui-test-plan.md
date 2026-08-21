@@ -364,7 +364,7 @@ bye
   Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
   ____________________________________________________________
   ____________________________________________________________
-  What talking you? I only understand todo, deadline, event, list, mark, unmark, or bye, ok?
+  What talking you? I only understand todo, deadline, event, list, mark, unmark, delete, or bye, ok?
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
@@ -583,6 +583,102 @@ bye
   1.[T][ ] /by /from /to !@#
   2.[D][ ] do homework (by: no idea :-p)
   3.[E][ ] project meeting (from: ?? to: forever)
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Interleaved deletion and invalid deletion commands
+
+- Aim: Verify that valid deletion removes the requested task and renumbers later tasks, while invalid deletion commands leave the task list unchanged.
+
+### Input
+
+```text
+todo first task
+todo second task
+todo third task
+mark 2
+delete 4
+list
+delete 2
+list
+delete
+list
+delete 1 extra
+list
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [T][ ] first task
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [T][ ] second task
+  Now you got 2 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [T][ ] third task
+  Now you got 3 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Swee lah you're done with this task:
+    [T][X] second task
+  ____________________________________________________________
+  ____________________________________________________________
+  You siao ah how to spin this task from thin air?
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah all these stuff you need to do:
+  1.[T][ ] first task
+  2.[T][X] second task
+  3.[T][ ] third task
+  ____________________________________________________________
+  ____________________________________________________________
+  Solid man can don't care about this one already:
+    [T][X] second task
+  But you still got 2 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah all these stuff you need to do:
+  1.[T][ ] first task
+  2.[T][ ] third task
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh which task you talking about har? Can say clearly anot.
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah all these stuff you need to do:
+  1.[T][ ] first task
+  2.[T][ ] third task
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh which task you talking about har? Can say clearly anot.
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah all these stuff you need to do:
+  1.[T][ ] first task
+  2.[T][ ] third task
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!

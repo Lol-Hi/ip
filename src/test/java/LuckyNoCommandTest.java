@@ -33,4 +33,12 @@ class LuckyNoCommandTest {
         assertEquals("toggleTask", command.getCommandName());
         assertEquals(false, command.shouldMarkDone());
     }
+
+    @Test
+    void deleteCommandStoresTaskNumberAndUsesDeleteTaskName() {
+        LuckyNoDeleteCommand command = new LuckyNoDeleteCommand(3);
+
+        assertEquals("deleteTask", command.getCommandName());
+        assertEquals(3, command.getTaskNumber());
+    }
 }

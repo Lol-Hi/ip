@@ -104,6 +104,54 @@ class TaskMasterTest {
     }
 
     @Test
+    void deletingMiddleTaskRemovesItAndRenumbersRemainingTasks() {
+        TaskMaster taskMaster = new TaskMaster();
+        taskMaster.addTask(new TodoTask("first"));
+        taskMaster.addTask(new DeadlineTask("second", "Sunday"));
+        taskMaster.addTask(new EventTask("third", "Mon 2pm", "4pm"));
+
+        assertEquals("[D][ ] second (by: Sunday)", taskMaster.deleteTask(2));
+        assertEquals("Nah all these stuff you need to do:\n"
+                        + "1.[T][ ] first\n"
+                        + "2.[E][ ] third (from: Mon 2pm to: 4pm)",
+                taskMaster.listTasks());
+    }
+
+    @Test
+    void invalidDeletionDoesNotAlterTaskList() {
+        TaskMaster taskMaster = new TaskMaster();
+        taskMaster.addTask(new TodoTask("read book"));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> taskMaster.deleteTask(2));
+        assertEquals("Nah all these stuff you need to do:\n1.[T][ ] read book",
+                taskMaster.listTasks());
+    }
+
+    @Test
+    void deletingTaskFreesCapacityForAnotherTask() {
+        TaskMaster taskMaster = new TaskMaster(2);
+        taskMaster.addTask(new TodoTask("first"));
+        taskMaster.addTask(new TodoTask("second"));
+
+        taskMaster.deleteTask(1);
+        taskMaster.addTask(new TodoTask("third"));
+
+        assertEquals("Nah all these stuff you need to do:\n"
+                        + "1.[T][ ] second\n"
+                        + "2.[T][ ] third",
+                taskMaster.listTasks());
+    }
+
+    @Test
+    void deletingFromEmptyTaskListIsRejected() {
+        TaskMaster taskMaster = new TaskMaster();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> taskMaster.deleteTask(1));
+    }
+
+    @Test
     void invalidTaskNumberCannotBeMarked() {
         TaskMaster taskMaster = new TaskMaster();
         taskMaster.addTask(new TodoTask("read book"));

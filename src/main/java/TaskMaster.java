@@ -1,11 +1,13 @@
+import java.util.ArrayList;
+
 /**
  * Stores tasks entered by the user in memory.
  */
 public class TaskMaster {
     private static final int DEFAULT_MAX_TASKS = 100;
 
-    private final Task[] taskRoster;
-    private int taskCount = 0;
+    private final ArrayList<Task> taskRoster;
+    private final int maxTasks;
 
     /**
      * Creates a task master with the default capacity of 100 tasks.
@@ -24,7 +26,8 @@ public class TaskMaster {
             throw new IllegalArgumentException("Maximum tasks must be positive.");
         }
 
-        taskRoster = new Task[maxTasks];
+        this.maxTasks = maxTasks;
+        taskRoster = new ArrayList<>();
     }
 
     /**
@@ -33,7 +36,7 @@ public class TaskMaster {
      * @param task task description entered by the user
      */
     public void addTask(Task task) {
-        if (taskCount >= taskRoster.length) {
+        if (taskRoster.size() >= maxTasks) {
             throw new IllegalStateException("The task list is full.");
         }
 
@@ -41,8 +44,7 @@ public class TaskMaster {
             throw new IllegalArgumentException("Task cannot be null.");
         }
 
-        taskRoster[taskCount] = task;
-        taskCount++;
+        taskRoster.add(task);
     }
 
     /**
@@ -51,7 +53,7 @@ public class TaskMaster {
      * @return current task count
      */
     public int getTaskCount() {
-        return taskCount;
+        return taskRoster.size();
     }
 
     /**
@@ -60,17 +62,17 @@ public class TaskMaster {
      * @return formatted task list
      */
     public String listTasks() {
-        if (taskCount == 0) {
+        if (taskRoster.isEmpty()) {
             return LuckyNoMessages.emptyTaskListMessage();
         }
 
         StringBuilder result = new StringBuilder(LuckyNoMessages.taskListHeader());
 
-        for (int i = 0; i < taskCount; i++) {
+        for (int i = 0; i < taskRoster.size(); i++) {
             result.append("\n")
                     .append(i + 1)
                     .append(".")
-                    .append(taskRoster[i]);
+                    .append(taskRoster.get(i));
         }
 
         return result.toString();
@@ -101,6 +103,22 @@ public class TaskMaster {
     }
 
     /**
+     * Deletes a task from the task list.
+     *
+     * @param taskNumber one-based number of the task to delete
+     * @return description of the deleted task
+     */
+    public String deleteTask(int taskNumber) {
+        int taskIndex = taskNumber - 1;
+
+        if (taskIndex < 0 || taskIndex >= taskRoster.size()) {
+            throw new IllegalArgumentException("Invalid task number.");
+        }
+
+        return taskRoster.remove(taskIndex).toString();
+    }
+
+    /**
      * Gets a task by its one-based task number.
      *
      * @param taskNumber one-based number of the task
@@ -109,10 +127,10 @@ public class TaskMaster {
     private Task getTask(int taskNumber) {
         int taskIndex = taskNumber - 1;
 
-        if (taskIndex < 0 || taskIndex >= taskCount) {
+        if (taskIndex < 0 || taskIndex >= taskRoster.size()) {
             throw new IllegalArgumentException("Invalid task number.");
         }
 
-        return taskRoster[taskIndex];
+        return taskRoster.get(taskIndex);
     }
 }

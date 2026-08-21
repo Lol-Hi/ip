@@ -95,7 +95,7 @@ public final class LuckyNoMessages {
      */
     public static String unknownCommandMessage() {
         return "What talking you? "
-                + "I only understand todo, deadline, event, list, mark, unmark, or bye, ok?";
+                + "I only understand todo, deadline, event, list, mark, unmark, delete, or bye, ok?";
     }
 
     /**
@@ -166,6 +166,20 @@ public final class LuckyNoMessages {
     public static String unmarkedTaskMessage(String task) {
         return "Eh salah you're not done with this task ah, "
                 + "must remember to do ah!\n  " + task;
+    }
+
+    /**
+     * Formats the response after deleting a task.
+     *
+     * @param task formatted task that was deleted
+     * @param taskCount number of remaining tasks
+     * @return deletion response
+     */
+    public static String deletedTaskMessage(String task, int taskCount) {
+        return "Solid man can don't care about this one already:\n"
+                + "  " + task
+                + "\nBut you still got " + taskCount
+                + " tasks to settle.";
     }
 
     /**
