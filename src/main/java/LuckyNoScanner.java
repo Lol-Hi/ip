@@ -1,9 +1,54 @@
 import java.util.Locale;
+import java.util.Optional;
 
 /**
  * Parses user input into commands and reports invalid input consistently.
  */
 public class LuckyNoScanner {
+    /**
+     * Represents a command name that can be entered by the user.
+     */
+    public enum CommandName {
+        BYE("bye"),
+        LIST("list"),
+        TODO("todo"),
+        DEADLINE("deadline"),
+        EVENT("event"),
+        MARK("mark"),
+        UNMARK("unmark"),
+        DELETE("delete");
+
+        private final String inputName;
+
+        CommandName(String inputName) {
+            this.inputName = inputName;
+        }
+
+        /**
+         * Returns the command spelling accepted from the user.
+         *
+         * @return user-facing command name
+         */
+        public String getInputName() {
+            return inputName;
+        }
+
+        /**
+         * Finds the command represented by a user-provided token.
+         *
+         * @param input command token
+         * @return matching command, or an empty Optional if there is no match
+         */
+        public static Optional<CommandName> fromInput(String input) {
+            for (CommandName commandName : values()) {
+                if (commandName.inputName.equalsIgnoreCase(input)) {
+                    return Optional.of(commandName);
+                }
+            }
+            return Optional.empty();
+        }
+    }
+
     /**
      * Parses one line of chatbot input.
      *
@@ -20,32 +65,36 @@ public class LuckyNoScanner {
 
         String trimmedInput = input.trim();
         String[] commandParts = trimmedInput.split("\\s+", 2);
-        String command = commandParts[0].toLowerCase(Locale.ROOT);
+        String commandToken = commandParts[0].toLowerCase(Locale.ROOT);
         String arguments = commandParts.length == 2
                 ? commandParts[1].trim()
                 : "";
 
-        switch (command) {
-        case "bye":
-            checkNoArguments(arguments, "bye");
-            return new LuckyNoCommand("bye");
-        case "list":
-            checkNoArguments(arguments, "list");
-            return new LuckyNoCommand("list");
-        case "todo":
+        CommandName commandName = CommandName.fromInput(commandToken)
+                .orElseThrow(() -> new LuckyNoInputException(
+                        LuckyNoMessages.unknownCommandMessage()));
+
+        switch (commandName) {
+        case BYE:
+            checkNoArguments(arguments, CommandName.BYE.getInputName());
+            return new LuckyNoCommand(LuckyNoCommand.CommandType.BYE);
+        case LIST:
+            checkNoArguments(arguments, CommandName.LIST.getInputName());
+            return new LuckyNoCommand(LuckyNoCommand.CommandType.LIST);
+        case TODO:
             return new LuckyNoTaskCommand(parseTodo(arguments));
-        case "deadline":
+        case DEADLINE:
             return new LuckyNoTaskCommand(parseDeadline(arguments));
-        case "event":
+        case EVENT:
             return new LuckyNoTaskCommand(parseEvent(arguments));
-        case "mark":
+        case MARK:
             return new LuckyNoMarkCommand(parseTaskNumber(arguments, taskCount), true);
-        case "unmark":
+        case UNMARK:
             return new LuckyNoMarkCommand(parseTaskNumber(arguments, taskCount), false);
-        case "delete":
+        case DELETE:
             return new LuckyNoDeleteCommand(parseTaskNumber(arguments, taskCount));
         default:
-            throw new LuckyNoInputException(LuckyNoMessages.unknownCommandMessage());
+            throw new IllegalStateException("Unhandled command name.");
         }
     }
 

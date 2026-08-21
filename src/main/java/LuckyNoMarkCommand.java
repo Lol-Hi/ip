@@ -12,7 +12,7 @@ public class LuckyNoMarkCommand extends LuckyNoCommand {
      * @param markDone whether the task should be marked done
      */
     public LuckyNoMarkCommand(int taskNumber, boolean markDone) {
-        super("toggleTask");
+        super(CommandType.TOGGLE_TASK);
         this.taskNumber = taskNumber;
         this.markDone = markDone;
     }

@@ -72,19 +72,19 @@ public class LuckyNoSlacky {
             try {
                 LuckyNoCommand command = luckyNoScanner.parseCommand(
                         userInput, tmLucky.getTaskCount());
-                switch (command.getCommandName()) {
-                case "bye":
+                switch (command.getCommandType()) {
+                case BYE:
                     return;
-                case "list":
+                case LIST:
                     printReply(tmLucky.listTasks());
                     break;
-                case "createTask":
+                case CREATE_TASK:
                     addTask(((LuckyNoTaskCommand) command).getTask());
                     break;
-                case "toggleTask":
+                case TOGGLE_TASK:
                     handleTaskToggle((LuckyNoMarkCommand) command);
                     break;
-                case "deleteTask":
+                case DELETE_TASK:
                     handleTaskDeletion((LuckyNoDeleteCommand) command);
                     break;
                 default:

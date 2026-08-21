@@ -1,6 +1,7 @@
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -42,9 +43,9 @@ class LuckyNoScannerTest {
         LuckyNoMarkCommand unmark = assertInstanceOf(LuckyNoMarkCommand.class,
                 scanner.parseCommand("unmark 1", 1));
 
-        assertEquals("toggleTask", mark.getCommandName());
+        assertEquals(LuckyNoCommand.CommandType.TOGGLE_TASK, mark.getCommandType());
         assertEquals(true, mark.shouldMarkDone());
-        assertEquals("toggleTask", unmark.getCommandName());
+        assertEquals(LuckyNoCommand.CommandType.TOGGLE_TASK, unmark.getCommandType());
         assertEquals(false, unmark.shouldMarkDone());
     }
 
@@ -53,14 +54,23 @@ class LuckyNoScannerTest {
         LuckyNoDeleteCommand command = assertInstanceOf(LuckyNoDeleteCommand.class,
                 scanner.parseCommand("delete 3", 3));
 
-        assertEquals("deleteTask", command.getCommandName());
+        assertEquals(LuckyNoCommand.CommandType.DELETE_TASK, command.getCommandType());
         assertEquals(3, command.getTaskNumber());
     }
 
     @Test
     void parsesListAndByeCommands() throws LuckyNoInputException {
-        assertEquals("list", scanner.parseCommand("list", 0).getCommandName());
-        assertEquals("bye", scanner.parseCommand("bye", 0).getCommandName());
+        assertEquals(LuckyNoCommand.CommandType.LIST,
+                scanner.parseCommand("list", 0).getCommandType());
+        assertEquals(LuckyNoCommand.CommandType.BYE,
+                scanner.parseCommand("bye", 0).getCommandType());
+    }
+
+    @Test
+    void commandNameLookupReturnsKnownCommandOrEmptyOptional() {
+        assertEquals(LuckyNoScanner.CommandName.DELETE,
+                LuckyNoScanner.CommandName.fromInput("DeLeTe").orElseThrow());
+        assertTrue(LuckyNoScanner.CommandName.fromInput("dance").isEmpty());
     }
 
     @Test

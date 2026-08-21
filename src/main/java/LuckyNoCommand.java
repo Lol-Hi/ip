@@ -2,23 +2,34 @@
  * Represents a parsed chatbot command.
  */
 public class LuckyNoCommand {
-    private final String commandName;
+    /**
+     * Represents the internal operation requested by a parsed command.
+     */
+    public enum CommandType {
+        BYE,
+        LIST,
+        CREATE_TASK,
+        TOGGLE_TASK,
+        DELETE_TASK
+    }
+
+    private final CommandType commandType;
 
     /**
      * Creates a parsed command.
      *
-     * @param commandName internal name used to dispatch the command
+     * @param commandType internal type used to dispatch the command
      */
-    protected LuckyNoCommand(String commandName) {
-        this.commandName = commandName;
+    protected LuckyNoCommand(CommandType commandType) {
+        this.commandType = commandType;
     }
 
     /**
-     * Returns the internal command name.
+     * Returns the internal command type.
      *
-     * @return command name
+     * @return command type
      */
-    public String getCommandName() {
-        return commandName;
+    public CommandType getCommandType() {
+        return commandType;
     }
 }

@@ -10,7 +10,7 @@ public class LuckyNoDeleteCommand extends LuckyNoCommand {
      * @param taskNumber one-based task number
      */
     public LuckyNoDeleteCommand(int taskNumber) {
-        super("deleteTask");
+        super(CommandType.DELETE_TASK);
         this.taskNumber = taskNumber;
     }
 

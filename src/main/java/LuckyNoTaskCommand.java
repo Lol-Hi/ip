@@ -10,7 +10,7 @@ public class LuckyNoTaskCommand extends LuckyNoCommand {
      * @param task task to add
      */
     public LuckyNoTaskCommand(Task task) {
-        super("createTask");
+        super(CommandType.CREATE_TASK);
         if (task == null) {
             throw new IllegalArgumentException("Task cannot be null.");
         }

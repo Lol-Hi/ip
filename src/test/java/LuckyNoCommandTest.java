@@ -9,11 +9,11 @@ import org.junit.jupiter.api.Test;
 class LuckyNoCommandTest {
 
     @Test
-    void taskCommandStoresTaskAndUsesCreateTaskName() {
+    void taskCommandStoresTaskAndUsesCreateTaskType() {
         TodoTask task = new TodoTask("read book");
         LuckyNoTaskCommand command = new LuckyNoTaskCommand(task);
 
-        assertEquals("createTask", command.getCommandName());
+        assertEquals(LuckyNoCommand.CommandType.CREATE_TASK, command.getCommandType());
         assertSame(task, command.getTask());
     }
 
@@ -21,24 +21,24 @@ class LuckyNoCommandTest {
     void markCommandStoresTaskNumberAndDesiredStatus() {
         LuckyNoMarkCommand command = new LuckyNoMarkCommand(2, true);
 
-        assertEquals("toggleTask", command.getCommandName());
+        assertEquals(LuckyNoCommand.CommandType.TOGGLE_TASK, command.getCommandType());
         assertEquals(2, command.getTaskNumber());
         assertEquals(true, command.shouldMarkDone());
     }
 
     @Test
-    void unmarkCommandUsesSameCommandNameWithFalseStatus() {
+    void unmarkCommandUsesSameCommandTypeWithFalseStatus() {
         LuckyNoMarkCommand command = new LuckyNoMarkCommand(2, false);
 
-        assertEquals("toggleTask", command.getCommandName());
+        assertEquals(LuckyNoCommand.CommandType.TOGGLE_TASK, command.getCommandType());
         assertEquals(false, command.shouldMarkDone());
     }
 
     @Test
-    void deleteCommandStoresTaskNumberAndUsesDeleteTaskName() {
+    void deleteCommandStoresTaskNumberAndUsesDeleteTaskType() {
         LuckyNoDeleteCommand command = new LuckyNoDeleteCommand(3);
 
-        assertEquals("deleteTask", command.getCommandName());
+        assertEquals(LuckyNoCommand.CommandType.DELETE_TASK, command.getCommandType());
         assertEquals(3, command.getTaskNumber());
     }
 }
