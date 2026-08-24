@@ -12,7 +12,9 @@ running and can be marked as done or not done.
 - List tasks in the order they were added.
 - Mark tasks as done or explicitly mark them as not done.
 - Delete tasks by their task number.
-- Store up to 100 tasks during one application run.
+- Store up to 100 tasks.
+- Save tasks automatically to disk whenever the task list changes.
+- Load previously saved tasks automatically when the chatbot starts.
 
 ## Getting started
 
@@ -61,6 +63,41 @@ java -cp build/classes/java/main LuckyNoSlacky
 ```
 
 On Windows, use `gradlew.bat build` instead of `./gradlew build`.
+
+### Task data persistence
+
+LuckyNoSlacky saves the task list automatically after a task is added, marked,
+unmarked, or deleted. The data is stored in the relative path
+`data/luckyNoSlacky.csv` using the following columns:
+
+```text
+Task type, isCompleted, Description, startTime, finishTime
+```
+
+The data directory and CSV file are created automatically when the first task
+change is saved. If the data file does not exist when the chatbot starts, the
+chatbot starts with an empty task list. 
+
+The time fields are used as follows:
+
+- ToDos leave both time fields empty.
+- Deadlines store the deadline in `finishTime`.
+- Events store their start time in `startTime` and end time in `finishTime`.
+
+Do not edit the data file while LuckyNoSlacky is running.
+
+If the file is malformed or cannot be read,
+LuckyNoSlacky displays the following while starting with an empty task list.
+
+```text
+Eh you so free ah, no tasks were loaded! If you think this is salah, check your task data file.
+```
+
+If a task change cannot be saved, LuckyNoSlacky displays:
+
+```text
+Honggan la your system abit rabs ah, I cannot save your task
+```
 
 ## User guide
 
