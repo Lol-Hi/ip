@@ -13,7 +13,11 @@ public class LuckyNoSlacky {
 
     LuckyNoSlacky() {
         userScanner = new Scanner(System.in);
-        tmLucky = new TaskMaster();
+
+        LuckyNoCSVSaver csvSaver = new LuckyNoCSVSaver();
+        tmLucky = new TaskMaster(csvSaver);
+        tmLucky.loadTasksFromCSVStorageRecord(csvSaver.load());
+
         luckyNoScanner = new LuckyNoScanner();
     }
 

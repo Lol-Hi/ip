@@ -1,4 +1,6 @@
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
@@ -64,5 +66,47 @@ class LuckyNoCSVSaverTest {
             assertEquals(List.of("T", "0", "second", "", ""),
                     records.get(1).toList());
         }
+    }
+
+    @Test
+    void missingCsvFileLoadsAsEmptyList() {
+        Path dataFile = temporaryDirectory.resolve("missing.csv");
+        LuckyNoCSVSaver saver = new LuckyNoCSVSaver(dataFile);
+
+        assertTrue(saver.load().isEmpty());
+    }
+
+    @Test
+    void loadsTasksAndStatusesFromCsvStorage() {
+        Path dataFile = temporaryDirectory.resolve("luckyNoSlacky.csv");
+        LuckyNoCSVSaver saver = new LuckyNoCSVSaver(dataFile);
+        TaskMaster original = new TaskMaster(100, saver);
+
+        original.addTask(new TodoTask("read, book"));
+        original.addTask(new DeadlineTask("return book", "Sunday"));
+        original.addTask(new EventTask("project meeting", "Mon 2pm", "4pm"));
+        original.markTaskDone(1);
+
+        List<Task> loadedTasks = saver.load();
+        TaskMaster restored = new TaskMaster(100, saver);
+        restored.loadTasksFromCSVStorageRecord(loadedTasks);
+
+        assertEquals("Nah all these stuff you need to do:\n"
+                        + "1.[T][X] read, book\n"
+                        + "2.[D][ ] return book (by: Sunday)\n"
+                        + "3.[E][ ] project meeting (from: Mon 2pm to: 4pm)",
+                restored.listTasks());
+    }
+
+    @Test
+    void invalidTaskTypeInCsvFileIsRejected() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("invalid.csv");
+        Files.writeString(dataFile,
+                "Task type,isCompleted,Description,startTime,finishTime\n"
+                        + "X,0,unknown task,,\n",
+                StandardCharsets.UTF_8);
+        LuckyNoCSVSaver saver = new LuckyNoCSVSaver(dataFile);
+
+        assertThrows(IllegalStateException.class, saver::load);
     }
 }

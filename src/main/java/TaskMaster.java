@@ -29,6 +29,15 @@ public class TaskMaster {
     }
 
     /**
+     * Creates a task master with the default capacity and a configurable saver.
+     *
+     * @param saver saver used after task-list mutations
+     */
+    TaskMaster(LuckyNoCSVSaver saver) {
+        this(DEFAULT_MAX_TASKS, saver);
+    }
+
+    /**
      * Creates a task master with a configurable capacity and saver.
      *
      * @param maxTasks maximum number of tasks that can be stored
@@ -150,6 +159,31 @@ public class TaskMaster {
         return taskRoster.stream()
                 .map(Task::getCSVStorageFields)
                 .collect(Collectors.toUnmodifiableList());
+    }
+
+    /**
+     * Replaces the in-memory task list with tasks loaded from CSV storage.
+     * This method does not save the list again.
+     *
+     * @param tasks tasks loaded from CSV storage
+     */
+    void loadTasksFromCSVStorageRecord(List<Task> tasks) {
+        if (tasks == null) {
+            throw new IllegalArgumentException("Tasks cannot be null.");
+        }
+
+        if (tasks.size() > maxTasks) {
+            throw new IllegalStateException(
+                    "Saved task list exceeds the maximum capacity.");
+        }
+
+        if (tasks.stream().anyMatch(task -> task == null)) {
+            throw new IllegalArgumentException(
+                    "Saved task list contains a null task.");
+        }
+
+        taskRoster.clear();
+        taskRoster.addAll(tasks);
     }
 
     private void saveChanges() {
