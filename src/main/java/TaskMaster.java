@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Stores tasks entered by the user in memory.
@@ -8,6 +10,7 @@ public class TaskMaster {
 
     private final ArrayList<Task> taskRoster;
     private final int maxTasks;
+    private final LuckyNoCSVSaver saver;
 
     /**
      * Creates a task master with the default capacity of 100 tasks.
@@ -22,11 +25,35 @@ public class TaskMaster {
      * @param maxTasks maximum number of tasks that can be stored
      */
     public TaskMaster(int maxTasks) {
+        this(maxTasks, new LuckyNoCSVSaver());
+    }
+
+    /**
+     * Creates a task master with the default capacity and a configurable saver.
+     *
+     * @param saver saver used after task-list mutations
+     */
+    TaskMaster(LuckyNoCSVSaver saver) {
+        this(DEFAULT_MAX_TASKS, saver);
+    }
+
+    /**
+     * Creates a task master with a configurable capacity and saver.
+     *
+     * @param maxTasks maximum number of tasks that can be stored
+     * @param saver saver used after task-list mutations
+     */
+    TaskMaster(int maxTasks, LuckyNoCSVSaver saver) {
         if (maxTasks <= 0) {
             throw new IllegalArgumentException("Maximum tasks must be positive.");
         }
 
+        if (saver == null) {
+            throw new IllegalArgumentException("Saver cannot be null.");
+        }
+
         this.maxTasks = maxTasks;
+        this.saver = saver;
         taskRoster = new ArrayList<>();
     }
 
@@ -45,6 +72,12 @@ public class TaskMaster {
         }
 
         taskRoster.add(task);
+        try {
+            saveChanges();
+        } catch (LuckyNoStorageException exception) {
+            taskRoster.remove(taskRoster.size() - 1);
+            throw exception;
+        }
     }
 
     /**
@@ -86,7 +119,14 @@ public class TaskMaster {
      */
     public String markTaskDone(int taskNumber) {
         Task task = getTask(taskNumber);
+        boolean wasDone = task.isDone();
         task.markAsDone();
+        try {
+            saveChanges();
+        } catch (LuckyNoStorageException exception) {
+            restoreTaskStatus(task, wasDone);
+            throw exception;
+        }
         return task.toString();
     }
 
@@ -98,7 +138,14 @@ public class TaskMaster {
      */
     public String unmarkTaskUndone(int taskNumber) {
         Task task = getTask(taskNumber);
+        boolean wasDone = task.isDone();
         task.unmarkAsUndone();
+        try {
+            saveChanges();
+        } catch (LuckyNoStorageException exception) {
+            restoreTaskStatus(task, wasDone);
+            throw exception;
+        }
         return task.toString();
     }
 
@@ -115,7 +162,62 @@ public class TaskMaster {
             throw new IllegalArgumentException("Invalid task number.");
         }
 
-        return taskRoster.remove(taskIndex).toString();
+        Task deletedTask = taskRoster.remove(taskIndex);
+        try {
+            saveChanges();
+        } catch (LuckyNoStorageException exception) {
+            taskRoster.add(taskIndex, deletedTask);
+            throw exception;
+        }
+        return deletedTask.toString();
+    }
+
+    /**
+     * Returns the task records in CSV column order.
+     *
+     * @return immutable list of CSV records
+     */
+    public List<List<String>> getCSVStorageRecords() {
+        return taskRoster.stream()
+                .map(Task::getCSVStorageFields)
+                .collect(Collectors.toUnmodifiableList());
+    }
+
+    /**
+     * Replaces the in-memory task list with tasks loaded from CSV storage.
+     * This method does not save the list again.
+     *
+     * @param tasks tasks loaded from CSV storage
+     */
+    void loadTasksFromCSVStorageRecord(List<Task> tasks) {
+        if (tasks == null) {
+            throw new LuckyNoStorageException("Tasks cannot be null.");
+        }
+
+        if (tasks.size() > maxTasks) {
+            throw new LuckyNoStorageException(
+                    "Saved task list exceeds the maximum capacity.");
+        }
+
+        if (tasks.stream().anyMatch(task -> task == null)) {
+            throw new LuckyNoStorageException(
+                    "Saved task list contains a null task.");
+        }
+
+        taskRoster.clear();
+        taskRoster.addAll(tasks);
+    }
+
+    private void saveChanges() {
+        saver.save(this);
+    }
+
+    private void restoreTaskStatus(Task task, boolean wasDone) {
+        if (wasDone) {
+            task.markAsDone();
+        } else {
+            task.unmarkAsUndone();
+        }
     }
 
     /**

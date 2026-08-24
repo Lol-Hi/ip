@@ -98,8 +98,15 @@ def print_record(label: str, value: str) -> None:
 
 
 def run_test_case(test_case: TestCase, command: list[str], cwd: Path,
-                  timeout: float) -> bool:
+                  timeout: float, reset_file: Path | None) -> bool:
     """Run one case, print its session, and return whether it passed."""
+    if reset_file is not None:
+        try:
+            reset_file.unlink(missing_ok=True)
+        except OSError as exception:
+            print(f"Unable to reset UI test data file: {exception}", file=sys.stderr)
+            return False
+
     input_for_process = test_case.input_text
     if not input_for_process.endswith("\n"):
         input_for_process += "\n"
@@ -177,12 +184,21 @@ def main() -> int:
         help="Program command, quoted as one string",
     )
     parser.add_argument("--cwd", default=".", help="Program working directory")
+    parser.add_argument(
+        "--reset-file",
+        help="Delete this file before each test case to isolate persisted state",
+    )
     parser.add_argument("--timeout", type=float, default=10.0,
                         help="Per-test timeout in seconds")
     args = parser.parse_args()
 
     plan_path = Path(args.plan)
     cwd = Path(args.cwd).resolve()
+    reset_file = None
+    if args.reset_file:
+        reset_file = Path(args.reset_file)
+        if not reset_file.is_absolute():
+            reset_file = cwd / reset_file
     try:
         test_cases = parse_plan(plan_path)
     except (OSError, ValueError) as exception:
@@ -194,7 +210,7 @@ def main() -> int:
 
     for index, test_case in enumerate(test_cases, start=1):
         print(f"\nStarting test case {index} of {len(test_cases)}.")
-        if not run_test_case(test_case, command, cwd, args.timeout):
+        if not run_test_case(test_case, command, cwd, args.timeout, reset_file):
             print("\nTest session terminated after the first failure.")
             return 1
 

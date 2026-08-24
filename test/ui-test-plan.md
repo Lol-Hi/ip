@@ -2,8 +2,10 @@
 
 ## Test execution information
 
-- Program: `java -cp build/classes/java/main LuckyNoSlacky`
+- Program: Java 25 with the compiled application classes and CSV runtime dependencies
 - Working directory: project root
+- Data isolation: reset `data/luckyNoSlacky.csv` before each test case
+- Storage failure cases are covered by unit tests using prepared data files
 - Comparison: exact output, ignoring only line-ending differences and one final newline
 - Failure policy: stop immediately after the first failed test case
 

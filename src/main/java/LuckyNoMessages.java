@@ -99,6 +99,25 @@ public final class LuckyNoMessages {
     }
 
     /**
+     * Returns the message shown when saved tasks cannot be loaded.
+     *
+     * @return task-loading error message
+     */
+    public static String loadErrorMessage() {
+        return "Eh you so free ah, no tasks were loaded! "
+                + "If you think this is salah, check your task data file.";
+    }
+
+    /**
+     * Returns the message shown when tasks cannot be saved.
+     *
+     * @return task-saving error message
+     */
+    public static String saveErrorMessage() {
+        return "Honggan la your system abit rabs ah, I cannot save your task";
+    }
+
+    /**
      * Returns the chatbot banner.
      *
      * @return banner text

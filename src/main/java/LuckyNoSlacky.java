@@ -10,10 +10,22 @@ public class LuckyNoSlacky {
     private final Scanner userScanner;
     private final TaskMaster tmLucky;
     private final LuckyNoScanner luckyNoScanner;
+    private final boolean loadError;
 
     LuckyNoSlacky() {
         userScanner = new Scanner(System.in);
-        tmLucky = new TaskMaster();
+
+        LuckyNoCSVSaver csvSaver = new LuckyNoCSVSaver();
+        tmLucky = new TaskMaster(csvSaver);
+
+        boolean failedToLoad = false;
+        try {
+            tmLucky.loadTasksFromCSVStorageRecord(csvSaver.load());
+        } catch (LuckyNoStorageException exception) {
+            failedToLoad = true;
+        }
+        loadError = failedToLoad;
+
         luckyNoScanner = new LuckyNoScanner();
     }
 
@@ -92,6 +104,8 @@ public class LuckyNoSlacky {
                 }
             } catch (LuckyNoInputException exception) {
                 printReply(exception.getMessage());
+            } catch (LuckyNoStorageException exception) {
+                printReply(LuckyNoMessages.saveErrorMessage());
             }
         }
     }
@@ -99,6 +113,12 @@ public class LuckyNoSlacky {
     public static void main(String[] args) {
         LuckyNoSlacky lucky = new LuckyNoSlacky();
         lucky.greet();
+
+        if (lucky.loadError) {
+            printReply(LuckyNoMessages.loadErrorMessage());
+            return;
+        }
+
         lucky.chatLoop();
         lucky.exit();
     }
