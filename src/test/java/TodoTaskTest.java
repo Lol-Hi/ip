@@ -2,6 +2,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -16,6 +18,8 @@ class TodoTaskTest {
         assertFalse(task.isDone());
         assertEquals(" ", task.getStatusIcon());
         assertEquals("[T][ ] read book", task.toString());
+        assertEquals(List.of("T", "0", "read book", "", ""),
+                task.getCSVStorageFields());
     }
 
     @Test

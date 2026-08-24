@@ -1,3 +1,5 @@
+import java.util.List;
+
 /**
  * Represents a task that must be completed by a specified time.
  */
@@ -18,6 +20,11 @@ public class DeadlineTask extends Task {
         }
 
         this.byTime = byTime;
+    }
+
+    @Override
+    public List<String> getCSVStorageFields() {
+        return createCSVStorageFields('D', "", byTime);
     }
 
     /**

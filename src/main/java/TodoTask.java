@@ -1,3 +1,5 @@
+import java.util.List;
+
 /**
  * Represents a task without any date or time information.
  */
@@ -10,6 +12,11 @@ public class TodoTask extends Task {
      */
     public TodoTask(String description) {
         super(description);
+    }
+
+    @Override
+    public List<String> getCSVStorageFields() {
+        return createCSVStorageFields('T', "", "");
     }
 
     /**

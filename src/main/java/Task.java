@@ -1,3 +1,5 @@
+import java.util.List;
+
 /**
  * Represents the common state and behavior shared by all task types.
  */
@@ -49,6 +51,33 @@ public abstract class Task {
      */
     public boolean isDone() {
         return isDone;
+    }
+
+    /**
+     * Returns the raw fields used to save this task as a CSV record.
+     *
+     * @return task fields in CSV column order
+     */
+    public abstract List<String> getCSVStorageFields();
+
+    /**
+     * Creates the common CSV fields for a concrete task type.
+     *
+     * @param taskType task type marker
+     * @param startTime task start time, or an empty string when not applicable
+     * @param finishTime task finish time, or an empty string when not applicable
+     * @return fields in CSV column order
+     */
+    protected final List<String> createCSVStorageFields(
+            char taskType,
+            String startTime,
+            String finishTime) {
+        return List.of(
+                String.valueOf(taskType),
+                isDone ? "1" : "0",
+                description,
+                startTime,
+                finishTime);
     }
 
     /**

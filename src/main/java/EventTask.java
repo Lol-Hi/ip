@@ -1,3 +1,5 @@
+import java.util.List;
+
 /**
  * Represents a task with a specified start and end time.
  */
@@ -22,6 +24,11 @@ public class EventTask extends Task {
 
         this.fromTime = fromTime;
         this.toTime = toTime;
+    }
+
+    @Override
+    public List<String> getCSVStorageFields() {
+        return createCSVStorageFields('E', fromTime, toTime);
     }
 
     /**
