@@ -1,5 +1,9 @@
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -208,5 +212,36 @@ class TaskMasterTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> new TaskMaster(-1));
+    }
+
+    @Test
+    void failedAddDoesNotChangeInMemoryTaskList() {
+        TaskMaster taskMaster = new TaskMaster(100, new FailingSaver());
+
+        assertThrows(LuckyNoStorageException.class,
+                () -> taskMaster.addTask(new TodoTask("read book")));
+        assertEquals(0, taskMaster.getTaskCount());
+    }
+
+    @Test
+    void failedStatusChangeRestoresPreviousStatus() {
+        TaskMaster taskMaster = new TaskMaster(100, new FailingSaver());
+        TodoTask task = new TodoTask("read book");
+        taskMaster.loadTasksFromCSVStorageRecord(List.of(task));
+
+        assertThrows(LuckyNoStorageException.class,
+                () -> taskMaster.markTaskDone(1));
+        assertFalse(task.isDone());
+    }
+
+    private static class FailingSaver extends LuckyNoCSVSaver {
+        FailingSaver() {
+            super(Path.of("unused.csv"));
+        }
+
+        @Override
+        public void save(TaskMaster taskMaster) {
+            throw new LuckyNoStorageException("simulated save failure");
+        }
     }
 }

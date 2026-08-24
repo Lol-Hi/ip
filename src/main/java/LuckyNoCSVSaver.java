@@ -1,11 +1,12 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class LuckyNoCSVSaver {
     private static final int EXPECTED_FIELD_COUNT = 5;
 
     private static final Path DEFAULT_DATA_FILE =
-            Paths.get("./data/luckyNoSlacky.csv");
+            Paths.get("data", "luckyNoSlacky.csv");
 
     private final Path dataFile;
 
@@ -53,20 +54,77 @@ public class LuckyNoCSVSaver {
      * @param taskMaster task list to save
      */
     public void save(TaskMaster taskMaster) {
+        if (taskMaster == null) {
+            throw new IllegalArgumentException("Task master cannot be null.");
+        }
+
+        Path temporaryFile = null;
         try {
-            Files.createDirectories(dataFile.getParent());
+            createParentDirectory();
+            temporaryFile = createTemporaryFile();
+            writeCsvFile(taskMaster, temporaryFile);
+            replaceDataFile(temporaryFile);
+        } catch (IOException | IllegalArgumentException exception) {
+            throw new LuckyNoStorageException(
+                    "Unable to save tasks.", exception);
+        } finally {
+            deleteTemporaryFile(temporaryFile);
+        }
+    }
 
-            try (BufferedWriter writer = Files.newBufferedWriter(
-                    dataFile, StandardCharsets.UTF_8);
-                 CSVPrinter printer = new CSVPrinter(writer, CSVFormat.DEFAULT)) {
-                printer.printRecord(CSV_HEADER);
+    private void createParentDirectory() throws IOException {
+        Path parent = dataFile.getParent();
 
-                for (List<String> record : taskMaster.getCSVStorageRecords()) {
-                    printer.printRecord(record);
-                }
+        if (parent != null) {
+            Files.createDirectories(parent);
+        }
+    }
+
+    private Path createTemporaryFile() throws IOException {
+        Path parent = dataFile.getParent();
+
+        return parent == null
+                ? Files.createTempFile("luckyNoSlacky-", ".tmp")
+                : Files.createTempFile(parent, "luckyNoSlacky-", ".tmp");
+    }
+
+    private void writeCsvFile(TaskMaster taskMaster, Path outputFile)
+            throws IOException {
+        try (BufferedWriter writer = Files.newBufferedWriter(
+                outputFile, StandardCharsets.UTF_8);
+             CSVPrinter printer = new CSVPrinter(writer, CSVFormat.DEFAULT)) {
+            printer.printRecord(CSV_HEADER);
+
+            for (List<String> record : taskMaster.getCSVStorageRecords()) {
+                printer.printRecord(record);
             }
+        }
+    }
+
+    private void replaceDataFile(Path temporaryFile) throws IOException {
+        try {
+            Files.move(
+                    temporaryFile,
+                    dataFile,
+                    StandardCopyOption.REPLACE_EXISTING,
+                    StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException exception) {
+            Files.move(
+                    temporaryFile,
+                    dataFile,
+                    StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    private void deleteTemporaryFile(Path temporaryFile) {
+        if (temporaryFile == null) {
+            return;
+        }
+
+        try {
+            Files.deleteIfExists(temporaryFile);
         } catch (IOException exception) {
-            throw new UncheckedIOException("Unable to save tasks.", exception);
+            // The original save error, if any, is more useful to the caller.
         }
     }
 
@@ -76,8 +134,13 @@ public class LuckyNoCSVSaver {
      * @return tasks stored in the file, or an empty list if the file is absent
      */
     public List<Task> load() {
-        if (!Files.exists(dataFile)) {
+        if (Files.notExists(dataFile)) {
             return List.of();
+        }
+
+        if (!Files.isRegularFile(dataFile)) {
+            throw new LuckyNoStorageException(
+                    "The task data path is not a regular file.");
         }
 
         try (BufferedReader reader = Files.newBufferedReader(
@@ -98,20 +161,25 @@ public class LuckyNoCSVSaver {
 
             return List.copyOf(tasks);
         } catch (IOException exception) {
-            throw new UncheckedIOException("Unable to load tasks.", exception);
+            throw new LuckyNoStorageException(
+                    "Unable to load tasks.", exception);
+        } catch (LuckyNoStorageException exception) {
+            throw exception;
+        } catch (RuntimeException exception) {
+            throw new LuckyNoStorageException(
+                    "Unable to load tasks.", exception);
         }
     }
 
     private void validateHeader(CSVRecord header) {
         if (!header.toList().equals(CSV_HEADER)) {
-            throw new IllegalStateException("Invalid task data header.");
+            throw new LuckyNoStorageException("Invalid task data header.");
         }
     }
 
     private Task createTaskFromCSVStorageRecord(CSVRecord record) {
         if (record.size() != EXPECTED_FIELD_COUNT) {
-            throw new IllegalStateException(
-                    "Invalid number of fields in task record.");
+            throw invalidRecord(record, "incorrect number of fields");
         }
 
         String taskType = record.get(0);
@@ -120,15 +188,22 @@ public class LuckyNoCSVSaver {
         String startTime = record.get(3);
         String finishTime = record.get(4);
 
-        validateCompletionStatus(completionStatus);
+        validateCompletionStatus(record);
 
-        Task task = switch (taskType) {
-        case "T" -> new TodoTask(description);
-        case "D" -> new DeadlineTask(description, finishTime);
-        case "E" -> new EventTask(description, startTime, finishTime);
-        default -> throw new IllegalStateException(
-                "Unknown task type in saved data.");
-        };
+        Task task;
+        try {
+            task = switch (taskType) {
+            case "T" -> new TodoTask(description);
+            case "D" -> new DeadlineTask(description, finishTime);
+            case "E" -> new EventTask(description, startTime, finishTime);
+            default -> throw invalidRecord(record, "unknown task type");
+            };
+        } catch (IllegalArgumentException exception) {
+            throw new LuckyNoStorageException(
+                    "Invalid task data at row "
+                            + record.getRecordNumber(),
+                    exception);
+        }
 
         if (completionStatus.equals("1")) {
             task.markAsDone();
@@ -137,11 +212,21 @@ public class LuckyNoCSVSaver {
         return task;
     }
 
-    private void validateCompletionStatus(String completionStatus) {
+    private void validateCompletionStatus(CSVRecord record) {
+        String completionStatus = record.get(1);
+
         if (!completionStatus.equals("0")
                 && !completionStatus.equals("1")) {
-            throw new IllegalStateException(
-                    "Invalid task completion status.");
+            throw invalidRecord(record, "invalid completion status");
         }
+    }
+
+    private LuckyNoStorageException invalidRecord(
+            CSVRecord record,
+            String reason) {
+        return new LuckyNoStorageException(
+                "Invalid task record at row "
+                        + record.getRecordNumber()
+                        + ": " + reason);
     }
 }

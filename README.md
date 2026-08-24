@@ -25,7 +25,7 @@ running and can be marked as done or not done.
 
 ### Run using IntelliJ IDEA
 
-1. Open IntelliJ IDEA.
+1. Open IntelliJ IDEA. 
 2. Select **Open** and choose the project directory.
 3. Configure the project SDK and language level to use JDK 25. See the
    [IntelliJ IDEA JDK instructions](https://www.jetbrains.com/help/idea/sdk.html#set-up-jdk).

@@ -72,7 +72,12 @@ public class TaskMaster {
         }
 
         taskRoster.add(task);
-        saveChanges();
+        try {
+            saveChanges();
+        } catch (LuckyNoStorageException exception) {
+            taskRoster.remove(taskRoster.size() - 1);
+            throw exception;
+        }
     }
 
     /**
@@ -114,8 +119,14 @@ public class TaskMaster {
      */
     public String markTaskDone(int taskNumber) {
         Task task = getTask(taskNumber);
+        boolean wasDone = task.isDone();
         task.markAsDone();
-        saveChanges();
+        try {
+            saveChanges();
+        } catch (LuckyNoStorageException exception) {
+            restoreTaskStatus(task, wasDone);
+            throw exception;
+        }
         return task.toString();
     }
 
@@ -127,8 +138,14 @@ public class TaskMaster {
      */
     public String unmarkTaskUndone(int taskNumber) {
         Task task = getTask(taskNumber);
+        boolean wasDone = task.isDone();
         task.unmarkAsUndone();
-        saveChanges();
+        try {
+            saveChanges();
+        } catch (LuckyNoStorageException exception) {
+            restoreTaskStatus(task, wasDone);
+            throw exception;
+        }
         return task.toString();
     }
 
@@ -145,9 +162,14 @@ public class TaskMaster {
             throw new IllegalArgumentException("Invalid task number.");
         }
 
-        String deletedTask = taskRoster.remove(taskIndex).toString();
-        saveChanges();
-        return deletedTask;
+        Task deletedTask = taskRoster.remove(taskIndex);
+        try {
+            saveChanges();
+        } catch (LuckyNoStorageException exception) {
+            taskRoster.add(taskIndex, deletedTask);
+            throw exception;
+        }
+        return deletedTask.toString();
     }
 
     /**
@@ -169,16 +191,16 @@ public class TaskMaster {
      */
     void loadTasksFromCSVStorageRecord(List<Task> tasks) {
         if (tasks == null) {
-            throw new IllegalArgumentException("Tasks cannot be null.");
+            throw new LuckyNoStorageException("Tasks cannot be null.");
         }
 
         if (tasks.size() > maxTasks) {
-            throw new IllegalStateException(
+            throw new LuckyNoStorageException(
                     "Saved task list exceeds the maximum capacity.");
         }
 
         if (tasks.stream().anyMatch(task -> task == null)) {
-            throw new IllegalArgumentException(
+            throw new LuckyNoStorageException(
                     "Saved task list contains a null task.");
         }
 
@@ -188,6 +210,14 @@ public class TaskMaster {
 
     private void saveChanges() {
         saver.save(this);
+    }
+
+    private void restoreTaskStatus(Task task, boolean wasDone) {
+        if (wasDone) {
+            task.markAsDone();
+        } else {
+            task.unmarkAsUndone();
+        }
     }
 
     /**
