@@ -1,55 +1,104 @@
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Tests the parsed command representations used by LuckyNoSlacky.
+ * Tests the execution behavior of the command classes used by LuckyNoSlacky.
  */
 class LuckyNoCommandTest {
+    private static final LocalDateTime SEARCH_DATE =
+            LocalDateTime.of(2026, 8, 26, 0, 0);
+
+    @TempDir
+    Path tempDir;
 
     @Test
-    void taskCommandStoresTaskAndUsesCreateTaskType() {
+    void taskCommandExecutesTaskCreation() {
+        TaskMaster taskMaster = createTaskMaster();
         TodoTask task = new TodoTask("read book");
-        LuckyNoTaskCommand command = new LuckyNoTaskCommand(task);
+        LuckyNoTaskCommand command = new LuckyNoTaskCommand(task, taskMaster);
 
-        assertEquals(LuckyNoCommand.CommandType.CREATE_TASK, command.getCommandType());
-        assertSame(task, command.getTask());
+        assertEquals(LuckyNoMessages.addedTaskMessage(task, 1), command.execute());
+        assertEquals(1, taskMaster.getTaskCount());
+        assertFalse(command.requestsExit());
     }
 
     @Test
-    void markCommandStoresTaskNumberAndDesiredStatus() {
-        LuckyNoMarkCommand command = new LuckyNoMarkCommand(2, true);
+    void markCommandExecutesDoneStatusChange() {
+        TaskMaster taskMaster = createTaskMaster();
+        taskMaster.addTask(new TodoTask("read book"));
+        LuckyNoMarkCommand command = new LuckyNoMarkCommand(1, true, taskMaster);
 
-        assertEquals(LuckyNoCommand.CommandType.TOGGLE_TASK, command.getCommandType());
-        assertEquals(2, command.getTaskNumber());
-        assertEquals(true, command.shouldMarkDone());
+        assertEquals(
+                LuckyNoMessages.markedTaskMessage("[T][X] read book"),
+                command.execute());
+        assertEquals("Nah all these stuff you need to do:\n1.[T][X] read book",
+                taskMaster.listTasks());
     }
 
     @Test
-    void unmarkCommandUsesSameCommandTypeWithFalseStatus() {
-        LuckyNoMarkCommand command = new LuckyNoMarkCommand(2, false);
+    void unmarkCommandExecutesNotDoneStatusChange() {
+        TaskMaster taskMaster = createTaskMaster();
+        TodoTask task = new TodoTask("read book");
+        task.markAsDone();
+        taskMaster.addTask(task);
+        LuckyNoMarkCommand command = new LuckyNoMarkCommand(1, false, taskMaster);
 
-        assertEquals(LuckyNoCommand.CommandType.TOGGLE_TASK, command.getCommandType());
-        assertEquals(false, command.shouldMarkDone());
+        assertEquals(
+                LuckyNoMessages.unmarkedTaskMessage("[T][ ] read book"),
+                command.execute());
+        assertEquals("Nah all these stuff you need to do:\n1.[T][ ] read book",
+                taskMaster.listTasks());
     }
 
     @Test
-    void deleteCommandStoresTaskNumberAndUsesDeleteTaskType() {
-        LuckyNoDeleteCommand command = new LuckyNoDeleteCommand(3);
+    void deleteCommandExecutesTaskDeletion() {
+        TaskMaster taskMaster = createTaskMaster();
+        taskMaster.addTask(new TodoTask("read book"));
+        LuckyNoDeleteCommand command = new LuckyNoDeleteCommand(1, taskMaster);
 
-        assertEquals(LuckyNoCommand.CommandType.DELETE_TASK, command.getCommandType());
-        assertEquals(3, command.getTaskNumber());
+        assertEquals(
+                LuckyNoMessages.deletedTaskMessage("[T][ ] read book", 0),
+                command.execute());
+        assertEquals(0, taskMaster.getTaskCount());
     }
 
     @Test
-    void findCommandStoresSearchDateAndUsesFindType() {
-        LocalDateTime searchDate = LocalDateTime.of(2026, 8, 26, 0, 0);
-        LuckyNoFindCommand command = new LuckyNoFindCommand(searchDate);
+    void listCommandExecutesTaskListing() {
+        TaskMaster taskMaster = createTaskMaster();
+        taskMaster.addTask(new TodoTask("read book"));
+        LuckyNoListCommand command = new LuckyNoListCommand(taskMaster);
 
-        assertEquals(LuckyNoCommand.CommandType.FIND, command.getCommandType());
-        assertSame(searchDate, command.getSearchDateTime());
+        assertEquals(taskMaster.listTasks(), command.execute());
+    }
+
+    @Test
+    void findCommandExecutesDateSearch() {
+        TaskMaster taskMaster = createTaskMaster();
+        taskMaster.addTask(new DeadlineTask(
+                "return book", LocalDateTime.of(2026, 8, 26, 23, 59)));
+        LuckyNoFindCommand command = new LuckyNoFindCommand(SEARCH_DATE, taskMaster);
+
+        assertEquals(taskMaster.searchTasks(SEARCH_DATE), command.execute());
+    }
+
+    @Test
+    void byeCommandReturnsGoodbyeAndRequestsExit() {
+        LuckyNoByeCommand command = new LuckyNoByeCommand();
+
+        assertEquals(LuckyNoMessages.goodbye(), command.execute());
+        assertTrue(command.requestsExit());
+    }
+
+    private TaskMaster createTaskMaster() {
+        return new TaskMaster(
+                100,
+                new LuckyNoCSVSaver(tempDir.resolve("tasks.csv")));
     }
 }

@@ -3,13 +3,16 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Tests parsing and validation of user input.
@@ -17,16 +20,31 @@ import org.junit.jupiter.api.Test;
 class LuckyNoScannerTest {
     private static final Clock TEST_CLOCK = Clock.fixed(
             Instant.parse("2026-08-25T10:00:00Z"), ZoneId.of("UTC"));
-    private final DateTimeParser parser =
-            new DateTimeParser(TEST_CLOCK);
-    private final LuckyNoScanner scanner = new LuckyNoScanner(parser);
+    @TempDir
+    Path tempDir;
+
+    private DateTimeParser parser;
+    private TaskMaster taskMaster;
+    private LuckyNoScanner scanner;
+
+    @BeforeEach
+    void setUp() {
+        parser = new DateTimeParser(TEST_CLOCK);
+        taskMaster = new TaskMaster(
+                100,
+                new LuckyNoCSVSaver(tempDir.resolve("tasks.csv")));
+        scanner = new LuckyNoScanner(parser, taskMaster);
+    }
 
     @Test
     void parsesTodoCommandIntoTaskCommand() throws LuckyNoInputException {
         LuckyNoTaskCommand command = assertInstanceOf(LuckyNoTaskCommand.class,
                 scanner.parseCommand("todo borrow book", 0));
 
-        assertEquals("[T][ ] borrow book", command.getTask().toString());
+        assertEquals(
+                LuckyNoMessages.addedTaskMessage(
+                        new TodoTask("borrow book"), 1),
+                command.execute());
     }
 
     @Test
@@ -34,8 +52,13 @@ class LuckyNoScannerTest {
         LuckyNoTaskCommand command = assertInstanceOf(LuckyNoTaskCommand.class,
                 scanner.parseCommand("deadline return book /by 2026-10-15 14:15", 0));
 
-        assertEquals("[D][ ] return book (by: Thu Oct 15 2026, 2.15pm)",
-                command.getTask().toString());
+        assertEquals(
+                LuckyNoMessages.addedTaskMessage(
+                        new DeadlineTask(
+                                "return book",
+                                LocalDateTime.of(2026, 10, 15, 14, 15)),
+                        1),
+                command.execute());
     }
 
     @Test
@@ -44,50 +67,67 @@ class LuckyNoScannerTest {
                 scanner.parseCommand("event project meeting /from 2026-08-06 14:00"
                         + " /to 2026-08-06 16:00", 0));
 
-        assertEquals("[E][ ] project meeting (from: Thu Aug 06 2026, 2.00pm"
-                        + " to: Thu Aug 06 2026, 4.00pm)",
-                command.getTask().toString());
+        assertEquals(
+                LuckyNoMessages.addedTaskMessage(
+                        new EventTask(
+                                "project meeting",
+                                LocalDateTime.of(2026, 8, 6, 14, 0),
+                                LocalDateTime.of(2026, 8, 6, 16, 0)),
+                        1),
+                command.execute());
     }
 
     @Test
     void parsesMarkAndUnmarkAsExplicitStatuses() throws LuckyNoInputException {
+        taskMaster.addTask(new TodoTask("read book"));
         LuckyNoMarkCommand mark = assertInstanceOf(LuckyNoMarkCommand.class,
                 scanner.parseCommand("mark 1", 1));
         LuckyNoMarkCommand unmark = assertInstanceOf(LuckyNoMarkCommand.class,
                 scanner.parseCommand("unmark 1", 1));
 
-        assertEquals(LuckyNoCommand.CommandType.TOGGLE_TASK, mark.getCommandType());
-        assertEquals(true, mark.shouldMarkDone());
-        assertEquals(LuckyNoCommand.CommandType.TOGGLE_TASK, unmark.getCommandType());
-        assertEquals(false, unmark.shouldMarkDone());
+        assertEquals(
+                LuckyNoMessages.markedTaskMessage("[T][X] read book"),
+                mark.execute());
+        assertEquals(
+                LuckyNoMessages.unmarkedTaskMessage("[T][ ] read book"),
+                unmark.execute());
     }
 
     @Test
     void parsesDeleteCommandIntoDeleteCommand() throws LuckyNoInputException {
+        taskMaster.addTask(new TodoTask("read book"));
+        taskMaster.addTask(new TodoTask("return book"));
+        taskMaster.addTask(new TodoTask("buy bread"));
         LuckyNoDeleteCommand command = assertInstanceOf(LuckyNoDeleteCommand.class,
                 scanner.parseCommand("delete 3", 3));
 
-        assertEquals(LuckyNoCommand.CommandType.DELETE_TASK, command.getCommandType());
-        assertEquals(3, command.getTaskNumber());
+        assertEquals(
+                LuckyNoMessages.deletedTaskMessage("[T][ ] buy bread", 2),
+                command.execute());
+        assertEquals(2, taskMaster.getTaskCount());
     }
 
     @Test
     void parsesListAndByeCommands() throws LuckyNoInputException {
-        assertEquals(LuckyNoCommand.CommandType.LIST,
-                scanner.parseCommand("list", 0).getCommandType());
-        assertEquals(LuckyNoCommand.CommandType.BYE,
-                scanner.parseCommand("bye", 0).getCommandType());
+        assertEquals(
+                taskMaster.listTasks(),
+                scanner.parseCommand("list", 0).execute());
+        LuckyNoCommand bye = scanner.parseCommand("bye", 0);
+        assertEquals(LuckyNoMessages.goodbye(), bye.execute());
+        assertTrue(bye.requestsExit());
     }
 
     @Test
     void parsesFindCommandAndIgnoresTextBeforeOnTag()
             throws LuckyNoInputException {
+        taskMaster.addTask(new DeadlineTask(
+                "return book", LocalDateTime.of(2026, 9, 2, 23, 59)));
         LuckyNoFindCommand command = assertInstanceOf(LuckyNoFindCommand.class,
                 scanner.parseCommand("find anything /on next Wednesday", 0));
 
-        assertEquals(LuckyNoCommand.CommandType.FIND, command.getCommandType());
-        assertEquals(LocalDateTime.of(2026, 9, 2, 0, 0),
-                command.getSearchDateTime());
+        assertEquals(
+                taskMaster.searchTasks(LocalDateTime.of(2026, 9, 2, 0, 0)),
+                command.execute());
     }
 
     @Test
@@ -103,7 +143,10 @@ class LuckyNoScannerTest {
         LuckyNoTaskCommand command = assertInstanceOf(LuckyNoTaskCommand.class,
                 scanner.parseCommand("  ToDo   read book  ", 0));
 
-        assertEquals("[T][ ] read book", command.getTask().toString());
+        assertEquals(
+                LuckyNoMessages.addedTaskMessage(
+                        new TodoTask("read book"), 1),
+                command.execute());
     }
 
     @Test
@@ -255,9 +298,14 @@ class LuckyNoScannerTest {
                 scanner.parseCommand("event past meeting /from 25 Aug 2025"
                         + " /to 26 Aug 2025", 0));
 
-        assertEquals("[E][ ] past meeting (from: Mon Aug 25 2025, 12.00am"
-                        + " to: Tue Aug 26 2025, 11.59pm)",
-                command.getTask().toString());
+        assertEquals(
+                LuckyNoMessages.addedTaskMessage(
+                        new EventTask(
+                                "past meeting",
+                                LocalDateTime.of(2025, 8, 25, 0, 0),
+                                LocalDateTime.of(2025, 8, 26, 23, 59)),
+                        1),
+                command.execute());
     }
 
     @Test
@@ -269,12 +317,22 @@ class LuckyNoScannerTest {
                 scanner.parseCommand("event overnight meeting /from 25 Aug 2026 11pm"
                         + " /to 1am", 0));
 
-        assertEquals("[E][ ] afternoon meeting (from: Tue Aug 25 2026, 2.00pm"
-                        + " to: Tue Aug 25 2026, 4.00pm)",
-                sameDay.getTask().toString());
-        assertEquals("[E][ ] overnight meeting (from: Tue Aug 25 2026, 11.00pm"
-                        + " to: Wed Aug 26 2026, 1.00am)",
-                overnight.getTask().toString());
+        assertEquals(
+                LuckyNoMessages.addedTaskMessage(
+                        new EventTask(
+                                "afternoon meeting",
+                                LocalDateTime.of(2026, 8, 25, 14, 0),
+                                LocalDateTime.of(2026, 8, 25, 16, 0)),
+                        1),
+                sameDay.execute());
+        assertEquals(
+                LuckyNoMessages.addedTaskMessage(
+                        new EventTask(
+                                "overnight meeting",
+                                LocalDateTime.of(2026, 8, 25, 23, 0),
+                                LocalDateTime.of(2026, 8, 26, 1, 0)),
+                        2),
+                overnight.execute());
     }
 
     @Test

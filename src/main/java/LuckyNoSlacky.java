@@ -26,7 +26,7 @@ public class LuckyNoSlacky {
         }
         loadError = failedToLoad;
 
-        luckyNoScanner = new LuckyNoScanner();
+        luckyNoScanner = new LuckyNoScanner(tmLucky);
     }
 
     private static void printReply(String output) {
@@ -52,61 +52,14 @@ public class LuckyNoSlacky {
         printReply(LuckyNoMessages.goodbye());
     }
 
-    private void handleTaskToggle(LuckyNoMarkCommand command) {
-        boolean markDone = command.shouldMarkDone();
-        String task = markDone
-                ? tmLucky.markTaskDone(command.getTaskNumber())
-                : tmLucky.unmarkTaskUndone(command.getTaskNumber());
-
-        String message = markDone
-                ? LuckyNoMessages.markedTaskMessage(task)
-                : LuckyNoMessages.unmarkedTaskMessage(task);
-
-        printReply(message);
-    }
-
-    private void addTask(Task task) {
-        tmLucky.addTask(task);
-
-        printReply(LuckyNoMessages.addedTaskMessage(
-                task, tmLucky.getTaskCount()));
-    }
-
-    private void handleTaskDeletion(LuckyNoDeleteCommand command) {
-        String task = tmLucky.deleteTask(command.getTaskNumber());
-        printReply(LuckyNoMessages.deletedTaskMessage(
-                task, tmLucky.getTaskCount()));
-    }
-
-    private void chatLoop() {
+    private boolean chatLoop() {
         while (userScanner.hasNextLine()) {
             String userInput = userScanner.nextLine();
             try {
-                LuckyNoCommand command = luckyNoScanner.parseCommand(
-                        userInput, tmLucky.getTaskCount());
-                switch (command.getCommandType()) {
-                case BYE:
-                    return;
-                case LIST:
-                    printReply(tmLucky.listTasks());
-                    break;
-                case CREATE_TASK:
-                    addTask(((LuckyNoTaskCommand) command).getTask());
-                    break;
-                case TOGGLE_TASK:
-                    handleTaskToggle((LuckyNoMarkCommand) command);
-                    break;
-                case DELETE_TASK:
-                    handleTaskDeletion((LuckyNoDeleteCommand) command);
-                    break;
-                case FIND:
-                    LuckyNoFindCommand findCommand =
-                            (LuckyNoFindCommand) command;
-                    printReply(tmLucky.searchTasks(
-                            findCommand.getSearchDateTime()));
-                    break;
-                default:
-                    throw new IllegalStateException("Unknown parsed command.");
+                LuckyNoCommand command = luckyNoScanner.parseCommand(userInput);
+                printReply(command.execute());
+                if (command.requestsExit()) {
+                    return true;
                 }
             } catch (LuckyNoInputException exception) {
                 printReply(exception.getMessage());
@@ -114,6 +67,7 @@ public class LuckyNoSlacky {
                 printReply(LuckyNoMessages.saveErrorMessage());
             }
         }
+        return false;
     }
 
     public static void main(String[] args) {
@@ -125,7 +79,8 @@ public class LuckyNoSlacky {
             return;
         }
 
-        lucky.chatLoop();
-        lucky.exit();
+        if (!lucky.chatLoop()) {
+            lucky.exit();
+        }
     }
 }

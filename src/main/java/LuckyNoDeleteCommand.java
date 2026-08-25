@@ -3,6 +3,7 @@
  */
 public class LuckyNoDeleteCommand extends LuckyNoCommand {
     private final int taskNumber;
+    private final TaskMaster taskMaster;
 
     /**
      * Creates a task-deletion command.
@@ -10,8 +11,20 @@ public class LuckyNoDeleteCommand extends LuckyNoCommand {
      * @param taskNumber one-based task number
      */
     public LuckyNoDeleteCommand(int taskNumber) {
+        this(taskNumber, null);
+    }
+
+    LuckyNoDeleteCommand(int taskNumber, TaskMaster taskMaster) {
         super(CommandType.DELETE_TASK);
+        this.taskMaster = taskMaster;
         this.taskNumber = taskNumber;
+    }
+
+    @Override
+    public String execute() {
+        String deletedTask = this.taskMaster.deleteTask(taskNumber);
+        return LuckyNoMessages.deletedTaskMessage(
+                deletedTask, this.taskMaster.getTaskCount());
     }
 
     /**
@@ -19,6 +32,7 @@ public class LuckyNoDeleteCommand extends LuckyNoCommand {
      *
      * @return task number
      */
+    @Deprecated
     public int getTaskNumber() {
         return taskNumber;
     }

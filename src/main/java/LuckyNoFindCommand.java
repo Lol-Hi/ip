@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
  */
 public class LuckyNoFindCommand extends LuckyNoCommand {
     private final LocalDateTime searchDateTime;
+    private final TaskMaster taskMaster;
 
     /**
      * Creates a find command.
@@ -12,21 +13,20 @@ public class LuckyNoFindCommand extends LuckyNoCommand {
      * @param searchDateTime date and time from the search query
      */
     public LuckyNoFindCommand(LocalDateTime searchDateTime) {
-        super(CommandType.FIND);
+        this(searchDateTime, null);
+    }
 
+    LuckyNoFindCommand(LocalDateTime searchDateTime, TaskMaster taskMaster) {
+        super(CommandType.FIND);
+        this.taskMaster = taskMaster;
         if (searchDateTime == null) {
             throw new IllegalArgumentException("Search date cannot be null.");
         }
-
         this.searchDateTime = searchDateTime;
     }
 
-    /**
-     * Returns the parsed search date and time.
-     *
-     * @return search date and time
-     */
-    public LocalDateTime getSearchDateTime() {
-        return searchDateTime;
+    @Override
+    public String execute() {
+        return this.taskMaster.searchTasks(searchDateTime);
     }
 }
