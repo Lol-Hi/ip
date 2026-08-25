@@ -192,7 +192,7 @@ public class LuckyNoScanner {
         if (byIndex <= 0) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
-                            "deadline", LuckyNoMessages.deadlineFormat()));
+                            CommandName.DEADLINE));
         }
 
         String description = arguments.substring(0, byIndex).trim();
@@ -200,7 +200,7 @@ public class LuckyNoScanner {
         if (description.isEmpty() || byTimeText.isEmpty()) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
-                            "deadline", LuckyNoMessages.deadlineFormat()));
+                            CommandName.DEADLINE));
         }
         LocalDateTime byTime = dateTimeParser.parseEndDateTime(byTimeText).value();
         if (byTime.isBefore(dateTimeParser.now())) {
@@ -219,14 +219,14 @@ public class LuckyNoScanner {
         if (onIndex < 0) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
-                            "find", LuckyNoMessages.findFormat()));
+                            CommandName.FIND));
         }
 
         String dateText = arguments.substring(onIndex + 3).trim();
         if (dateText.isEmpty()) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
-                            "find", LuckyNoMessages.findFormat()));
+                            CommandName.FIND));
         }
 
         LocalDateTime searchDateTime =
@@ -240,7 +240,7 @@ public class LuckyNoScanner {
         if (fromIndex <= 0 || toIndex <= fromIndex) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
-                            "event", LuckyNoMessages.eventFormat()));
+                            CommandName.EVENT));
         }
 
         String description = arguments.substring(0, fromIndex).trim();
@@ -249,7 +249,7 @@ public class LuckyNoScanner {
         if (description.isEmpty() || fromTimeText.isEmpty() || toTimeText.isEmpty()) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
-                            "event", LuckyNoMessages.eventFormat()));
+                            CommandName.EVENT));
         }
         DateTimeParser.ParsedDateTime fromTime =
                 dateTimeParser.parseStartDateTime(fromTimeText);

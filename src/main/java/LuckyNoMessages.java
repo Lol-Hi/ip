@@ -21,13 +21,26 @@ public final class LuckyNoMessages {
     /**
      * Returns a message for an invalid command format.
      *
-     * @param command command whose format is invalid
-     * @param format expected command format
+     * @param commandName command whose format is invalid
      * @return formatted error message
      */
-    public static String invalidFormatMessage(String command, String format) {
+    public static String invalidFormatMessage(
+            LuckyNoScanner.CommandName commandName) {
+        if (commandName == null) {
+            throw new IllegalArgumentException("Command name cannot be null.");
+        }
+
+        String format = switch (commandName) {
+        case DEADLINE -> DEADLINE_FORMAT;
+        case EVENT -> EVENT_FORMAT;
+        case FIND -> FIND_FORMAT;
+        default -> throw new IllegalArgumentException(
+                "No format is defined for this command.");
+        };
+
         return "Eh HELLO you know how to type command one anot? \n"
-                + "Lai lai let me teach you: " + command + " " + format;
+                + "Lai lai let me teach you: "
+                + commandName.getInputName() + " " + format;
     }
 
     /**
