@@ -1,4 +1,5 @@
 import java.util.List;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -66,6 +67,14 @@ public abstract class Task {
     public abstract List<String> getCSVStorageFields();
 
     /**
+     * Checks whether this task occurs on a date.
+     *
+     * @param date date to check
+     * @return true if this task should appear in a date search
+     */
+    public abstract boolean occursOn(LocalDate date);
+
+    /**
      * Creates the common CSV fields for a concrete task type.
      *
      * @param taskType task type marker
@@ -81,8 +90,8 @@ public abstract class Task {
                 String.valueOf(taskType),
                 isDone ? "1" : "0",
                 description,
-                LuckyNoDateTimeParser.formatForStorage(startTime),
-                LuckyNoDateTimeParser.formatForStorage(finishTime));
+                DateTimeParser.formatForStorage(startTime),
+                DateTimeParser.formatForStorage(finishTime));
     }
 
     /** Formats a date and time using the chatbot's human-readable format. */

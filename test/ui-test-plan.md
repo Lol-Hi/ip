@@ -7,7 +7,7 @@
 - Data isolation: reset `data/luckyNoSlacky.csv` before each test case
 - Storage failure cases are covered by unit tests using prepared data files
 - Compact `HHMM` fallback and date-dependent resolution are covered by
-  `LuckyNoDateTimeParserTest` with a fixed clock
+  `DateTimeParserTest` with a fixed clock
 - Comparison: exact output, ignoring only line-ending differences and one final newline
 - Failure policy: stop immediately after the first failed test case
 
@@ -119,6 +119,175 @@ bye
   5.[E][ ] the following wednesday (from: Wed Sep 09 2026, 2.00pm to: Wed Sep 09 2026, 3.00pm)
   6.[E][ ] this coming wednesday (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
   7.[E][ ] the coming tuesday (from: Tue Sep 01 2026, 2.00pm to: Tue Sep 01 2026, 3.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Find tasks by date
+
+- Aim: Verify that `find /on <date>` returns deadlines and events on the
+  queried date, excludes ToDos, preserves original task numbers, and reports
+  when no tasks match. Text before `/on` is ignored.
+
+### Input
+
+```text
+todo read book
+deadline return book /by 26 Aug 2026 11:59pm
+event project meeting /from 25 Aug 2026 2pm /to 27 Aug 2026 4pm
+find anything /on 26 Aug 2026
+find /on 28 Aug 2026
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [T][ ] read book
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [D][ ] return book (by: Wed Aug 26 2026, 11.59pm)
+  Now you got 2 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] project meeting (from: Tue Aug 25 2026, 2.00pm to: Thu Aug 27 2026, 4.00pm)
+  Now you got 3 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these stuff you need to do on: Aug 26 2026
+  2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)
+  3.[E][ ] project meeting (from: Tue Aug 25 2026, 2.00pm to: Thu Aug 27 2026, 4.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Wah, you very free hor, got nothing to do sia!
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Invalid find commands
+
+- Aim: Verify that a missing `/on` tag or missing search date produces a
+  validation error without terminating the chatbot.
+
+### Input
+
+```text
+find 2030-10-15
+find /on
+find /on 32 Aug 2026
+find /on definitely-not-a-date
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: find /on <date>
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: find /on <date>
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh mr smart alec you tell me your calendar and clock got tell you time like this one meh?
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh mr smart alec you tell me your calendar and clock got tell you time like this one meh?
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Named relative dates in find
+
+- Aim: Verify that `today`, `tomorrow`/`tmr`, and `yesterday`/`ytd` resolve
+  relative to the current date and that the queried date appears in each find
+  header.
+
+### Input
+
+```text
+deadline today task /by today
+event yesterday event /from yesterday /to tomorrow
+find /on today
+find /on tmr
+find /on ytd
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [D][ ] today task (by: Tue Aug 25 2026, 11.59pm)
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] yesterday event (from: Mon Aug 24 2026, 12.00am to: Wed Aug 26 2026, 11.59pm)
+  Now you got 2 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these stuff you need to do on: Aug 25 2026
+  1.[D][ ] today task (by: Tue Aug 25 2026, 11.59pm)
+  2.[E][ ] yesterday event (from: Mon Aug 24 2026, 12.00am to: Wed Aug 26 2026, 11.59pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these stuff you need to do on: Aug 26 2026
+  2.[E][ ] yesterday event (from: Mon Aug 24 2026, 12.00am to: Wed Aug 26 2026, 11.59pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these stuff you need to do on: Aug 24 2026
+  2.[E][ ] yesterday event (from: Mon Aug 24 2026, 12.00am to: Wed Aug 26 2026, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -452,7 +621,7 @@ bye
   Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
   ____________________________________________________________
   ____________________________________________________________
-  What talking you? I only understand todo, deadline, event, list, mark, unmark, delete, or bye, ok?
+  What talking you? I only understand todo, deadline, event, list, mark, unmark, delete, find, or bye, ok?
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 

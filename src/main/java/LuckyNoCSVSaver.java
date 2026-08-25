@@ -196,11 +196,11 @@ public class LuckyNoCSVSaver {
             case "T" -> new TodoTask(description);
             case "D" -> new DeadlineTask(
                     description,
-                    LuckyNoDateTimeParser.parseFromStorage(finishTimeText));
+                    DateTimeParser.parseFromStorage(finishTimeText));
             case "E" -> new EventTask(
                     description,
-                    LuckyNoDateTimeParser.parseFromStorage(startTimeText),
-                    LuckyNoDateTimeParser.parseFromStorage(finishTimeText));
+                    DateTimeParser.parseFromStorage(startTimeText),
+                    DateTimeParser.parseFromStorage(finishTimeText));
             default -> throw invalidRecord(record, "unknown task type");
             };
         } catch (IllegalArgumentException exception) {

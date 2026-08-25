@@ -17,8 +17,8 @@ import org.junit.jupiter.api.Test;
 class LuckyNoScannerTest {
     private static final Clock TEST_CLOCK = Clock.fixed(
             Instant.parse("2026-08-25T10:00:00Z"), ZoneId.of("UTC"));
-    private final LuckyNoDateTimeParser parser =
-            new LuckyNoDateTimeParser(TEST_CLOCK);
+    private final DateTimeParser parser =
+            new DateTimeParser(TEST_CLOCK);
     private final LuckyNoScanner scanner = new LuckyNoScanner(parser);
 
     @Test
@@ -80,6 +80,17 @@ class LuckyNoScannerTest {
     }
 
     @Test
+    void parsesFindCommandAndIgnoresTextBeforeOnTag()
+            throws LuckyNoInputException {
+        LuckyNoFindCommand command = assertInstanceOf(LuckyNoFindCommand.class,
+                scanner.parseCommand("find anything /on next Wednesday", 0));
+
+        assertEquals(LuckyNoCommand.CommandType.FIND, command.getCommandType());
+        assertEquals(LocalDateTime.of(2026, 9, 2, 0, 0),
+                command.getSearchDateTime());
+    }
+
+    @Test
     void commandNameLookupReturnsKnownCommandOrEmptyOptional() {
         assertEquals(LuckyNoScanner.CommandName.DELETE,
                 LuckyNoScanner.CommandName.fromInput("DeLeTe").orElseThrow());
@@ -98,7 +109,7 @@ class LuckyNoScannerTest {
     @Test
     void rejectsEmptyAndUnknownCommands() {
         assertInputError("Eh you mute issit?? Just say what you want lah!", "   ", 0);
-        assertInputError("What talking you? I only understand todo, deadline, event, list, mark, unmark, delete, or bye, ok?",
+        assertInputError("What talking you? I only understand todo, deadline, event, list, mark, unmark, delete, find, or bye, ok?",
                 "dance", 0);
     }
 
@@ -121,6 +132,24 @@ class LuckyNoScannerTest {
         assertInputError("Eh HELLO you know how to type command one anot? \n"
                         + "Lai lai let me teach you: event <description> /from <start> /to <end>.",
                 "event meeting /from Mon 2pm /to", 0);
+    }
+
+    @Test
+    void rejectsMalformedFindCommands() {
+        assertInputError("Eh HELLO you know how to type command one anot? \n"
+                        + "Lai lai let me teach you: find /on <date>",
+                "find next Wednesday", 0);
+        assertInputError("Eh HELLO you know how to type command one anot? \n"
+                        + "Lai lai let me teach you: find /on <date>",
+                "find /on", 0);
+        assertInputError(LuckyNoMessages.invalidDateTimeMessage(),
+                "find ignored /on definitely-not-a-date", 0);
+        assertInputError(LuckyNoMessages.invalidDateTimeMessage(),
+                "find /on 32 Aug 2026", 0);
+        assertInputError(LuckyNoMessages.invalidDateTimeMessage(),
+                "find /on 2026-13-01", 0);
+        assertInputError(LuckyNoMessages.invalidDateTimeMessage(),
+                "find /on 25:99", 0);
     }
 
     @Test

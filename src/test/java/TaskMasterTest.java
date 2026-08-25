@@ -66,6 +66,37 @@ class TaskMasterTest {
     }
 
     @Test
+    void searchFindsDeadlinesAndEventsOnTheQueriedDate() {
+        TaskMaster taskMaster = new TaskMaster();
+        taskMaster.addTask(new TodoTask("read book"));
+        taskMaster.addTask(new DeadlineTask(
+                "return book", LocalDateTime.of(2026, 8, 26, 23, 59)));
+        taskMaster.addTask(new EventTask(
+                "project meeting",
+                LocalDateTime.of(2026, 8, 25, 14, 0),
+                LocalDateTime.of(2026, 8, 27, 16, 0)));
+
+        assertEquals("Nah, all these stuff you need to do on: Aug 26 2026\n"
+                        + "2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)\n"
+                        + "3.[E][ ] project meeting (from: Tue Aug 25 2026, 2.00pm"
+                        + " to: Thu Aug 27 2026, 4.00pm)",
+                taskMaster.searchTasks(LocalDateTime.of(2026, 8, 26, 0, 0)));
+    }
+
+    @Test
+    void searchExcludesTodosAndReturnsNoMatchMessageWhenAppropriate() {
+        TaskMaster taskMaster = new TaskMaster();
+        taskMaster.addTask(new TodoTask("read book"));
+        taskMaster.addTask(new DeadlineTask(
+                "return book", LocalDateTime.of(2026, 8, 26, 23, 59)));
+
+        assertEquals("Wah, you very free hor, got nothing to do sia!",
+                taskMaster.searchTasks(LocalDateTime.of(2026, 8, 25, 0, 0)));
+        assertEquals("Wah, you very free hor, got nothing to do sia!",
+                taskMaster.searchTasks(LocalDateTime.of(2026, 8, 27, 0, 0)));
+    }
+
+    @Test
     void markedTaskIsShownAsDone() {
         TaskMaster taskMaster = new TaskMaster();
 

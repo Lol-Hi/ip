@@ -1,4 +1,5 @@
 import java.util.List;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -32,6 +33,12 @@ public class EventTask extends Task {
     @Override
     public List<String> getCSVStorageFields() {
         return createCSVStorageFields('E', fromTime, toTime);
+    }
+
+    @Override
+    public boolean occursOn(LocalDate date) {
+        return !date.isBefore(fromTime.toLocalDate())
+                && !date.isAfter(toTime.toLocalDate());
     }
 
     /**

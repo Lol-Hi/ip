@@ -1,3 +1,7 @@
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
 /**
  * Stores and formats all messages that can be shown to the user.
  */
@@ -6,6 +10,9 @@ public final class LuckyNoMessages {
             "<description> /by <date/time>.";
     private static final String EVENT_FORMAT =
             "<description> /from <start> /to <end>.";
+    private static final String FIND_FORMAT = "/on <date>";
+    private static final DateTimeFormatter FIND_DATE_FORMAT =
+            DateTimeFormatter.ofPattern("MMM dd uuuu", Locale.ENGLISH);
 
     private LuckyNoMessages() {
         // Prevent instantiation of this utility class.
@@ -39,6 +46,15 @@ public final class LuckyNoMessages {
      */
     public static String eventFormat() {
         return EVENT_FORMAT;
+    }
+
+    /**
+     * Returns the expected find command format.
+     *
+     * @return find format
+     */
+    public static String findFormat() {
+        return FIND_FORMAT;
     }
 
     /**
@@ -95,7 +111,8 @@ public final class LuckyNoMessages {
      */
     public static String unknownCommandMessage() {
         return "What talking you? "
-                + "I only understand todo, deadline, event, list, mark, unmark, delete, or bye, ok?";
+                + "I only understand todo, deadline, event, list, mark, unmark, "
+                + "delete, find, or bye, ok?";
     }
 
     /**
@@ -228,5 +245,27 @@ public final class LuckyNoMessages {
      */
     public static String taskListHeader() {
         return "Nah all these stuff you need to do:";
+    }
+
+    /**
+     * Returns the heading for a date-search result.
+     *
+     * @return search-list heading
+     */
+    public static String findTasksListHeader(LocalDate searchDate) {
+        if (searchDate == null) {
+            throw new IllegalArgumentException("Search date cannot be null.");
+        }
+        return "Nah, all these stuff you need to do on: "
+                + FIND_DATE_FORMAT.format(searchDate);
+    }
+
+    /**
+     * Returns the message for a search with no matching deadline or event.
+     *
+     * @return no-match message
+     */
+    public static String noMatchingTasksMessage() {
+        return "Wah, you very free hor, got nothing to do sia!";
     }
 }

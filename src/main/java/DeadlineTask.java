@@ -1,4 +1,5 @@
 import java.util.List;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -26,6 +27,11 @@ public class DeadlineTask extends Task {
     @Override
     public List<String> getCSVStorageFields() {
         return createCSVStorageFields('D', null, byTime);
+    }
+
+    @Override
+    public boolean occursOn(LocalDate date) {
+        return byTime.toLocalDate().equals(date);
     }
 
     /**

@@ -11,11 +11,11 @@ import java.time.ZoneId;
 import org.junit.jupiter.api.Test;
 
 /** Tests supported date/time formats, relative resolution, and invalid input. */
-class LuckyNoDateTimeParserTest {
+class DateTimeParserTest {
     private static final Clock TEST_CLOCK = Clock.fixed(
             Instant.parse("2026-08-25T10:00:00Z"), ZoneId.of("UTC"));
-    private final LuckyNoDateTimeParser parser =
-            new LuckyNoDateTimeParser(TEST_CLOCK);
+    private final DateTimeParser parser =
+            new DateTimeParser(TEST_CLOCK);
 
     @Test
     void acceptsSupportedDateFormats() throws Exception {
@@ -90,7 +90,7 @@ class LuckyNoDateTimeParserTest {
     void resolvesEventEndTimeOnReferenceDateWhenItHasNotPassed() throws Exception {
         LocalDateTime start = LocalDateTime.of(2026, 8, 25, 14, 0);
 
-        LuckyNoDateTimeParser.ParsedDateTime end =
+        DateTimeParser.ParsedDateTime end =
                 parser.parseEndDateTime("4pm", start);
 
         assertEquals(LocalDateTime.of(2026, 8, 25, 16, 0), end.value());
@@ -101,7 +101,7 @@ class LuckyNoDateTimeParserTest {
     void resolvesEventEndTimeOnNextDateWhenItHasPassed() throws Exception {
         LocalDateTime start = LocalDateTime.of(2026, 8, 25, 23, 0);
 
-        LuckyNoDateTimeParser.ParsedDateTime end =
+        DateTimeParser.ParsedDateTime end =
                 parser.parseEndDateTime("1am", start);
 
         assertEquals(LocalDateTime.of(2026, 8, 26, 1, 0), end.value());
@@ -112,7 +112,7 @@ class LuckyNoDateTimeParserTest {
     void preservesExplicitEventEndDateInsteadOfUsingReferenceDate() throws Exception {
         LocalDateTime start = LocalDateTime.of(2026, 8, 25, 23, 0);
 
-        LuckyNoDateTimeParser.ParsedDateTime end =
+        DateTimeParser.ParsedDateTime end =
                 parser.parseEndDateTime("26 Aug 2030 1am", start);
 
         assertEquals(LocalDateTime.of(2030, 8, 26, 1, 0), end.value());
@@ -125,6 +125,24 @@ class LuckyNoDateTimeParserTest {
                 parser.parseStartDateTime("2pm").value());
         assertEquals(LocalDateTime.of(2026, 8, 26, 9, 0),
                 parser.parseStartDateTime("9am").value());
+    }
+
+    @Test
+    void resolvesNamedRelativeDates() throws Exception {
+        assertEquals(LocalDateTime.of(2026, 8, 25, 0, 0),
+                parser.parseStartDateTime("today").value());
+        assertEquals(LocalDateTime.of(2026, 8, 26, 0, 0),
+                parser.parseStartDateTime("tomorrow").value());
+        assertEquals(LocalDateTime.of(2026, 8, 26, 0, 0),
+                parser.parseStartDateTime("tmr").value());
+        assertEquals(LocalDateTime.of(2026, 8, 24, 0, 0),
+                parser.parseStartDateTime("yesterday").value());
+        assertEquals(LocalDateTime.of(2026, 8, 24, 0, 0),
+                parser.parseStartDateTime("ytd").value());
+        assertEquals(LocalDateTime.of(2026, 8, 25, 23, 59),
+                parser.parseEndDateTime("today").value());
+        assertEquals(LocalDateTime.of(2026, 8, 26, 14, 0),
+                parser.parseStartDateTime("tomorrow 2pm").value());
     }
 
     @Test
@@ -216,12 +234,12 @@ class LuckyNoDateTimeParserTest {
     @Test
     void formatsAndReadsCsvDateTimes() {
         LocalDateTime value = LocalDateTime.of(2030, 10, 15, 14, 15);
-        String stored = LuckyNoDateTimeParser.formatForStorage(value);
+        String stored = DateTimeParser.formatForStorage(value);
 
         assertEquals("2030-10-15 14:15", stored);
-        assertEquals(value, LuckyNoDateTimeParser.parseFromStorage(stored));
-        assertEquals("", LuckyNoDateTimeParser.formatForStorage(null));
-        assertEquals(null, LuckyNoDateTimeParser.parseFromStorage(""));
+        assertEquals(value, DateTimeParser.parseFromStorage(stored));
+        assertEquals("", DateTimeParser.formatForStorage(null));
+        assertEquals(null, DateTimeParser.parseFromStorage(""));
     }
 
     private void assertInvalid(String input) {

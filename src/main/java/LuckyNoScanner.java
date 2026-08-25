@@ -6,14 +6,14 @@ import java.time.LocalDateTime;
  * Parses user input into commands and reports invalid input consistently.
  */
 public class LuckyNoScanner {
-    private final LuckyNoDateTimeParser dateTimeParser;
+    private final DateTimeParser dateTimeParser;
 
     /** Creates a scanner using the current system clock. */
     public LuckyNoScanner() {
-        this(new LuckyNoDateTimeParser());
+        this(new DateTimeParser());
     }
 
-    LuckyNoScanner(LuckyNoDateTimeParser dateTimeParser) {
+    LuckyNoScanner(DateTimeParser dateTimeParser) {
         this.dateTimeParser = dateTimeParser;
     }
     /**
@@ -27,7 +27,8 @@ public class LuckyNoScanner {
         EVENT("event"),
         MARK("mark"),
         UNMARK("unmark"),
-        DELETE("delete");
+        DELETE("delete"),
+        FIND("find");
 
         private final String inputName;
 
@@ -104,6 +105,8 @@ public class LuckyNoScanner {
             return new LuckyNoMarkCommand(parseTaskNumber(arguments, taskCount), false);
         case DELETE:
             return new LuckyNoDeleteCommand(parseTaskNumber(arguments, taskCount));
+        case FIND:
+            return parseFind(arguments);
         default:
             throw new IllegalStateException("Unhandled command name.");
         }
@@ -166,6 +169,31 @@ public class LuckyNoScanner {
         return new DeadlineTask(description, byTime);
     }
 
+    /**
+     * Parses a find command. Text before the {@code /on} tag is intentionally
+     * ignored so that the command can be extended with more search options.
+     */
+    private LuckyNoFindCommand parseFind(String arguments)
+            throws LuckyNoInputException {
+        int onIndex = arguments.indexOf("/on");
+        if (onIndex < 0) {
+            throw new LuckyNoInputException(
+                    LuckyNoMessages.invalidFormatMessage(
+                            "find", LuckyNoMessages.findFormat()));
+        }
+
+        String dateText = arguments.substring(onIndex + 3).trim();
+        if (dateText.isEmpty()) {
+            throw new LuckyNoInputException(
+                    LuckyNoMessages.invalidFormatMessage(
+                            "find", LuckyNoMessages.findFormat()));
+        }
+
+        LocalDateTime searchDateTime =
+                dateTimeParser.parseStartDateTime(dateText).value();
+        return new LuckyNoFindCommand(searchDateTime);
+    }
+
     private EventTask parseEvent(String arguments) throws LuckyNoInputException {
         int fromIndex = arguments.indexOf("/from");
         int toIndex = arguments.indexOf("/to");
@@ -183,9 +211,9 @@ public class LuckyNoScanner {
                     LuckyNoMessages.invalidFormatMessage(
                             "event", LuckyNoMessages.eventFormat()));
         }
-        LuckyNoDateTimeParser.ParsedDateTime fromTime =
+        DateTimeParser.ParsedDateTime fromTime =
                 dateTimeParser.parseStartDateTime(fromTimeText);
-        LuckyNoDateTimeParser.ParsedDateTime toTime =
+        DateTimeParser.ParsedDateTime toTime =
                 dateTimeParser.parseEndDateTime(toTimeText, fromTime.value());
         if (toTime.value().isBefore(fromTime.value())) {
             throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());

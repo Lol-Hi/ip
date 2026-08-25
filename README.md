@@ -218,6 +218,8 @@ The chatbot accepts the following date forms:
 - Dates with weekdays: `Tue Oct 15 2030`, `Tuesday, October 15 2030`.
 - Dates without a year: `June 6th`; the current year is used unless that date
   has passed, in which case the next year is used.
+- Named relative dates: `today`, `tomorrow`/`tmr`, and `yesterday`/`ytd`; these
+  resolve relative to the current date.
 - Days of a month without a month: `the 15th`; the current month is used unless
   that date has passed, in which case the next month is used.
 - A weekday alone: `Monday`; this resolves to the next occurrence of Monday.

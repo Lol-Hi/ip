@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  * same way on different computers.</p>
  *
  */
-public final class LuckyNoDateTimeParser {
+public final class DateTimeParser {
     private static final Pattern TIME_PATTERN = Pattern.compile(
             "^(\\d{1,2})(?:(:|\\.)(\\d{2}))?(?::(\\d{2}))?\\s*(am|pm)?$",
             Pattern.CASE_INSENSITIVE);
@@ -56,7 +56,7 @@ public final class LuckyNoDateTimeParser {
     private final Clock clock;
 
     /** Creates a parser using the system's default time zone and clock. */
-    public LuckyNoDateTimeParser() {
+    public DateTimeParser() {
         this(Clock.systemDefaultZone());
     }
 
@@ -66,7 +66,7 @@ public final class LuckyNoDateTimeParser {
      *
      * @param clock clock used to resolve relative dates
      */
-    LuckyNoDateTimeParser(Clock clock) {
+    DateTimeParser(Clock clock) {
         if (clock == null) {
             throw new IllegalArgumentException("Clock cannot be null.");
         }
@@ -275,6 +275,21 @@ public final class LuckyNoDateTimeParser {
         DayOfWeek weekday = parseWeekday(value);
         if (weekday != null) {
             return resolveWeekday(weekday, today, prefix);
+        }
+
+        if (prefix.modifier().equals("none")) {
+            switch (value) {
+            case "today":
+                return today;
+            case "tomorrow":
+            case "tmr":
+                return today.plusDays(1);
+            case "yesterday":
+            case "ytd":
+                return today.minusDays(1);
+            default:
+                break;
+            }
         }
 
         value = value.replaceFirst(
