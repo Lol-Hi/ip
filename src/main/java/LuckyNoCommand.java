@@ -10,7 +10,8 @@ public class LuckyNoCommand {
         LIST,
         CREATE_TASK,
         TOGGLE_TASK,
-        DELETE_TASK
+        DELETE_TASK,
+        FIND
     }
 
     private final CommandType commandType;

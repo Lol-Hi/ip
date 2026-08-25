@@ -1,4 +1,5 @@
 import java.util.List;
+import java.time.LocalDate;
 
 /**
  * Represents a task without any date or time information.
@@ -16,7 +17,12 @@ public class TodoTask extends Task {
 
     @Override
     public List<String> getCSVStorageFields() {
-        return createCSVStorageFields('T', "", "");
+        return createCSVStorageFields('T', null, null);
+    }
+
+    @Override
+    public boolean occursOn(LocalDate date) {
+        return false;
     }
 
     /**

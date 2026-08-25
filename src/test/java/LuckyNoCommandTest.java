@@ -1,6 +1,8 @@
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
+import java.time.LocalDateTime;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -40,5 +42,14 @@ class LuckyNoCommandTest {
 
         assertEquals(LuckyNoCommand.CommandType.DELETE_TASK, command.getCommandType());
         assertEquals(3, command.getTaskNumber());
+    }
+
+    @Test
+    void findCommandStoresSearchDateAndUsesFindType() {
+        LocalDateTime searchDate = LocalDateTime.of(2026, 8, 26, 0, 0);
+        LuckyNoFindCommand command = new LuckyNoFindCommand(searchDate);
+
+        assertEquals(LuckyNoCommand.CommandType.FIND, command.getCommandType());
+        assertSame(searchDate, command.getSearchDateTime());
     }
 }

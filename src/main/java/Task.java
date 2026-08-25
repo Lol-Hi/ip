@@ -1,9 +1,15 @@
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 /**
  * Represents the common state and behavior shared by all task types.
  */
 public abstract class Task {
+    private static final DateTimeFormatter DISPLAY_FORMATTER =
+            DateTimeFormatter.ofPattern("EEE MMM dd uuuu, h.mma", Locale.ENGLISH);
     private final String description;
     private boolean isDone;
 
@@ -61,6 +67,14 @@ public abstract class Task {
     public abstract List<String> getCSVStorageFields();
 
     /**
+     * Checks whether this task occurs on a date.
+     *
+     * @param date date to check
+     * @return true if this task should appear in a date search
+     */
+    public abstract boolean occursOn(LocalDate date);
+
+    /**
      * Creates the common CSV fields for a concrete task type.
      *
      * @param taskType task type marker
@@ -70,14 +84,21 @@ public abstract class Task {
      */
     protected final List<String> createCSVStorageFields(
             char taskType,
-            String startTime,
-            String finishTime) {
+            LocalDateTime startTime,
+            LocalDateTime finishTime) {
         return List.of(
                 String.valueOf(taskType),
                 isDone ? "1" : "0",
                 description,
-                startTime,
-                finishTime);
+                DateTimeParser.formatForStorage(startTime),
+                DateTimeParser.formatForStorage(finishTime));
+    }
+
+    /** Formats a date and time using the chatbot's human-readable format. */
+    protected static String formatDateTime(LocalDateTime value) {
+        return DISPLAY_FORMATTER.format(value)
+                .replace("AM", "am")
+                .replace("PM", "pm");
     }
 
     /**

@@ -6,6 +6,8 @@
 - Working directory: project root
 - Data isolation: reset `data/luckyNoSlacky.csv` before each test case
 - Storage failure cases are covered by unit tests using prepared data files
+- Compact `HHMM` fallback and date-dependent resolution are covered by
+  `DateTimeParserTest` with a fixed clock
 - Comparison: exact output, ignoring only line-ending differences and one final newline
 - Failure policy: stop immediately after the first failed test case
 
@@ -33,6 +35,259 @@ bye
   LuckyNoSlacky is here to help!
   ____________________________________________________________
   Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Standardized relative-date terminology
+
+- Aim: Verify current-week, following-week, next-next, coming-weekday, and
+  relative day/month terminology, including a past event start.
+
+### Input
+
+```text
+event this monday /from this monday /to this monday
+event this sunday /from this sunday 2pm /to 3pm
+event next wednesday /from next wednesday 2pm /to 3pm
+event next next wednesday /from next next wednesday 2pm /to 3pm
+event the following wednesday /from the following wednesday 2pm /to 3pm
+event this coming wednesday /from this coming wednesday 2pm /to 3pm
+event the coming tuesday /from the coming tuesday 2pm /to 3pm
+list
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] this monday (from: Mon Aug 24 2026, 12.00am to: Mon Aug 24 2026, 11.59pm)
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] this sunday (from: Sun Aug 30 2026, 2.00pm to: Sun Aug 30 2026, 3.00pm)
+  Now you got 2 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] next wednesday (from: Wed Sep 02 2026, 2.00pm to: Wed Sep 02 2026, 3.00pm)
+  Now you got 3 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] next next wednesday (from: Wed Sep 09 2026, 2.00pm to: Wed Sep 09 2026, 3.00pm)
+  Now you got 4 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] the following wednesday (from: Wed Sep 09 2026, 2.00pm to: Wed Sep 09 2026, 3.00pm)
+  Now you got 5 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] this coming wednesday (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
+  Now you got 6 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] the coming tuesday (from: Tue Sep 01 2026, 2.00pm to: Tue Sep 01 2026, 3.00pm)
+  Now you got 7 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah all these stuff you need to do:
+  1.[E][ ] this monday (from: Mon Aug 24 2026, 12.00am to: Mon Aug 24 2026, 11.59pm)
+  2.[E][ ] this sunday (from: Sun Aug 30 2026, 2.00pm to: Sun Aug 30 2026, 3.00pm)
+  3.[E][ ] next wednesday (from: Wed Sep 02 2026, 2.00pm to: Wed Sep 02 2026, 3.00pm)
+  4.[E][ ] next next wednesday (from: Wed Sep 09 2026, 2.00pm to: Wed Sep 09 2026, 3.00pm)
+  5.[E][ ] the following wednesday (from: Wed Sep 09 2026, 2.00pm to: Wed Sep 09 2026, 3.00pm)
+  6.[E][ ] this coming wednesday (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
+  7.[E][ ] the coming tuesday (from: Tue Sep 01 2026, 2.00pm to: Tue Sep 01 2026, 3.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Find tasks by date
+
+- Aim: Verify that `find /on <date>` returns deadlines and events on the
+  queried date, excludes ToDos, preserves original task numbers, and reports
+  when no tasks match. Text before `/on` is ignored.
+
+### Input
+
+```text
+todo read book
+deadline return book /by 26 Aug 2026 11:59pm
+event project meeting /from 25 Aug 2026 2pm /to 27 Aug 2026 4pm
+find anything /on 26 Aug 2026
+find /on 28 Aug 2026
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [T][ ] read book
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [D][ ] return book (by: Wed Aug 26 2026, 11.59pm)
+  Now you got 2 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] project meeting (from: Tue Aug 25 2026, 2.00pm to: Thu Aug 27 2026, 4.00pm)
+  Now you got 3 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these stuff you need to do on: Aug 26 2026
+  2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)
+  3.[E][ ] project meeting (from: Tue Aug 25 2026, 2.00pm to: Thu Aug 27 2026, 4.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Wah, you very free hor, got nothing to do sia!
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Invalid find commands
+
+- Aim: Verify that a missing `/on` tag or missing search date produces a
+  validation error without terminating the chatbot.
+
+### Input
+
+```text
+find 2030-10-15
+find /on
+find /on 32 Aug 2026
+find /on definitely-not-a-date
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: find /on <date>
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: find /on <date>
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh mr smart alec you tell me your calendar and clock got tell you time like this one meh?
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh mr smart alec you tell me your calendar and clock got tell you time like this one meh?
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Named relative dates in find
+
+- Aim: Verify that `today`, `tomorrow`/`tmr`, and `yesterday`/`ytd` resolve
+  relative to the current date and that the queried date appears in each find
+  header.
+
+### Input
+
+```text
+deadline today task /by today
+event yesterday event /from yesterday /to tomorrow
+find /on today
+find /on tmr
+find /on ytd
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [D][ ] today task (by: Tue Aug 25 2026, 11.59pm)
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] yesterday event (from: Mon Aug 24 2026, 12.00am to: Wed Aug 26 2026, 11.59pm)
+  Now you got 2 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these stuff you need to do on: Aug 25 2026
+  1.[D][ ] today task (by: Tue Aug 25 2026, 11.59pm)
+  2.[E][ ] yesterday event (from: Mon Aug 24 2026, 12.00am to: Wed Aug 26 2026, 11.59pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these stuff you need to do on: Aug 26 2026
+  2.[E][ ] yesterday event (from: Mon Aug 24 2026, 12.00am to: Wed Aug 26 2026, 11.59pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these stuff you need to do on: Aug 24 2026
+  2.[E][ ] yesterday event (from: Mon Aug 24 2026, 12.00am to: Wed Aug 26 2026, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -151,11 +406,11 @@ bye
 TODO   read book   
 LIST extra
 list
-DEADLINE return book /by Sunday
+DEADLINE return book /by 2030-12-08 23:59
 deadline return book /by
 list
-EVENT meeting /from Mon 2pm /to 4pm
-event meeting /to 4pm /from Mon 2pm
+EVENT meeting /from 2030-12-09 14:00 /to 2030-12-09 16:00
+event meeting /to 2030-12-09 16:00 /from 2030-12-09 14:00
 list
 bye now
 BYE
@@ -193,7 +448,7 @@ BYE
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [D][ ] return book (by: Sunday)
+    [D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
@@ -203,11 +458,11 @@ BYE
   ____________________________________________________________
   Nah all these stuff you need to do:
   1.[T][ ] read book
-  2.[D][ ] return book (by: Sunday)
+  2.[D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] meeting (from: Mon 2pm to: 4pm)
+    [E][ ] meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
   Now you got 3 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
@@ -217,8 +472,8 @@ BYE
   ____________________________________________________________
   Nah all these stuff you need to do:
   1.[T][ ] read book
-  2.[D][ ] return book (by: Sunday)
-  3.[E][ ] meeting (from: Mon 2pm to: 4pm)
+  2.[D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
+  3.[E][ ] meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Why you so losor! Leave the bye command to do its own thing lah
@@ -236,8 +491,8 @@ BYE
 
 ```text
 todo borrow book
-deadline return book /by Sunday
-event project meeting /from Mon 2pm /to 4pm
+deadline return book /by 2030-12-08 23:59
+event project meeting /from 2030-12-09 14:00 /to 2030-12-09 16:00
 list
 bye
 ```
@@ -264,19 +519,19 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [D][ ] return book (by: Sunday)
+    [D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] project meeting (from: Mon 2pm to: 4pm)
+    [E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
   Now you got 3 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Nah all these stuff you need to do:
   1.[T][ ] borrow book
-  2.[D][ ] return book (by: Sunday)
-  3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
+  2.[D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
+  3.[E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -366,7 +621,7 @@ bye
   Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
   ____________________________________________________________
   ____________________________________________________________
-  What talking you? I only understand todo, deadline, event, list, mark, unmark, delete, or bye, ok?
+  What talking you? I only understand todo, deadline, event, list, mark, unmark, delete, find, or bye, ok?
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
@@ -461,11 +716,11 @@ bye
 todo read book
 todo
 list
-deadline return book /by Sunday
+deadline return book /by 2030-12-08 23:59
 deadline return book
 list
-event project meeting /from Mon 2pm /to 4pm
-event project meeting /from Mon 2pm
+event project meeting /from 2030-12-09 14:00 /to 2030-12-09 16:00
+event project meeting /from 2030-12-09 14:00
 list
 bye
 ```
@@ -499,7 +754,7 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [D][ ] return book (by: Sunday)
+    [D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
@@ -509,11 +764,11 @@ bye
   ____________________________________________________________
   Nah all these stuff you need to do:
   1.[T][ ] read book
-  2.[D][ ] return book (by: Sunday)
+  2.[D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] project meeting (from: Mon 2pm to: 4pm)
+    [E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
   Now you got 3 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
@@ -523,8 +778,8 @@ bye
   ____________________________________________________________
   Nah all these stuff you need to do:
   1.[T][ ] read book
-  2.[D][ ] return book (by: Sunday)
-  3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
+  2.[D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
+  3.[E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -533,15 +788,15 @@ bye
 
 ## Test Case: Free-form task text and date/time strings
 
-- Aim: Verify that task descriptions and date/time values are retained as entered, including punctuation and command-like text inside a ToDo description.
+- Aim: Verify that task descriptions are retained, while supported date/time values are normalized consistently, including punctuation and command-like text inside a ToDo description.
 
 ### Input
 
 ```text
 todo /by /from /to !@#
 list
-deadline do homework /by no idea :-p
-event project meeting /from ?? /to forever
+deadline do homework /by 2030-12-08 09:00
+event project meeting /from 2030-12-09 14:00 /to 2030-12-09 16:00
 list
 bye
 ```
@@ -572,19 +827,19 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [D][ ] do homework (by: no idea :-p)
+    [D][ ] do homework (by: Sun Dec 08 2030, 9.00am)
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] project meeting (from: ?? to: forever)
+    [E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
   Now you got 3 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Nah all these stuff you need to do:
   1.[T][ ] /by /from /to !@#
-  2.[D][ ] do homework (by: no idea :-p)
-  3.[E][ ] project meeting (from: ?? to: forever)
+  2.[D][ ] do homework (by: Sun Dec 08 2030, 9.00am)
+  3.[E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -754,6 +1009,161 @@ bye
   ____________________________________________________________
   Nah all these stuff you need to do:
   1.[T][ ] read book
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Relative date phrases and invalid date/time values
+
+- Aim: Verify that relative day, month, weekday, and year phrases are accepted by the date/time parser, while malformed times receive a clear error and do not add tasks.
+
+### Input
+
+```text
+deadline bad /by the 15th 99:99
+deadline bad /by next 15th 99:99
+deadline bad /by next next Monday 99:99
+deadline bad /by next next month 99:99
+deadline bad /by the following month 99:99
+deadline bad /by next year 99:99
+deadline bad /by the following year 99:99
+event bad /from the 15th 99:99 /to next year 99:99
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh mr smart alec you tell me your calendar and clock got tell you time like this one meh?
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh mr smart alec you tell me your calendar and clock got tell you time like this one meh?
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh mr smart alec you tell me your calendar and clock got tell you time like this one meh?
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh mr smart alec you tell me your calendar and clock got tell you time like this one meh?
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh mr smart alec you tell me your calendar and clock got tell you time like this one meh?
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh mr smart alec you tell me your calendar and clock got tell you time like this one meh?
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh mr smart alec you tell me your calendar and clock got tell you time like this one meh?
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh mr smart alec you tell me your calendar and clock got tell you time like this one meh?
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Year interpretation and role-specific time validation
+
+- Aim: Verify that four-digit values are interpreted as years, past deadlines are rejected, and past event starts are allowed when the event end follows the start.
+
+### Input
+
+```text
+deadline past deadline /by 25 Aug 2025
+event past meeting /from 25 Aug 2025 /to 26 Aug 2025
+list
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  you think you time travelling issit? check your date and time properly hor!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] past meeting (from: Mon Aug 25 2025, 12.00am to: Tue Aug 26 2025, 11.59pm)
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah all these stuff you need to do:
+  1.[E][ ] past meeting (from: Mon Aug 25 2025, 12.00am to: Tue Aug 26 2025, 11.59pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Event end-time reference resolution
+
+- Aim: Verify that a time-only event end uses the event start date when it has not passed, and the next date when the event crosses midnight.
+
+### Input
+
+```text
+event afternoon meeting /from 25 Aug 2026 2pm /to 4pm
+event overnight meeting /from 25 Aug 2026 11pm /to 1am
+list
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] afternoon meeting (from: Tue Aug 25 2026, 2.00pm to: Tue Aug 25 2026, 4.00pm)
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] overnight meeting (from: Tue Aug 25 2026, 11.00pm to: Wed Aug 26 2026, 1.00am)
+  Now you got 2 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah all these stuff you need to do:
+  1.[E][ ] afternoon meeting (from: Tue Aug 25 2026, 2.00pm to: Tue Aug 25 2026, 4.00pm)
+  2.[E][ ] overnight meeting (from: Tue Aug 25 2026, 11.00pm to: Wed Aug 26 2026, 1.00am)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!

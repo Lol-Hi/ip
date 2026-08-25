@@ -1,5 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
 /**
@@ -99,16 +101,36 @@ public class TaskMaster {
             return LuckyNoMessages.emptyTaskListMessage();
         }
 
-        StringBuilder result = new StringBuilder(LuckyNoMessages.taskListHeader());
-
+        List<Integer> taskIndexes = new ArrayList<>();
         for (int i = 0; i < taskRoster.size(); i++) {
-            result.append("\n")
-                    .append(i + 1)
-                    .append(".")
-                    .append(taskRoster.get(i));
+            taskIndexes.add(i);
+        }
+        return formatTaskList(taskIndexes, LuckyNoMessages.taskListHeader(), "");
+    }
+
+    /**
+     * Lists deadlines and events occurring on the queried date.
+     *
+     * @param searchDateTime date and time from the find command
+     * @return formatted matching task list
+     */
+    public String searchTasks(LocalDateTime searchDateTime) {
+        if (searchDateTime == null) {
+            throw new IllegalArgumentException("Search date cannot be null.");
         }
 
-        return result.toString();
+        LocalDate searchDate = searchDateTime.toLocalDate();
+        List<Integer> matchingTaskIndexes = new ArrayList<>();
+        for (int i = 0; i < taskRoster.size(); i++) {
+            if (taskRoster.get(i).occursOn(searchDate)) {
+                matchingTaskIndexes.add(i);
+            }
+        }
+
+        return formatTaskList(
+                matchingTaskIndexes,
+                LuckyNoMessages.findTasksListHeader(searchDate),
+                LuckyNoMessages.noMatchingTasksMessage());
     }
 
     /**
@@ -210,6 +232,32 @@ public class TaskMaster {
 
     private void saveChanges() {
         saver.save(this);
+    }
+
+    /**
+     * Formats tasks using their original task numbers.
+     *
+     * @param taskIndexes zero-based indexes of tasks to display
+     * @param header heading to display above the tasks
+     * @param emptyMessage message to display when no indexes are supplied
+     * @return formatted task list
+     */
+    private String formatTaskList(
+            List<Integer> taskIndexes,
+            String header,
+            String emptyMessage) {
+        if (taskIndexes.isEmpty()) {
+            return emptyMessage;
+        }
+
+        StringBuilder result = new StringBuilder(header);
+        for (int taskIndex : taskIndexes) {
+            result.append("\n")
+                    .append(taskIndex + 1)
+                    .append(".")
+                    .append(taskRoster.get(taskIndex));
+        }
+        return result.toString();
     }
 
     private void restoreTaskStatus(Task task, boolean wasDone) {

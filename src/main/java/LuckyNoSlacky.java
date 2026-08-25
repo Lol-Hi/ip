@@ -99,6 +99,12 @@ public class LuckyNoSlacky {
                 case DELETE_TASK:
                     handleTaskDeletion((LuckyNoDeleteCommand) command);
                     break;
+                case FIND:
+                    LuckyNoFindCommand findCommand =
+                            (LuckyNoFindCommand) command;
+                    printReply(tmLucky.searchTasks(
+                            findCommand.getSearchDateTime()));
+                    break;
                 default:
                     throw new IllegalStateException("Unknown parsed command.");
                 }

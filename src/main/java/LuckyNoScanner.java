@@ -1,10 +1,21 @@
 import java.util.Locale;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 /**
  * Parses user input into commands and reports invalid input consistently.
  */
 public class LuckyNoScanner {
+    private final DateTimeParser dateTimeParser;
+
+    /** Creates a scanner using the current system clock. */
+    public LuckyNoScanner() {
+        this(new DateTimeParser());
+    }
+
+    LuckyNoScanner(DateTimeParser dateTimeParser) {
+        this.dateTimeParser = dateTimeParser;
+    }
     /**
      * Represents a command name that can be entered by the user.
      */
@@ -16,7 +27,8 @@ public class LuckyNoScanner {
         EVENT("event"),
         MARK("mark"),
         UNMARK("unmark"),
-        DELETE("delete");
+        DELETE("delete"),
+        FIND("find");
 
         private final String inputName;
 
@@ -93,6 +105,8 @@ public class LuckyNoScanner {
             return new LuckyNoMarkCommand(parseTaskNumber(arguments, taskCount), false);
         case DELETE:
             return new LuckyNoDeleteCommand(parseTaskNumber(arguments, taskCount));
+        case FIND:
+            return parseFind(arguments);
         default:
             throw new IllegalStateException("Unhandled command name.");
         }
@@ -142,13 +156,42 @@ public class LuckyNoScanner {
         }
 
         String description = arguments.substring(0, byIndex).trim();
-        String byTime = arguments.substring(byIndex + 3).trim();
-        if (description.isEmpty() || byTime.isEmpty()) {
+        String byTimeText = arguments.substring(byIndex + 3).trim();
+        if (description.isEmpty() || byTimeText.isEmpty()) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
                             "deadline", LuckyNoMessages.deadlineFormat()));
         }
+        LocalDateTime byTime = dateTimeParser.parseEndDateTime(byTimeText).value();
+        if (byTime.isBefore(dateTimeParser.now())) {
+            throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
+        }
         return new DeadlineTask(description, byTime);
+    }
+
+    /**
+     * Parses a find command. Text before the {@code /on} tag is intentionally
+     * ignored so that the command can be extended with more search options.
+     */
+    private LuckyNoFindCommand parseFind(String arguments)
+            throws LuckyNoInputException {
+        int onIndex = arguments.indexOf("/on");
+        if (onIndex < 0) {
+            throw new LuckyNoInputException(
+                    LuckyNoMessages.invalidFormatMessage(
+                            "find", LuckyNoMessages.findFormat()));
+        }
+
+        String dateText = arguments.substring(onIndex + 3).trim();
+        if (dateText.isEmpty()) {
+            throw new LuckyNoInputException(
+                    LuckyNoMessages.invalidFormatMessage(
+                            "find", LuckyNoMessages.findFormat()));
+        }
+
+        LocalDateTime searchDateTime =
+                dateTimeParser.parseStartDateTime(dateText).value();
+        return new LuckyNoFindCommand(searchDateTime);
     }
 
     private EventTask parseEvent(String arguments) throws LuckyNoInputException {
@@ -161,13 +204,20 @@ public class LuckyNoScanner {
         }
 
         String description = arguments.substring(0, fromIndex).trim();
-        String fromTime = arguments.substring(fromIndex + 5, toIndex).trim();
-        String toTime = arguments.substring(toIndex + 3).trim();
-        if (description.isEmpty() || fromTime.isEmpty() || toTime.isEmpty()) {
+        String fromTimeText = arguments.substring(fromIndex + 5, toIndex).trim();
+        String toTimeText = arguments.substring(toIndex + 3).trim();
+        if (description.isEmpty() || fromTimeText.isEmpty() || toTimeText.isEmpty()) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
                             "event", LuckyNoMessages.eventFormat()));
         }
-        return new EventTask(description, fromTime, toTime);
+        DateTimeParser.ParsedDateTime fromTime =
+                dateTimeParser.parseStartDateTime(fromTimeText);
+        DateTimeParser.ParsedDateTime toTime =
+                dateTimeParser.parseEndDateTime(toTimeText, fromTime.value());
+        if (toTime.value().isBefore(fromTime.value())) {
+            throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
+        }
+        return new EventTask(description, fromTime.value(), toTime.value());
     }
 }
