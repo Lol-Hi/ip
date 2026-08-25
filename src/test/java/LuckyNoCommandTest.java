@@ -99,6 +99,6 @@ class LuckyNoCommandTest {
     private TaskMaster createTaskMaster() {
         return new TaskMaster(
                 100,
-                new LuckyNoCSVSaver(tempDir.resolve("tasks.csv")));
+                new CSVSaver(tempDir.resolve("tasks.csv")));
     }
 }

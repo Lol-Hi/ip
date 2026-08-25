@@ -15,7 +15,7 @@ public class LuckyNoSlacky {
     LuckyNoSlacky() {
         userScanner = new Scanner(System.in);
 
-        LuckyNoCSVSaver csvSaver = new LuckyNoCSVSaver();
+        CSVSaver csvSaver = new CSVSaver();
         tmLucky = new TaskMaster(csvSaver);
 
         boolean failedToLoad = false;

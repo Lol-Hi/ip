@@ -275,7 +275,7 @@ class TaskMasterTest {
         assertFalse(task.isDone());
     }
 
-    private static class FailingSaver extends LuckyNoCSVSaver {
+    private static class FailingSaver extends CSVSaver {
         FailingSaver() {
             super(Path.of("unused.csv"));
         }

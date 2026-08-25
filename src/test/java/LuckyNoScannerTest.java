@@ -32,7 +32,7 @@ class LuckyNoScannerTest {
         parser = new DateTimeParser(TEST_CLOCK);
         taskMaster = new TaskMaster(
                 100,
-                new LuckyNoCSVSaver(tempDir.resolve("tasks.csv")));
+                new CSVSaver(tempDir.resolve("tasks.csv")));
         scanner = new LuckyNoScanner(parser, taskMaster);
     }
 

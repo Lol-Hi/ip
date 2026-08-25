@@ -12,7 +12,7 @@ public class TaskMaster {
 
     private final ArrayList<Task> taskRoster;
     private final int maxTasks;
-    private final LuckyNoCSVSaver saver;
+    private final CSVSaver saver;
 
     /**
      * Creates a task master with the default capacity of 100 tasks.
@@ -27,7 +27,7 @@ public class TaskMaster {
      * @param maxTasks maximum number of tasks that can be stored
      */
     public TaskMaster(int maxTasks) {
-        this(maxTasks, new LuckyNoCSVSaver());
+        this(maxTasks, new CSVSaver());
     }
 
     /**
@@ -35,7 +35,7 @@ public class TaskMaster {
      *
      * @param saver saver used after task-list mutations
      */
-    TaskMaster(LuckyNoCSVSaver saver) {
+    TaskMaster(CSVSaver saver) {
         this(DEFAULT_MAX_TASKS, saver);
     }
 
@@ -45,7 +45,7 @@ public class TaskMaster {
      * @param maxTasks maximum number of tasks that can be stored
      * @param saver saver used after task-list mutations
      */
-    TaskMaster(int maxTasks, LuckyNoCSVSaver saver) {
+    TaskMaster(int maxTasks, CSVSaver saver) {
         if (maxTasks <= 0) {
             throw new IllegalArgumentException("Maximum tasks must be positive.");
         }

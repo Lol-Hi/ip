@@ -18,7 +18,7 @@ import org.apache.commons.csv.CSVRecord;
 /**
  * Saves the current task list as a CSV file.
  */
-public class LuckyNoCSVSaver {
+public class CSVSaver {
     private static final List<String> CSV_HEADER = List.of(
             "Task type",
             "isCompleted",
@@ -35,7 +35,7 @@ public class LuckyNoCSVSaver {
     /**
      * Creates a saver that writes to the application's default data file.
      */
-    public LuckyNoCSVSaver() {
+    public CSVSaver() {
         this(DEFAULT_DATA_FILE);
     }
 
@@ -44,7 +44,7 @@ public class LuckyNoCSVSaver {
      *
      * @param dataFile destination CSV file
      */
-    LuckyNoCSVSaver(Path dataFile) {
+    CSVSaver(Path dataFile) {
         this.dataFile = dataFile;
     }
 
