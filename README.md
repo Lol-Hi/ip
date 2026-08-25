@@ -10,6 +10,7 @@ running and can be marked as done or not done.
 - Add Deadline tasks with flexible date/time input.
 - Add Event tasks with flexible start and end date/time input.
 - List tasks in the order they were added.
+- Find deadlines and events that fall on a specified date.
 - Mark tasks as done or explicitly mark them as not done.
 - Delete tasks by their task number.
 - Store up to 100 tasks.
@@ -116,6 +117,7 @@ trailing spaces are ignored.
 | Mark Task as Done     | `mark <number>`                                                   | Marks the specified task as done. |
 | Unmark Task as Undone | `unmark <number>`                                                 | Marks the specified task as not done. |
 | Delete Task           | `delete <number>`                                                 | Removes the specified task from the list. |
+| Find Tasks by Date     | `find /on <date>`                                                 | Displays deadlines and events that fall on the specified date. |
 | Exit                  | `bye`                                                             | Exits the chatbot. |
 
 ### Adding tasks
@@ -190,8 +192,33 @@ delete 2
 ```
 
 The deleted task is removed from memory, and later tasks are renumbered. The
-command requires a valid task number, and failed deletion commands do not
+command requires a valid task number. Failed deletion commands do not
 change the task list.
+
+### Finding tasks by date
+
+Use the `find` command with the `/on` tag to search for tasks on a date:
+
+```text
+find /on 26 Aug 2026
+```
+
+Text between `find` and `/on` is currently ignored, so this is also accepted:
+
+```text
+find tasks due soon /on tmr
+```
+
+Find searches include:
+
+- Deadlines whose due date is the queried date.
+- Events whose start and end dates include the queried date.
+
+If there are no tasks on that date, LuckyNoSlacky replies:
+
+```text
+Wah, you very free hor, got nothing to do sia!
+```
 
 ### Invalid commands
 
@@ -204,6 +231,7 @@ chatbot. Examples include:
 - Missing or invalid task numbers.
 - Extra arguments after `list` or `bye`.
 - Incorrect `/by`, `/from`, or `/to` formats.
+- Missing or invalid `/on` formats for `find`.
 - Invalid date/time values.
 - Deadlines in the past or events whose end is before their start.
 
