@@ -3,6 +3,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,12 @@ import org.junit.jupiter.api.Test;
  * Tests the task storage and listing behavior of TaskMaster.
  */
 class TaskMasterTest {
+    private static final LocalDateTime DEADLINE =
+            LocalDateTime.of(2026, 12, 6, 23, 59);
+    private static final LocalDateTime EVENT_START =
+            LocalDateTime.of(2026, 8, 6, 14, 0);
+    private static final LocalDateTime EVENT_END =
+            LocalDateTime.of(2026, 8, 6, 16, 0);
 
     @Test
     void emptyTaskListReturnsNoTasksMessage() {
@@ -47,13 +54,14 @@ class TaskMasterTest {
         TaskMaster taskMaster = new TaskMaster();
 
         taskMaster.addTask(new TodoTask("borrow book"));
-        taskMaster.addTask(new DeadlineTask("return book", "Sunday"));
-        taskMaster.addTask(new EventTask("project meeting", "Mon 2pm", "4pm"));
+        taskMaster.addTask(new DeadlineTask("return book", DEADLINE));
+        taskMaster.addTask(new EventTask("project meeting", EVENT_START, EVENT_END));
 
         assertEquals("Nah all these stuff you need to do:\n"
                         + "1.[T][ ] borrow book\n"
-                        + "2.[D][ ] return book (by: Sunday)\n"
-                        + "3.[E][ ] project meeting (from: Mon 2pm to: 4pm)",
+                        + "2.[D][ ] return book (by: Sun Dec 06 2026, 11.59pm)\n"
+                        + "3.[E][ ] project meeting (from: Thu Aug 06 2026, 2.00pm"
+                        + " to: Thu Aug 06 2026, 4.00pm)",
                 taskMaster.listTasks());
     }
 
@@ -111,13 +119,15 @@ class TaskMasterTest {
     void deletingMiddleTaskRemovesItAndRenumbersRemainingTasks() {
         TaskMaster taskMaster = new TaskMaster();
         taskMaster.addTask(new TodoTask("first"));
-        taskMaster.addTask(new DeadlineTask("second", "Sunday"));
-        taskMaster.addTask(new EventTask("third", "Mon 2pm", "4pm"));
+        taskMaster.addTask(new DeadlineTask("second", DEADLINE));
+        taskMaster.addTask(new EventTask("third", EVENT_START, EVENT_END));
 
-        assertEquals("[D][ ] second (by: Sunday)", taskMaster.deleteTask(2));
+        assertEquals("[D][ ] second (by: Sun Dec 06 2026, 11.59pm)",
+                taskMaster.deleteTask(2));
         assertEquals("Nah all these stuff you need to do:\n"
                         + "1.[T][ ] first\n"
-                        + "2.[E][ ] third (from: Mon 2pm to: 4pm)",
+                        + "2.[E][ ] third (from: Thu Aug 06 2026, 2.00pm"
+                        + " to: Thu Aug 06 2026, 4.00pm)",
                 taskMaster.listTasks());
     }
 

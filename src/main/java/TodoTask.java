@@ -16,7 +16,7 @@ public class TodoTask extends Task {
 
     @Override
     public List<String> getCSVStorageFields() {
-        return createCSVStorageFields('T', "", "");
+        return createCSVStorageFields('T', null, null);
     }
 
     /**

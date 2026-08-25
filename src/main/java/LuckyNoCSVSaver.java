@@ -185,8 +185,8 @@ public class LuckyNoCSVSaver {
         String taskType = record.get(0);
         String completionStatus = record.get(1);
         String description = record.get(2);
-        String startTime = record.get(3);
-        String finishTime = record.get(4);
+        String startTimeText = record.get(3);
+        String finishTimeText = record.get(4);
 
         validateCompletionStatus(record);
 
@@ -194,8 +194,13 @@ public class LuckyNoCSVSaver {
         try {
             task = switch (taskType) {
             case "T" -> new TodoTask(description);
-            case "D" -> new DeadlineTask(description, finishTime);
-            case "E" -> new EventTask(description, startTime, finishTime);
+            case "D" -> new DeadlineTask(
+                    description,
+                    LuckyNoDateTimeParser.parseFromStorage(finishTimeText));
+            case "E" -> new EventTask(
+                    description,
+                    LuckyNoDateTimeParser.parseFromStorage(startTimeText),
+                    LuckyNoDateTimeParser.parseFromStorage(finishTimeText));
             default -> throw invalidRecord(record, "unknown task type");
             };
         } catch (IllegalArgumentException exception) {

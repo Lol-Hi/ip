@@ -1,21 +1,22 @@
 import java.util.List;
+import java.time.LocalDateTime;
 
 /**
  * Represents a task that must be completed by a specified time.
  */
 public class DeadlineTask extends Task {
-    private final String byTime;
+    private final LocalDateTime byTime;
 
     /**
      * Creates an incomplete deadline task.
      *
      * @param description task description
-     * @param byTime deadline description
+     * @param byTime deadline date and time
      */
-    public DeadlineTask(String description, String byTime) {
+    public DeadlineTask(String description, LocalDateTime byTime) {
         super(description);
 
-        if (byTime == null || byTime.isBlank()) {
+        if (byTime == null) {
             throw new IllegalArgumentException("Deadline cannot be empty.");
         }
 
@@ -24,7 +25,7 @@ public class DeadlineTask extends Task {
 
     @Override
     public List<String> getCSVStorageFields() {
-        return createCSVStorageFields('D', "", byTime);
+        return createCSVStorageFields('D', null, byTime);
     }
 
     /**
@@ -35,6 +36,6 @@ public class DeadlineTask extends Task {
     @Override
     public String toString() {
         return "[D]" + super.toString()
-                + " (by: " + byTime + ")";
+                + " (by: " + Task.formatDateTime(byTime) + ")";
     }
 }
