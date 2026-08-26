@@ -25,6 +25,7 @@ class LuckyNoCommandTest {
     @TempDir
     Path tempDir;
 
+    /** Verifies that task commands add tasks and return their reply. */
     @Test
     void execute_taskCommandWithTask_addsTaskAndReturnsReply() {
         TaskMaster taskMaster = createTaskMaster();
@@ -36,6 +37,7 @@ class LuckyNoCommandTest {
         assertFalse(command.requestsExit());
     }
 
+    /** Verifies that a mark command marks an incomplete task. */
     @Test
     void execute_markCommandWithUndoneTask_marksTaskDoneAndReturnsReply() {
         TaskMaster taskMaster = createTaskMaster();
@@ -49,6 +51,7 @@ class LuckyNoCommandTest {
                 taskMaster.listTasks());
     }
 
+    /** Verifies that an unmark command clears a task's done status. */
     @Test
     void execute_unmarkCommandWithDoneTask_marksTaskUndoneAndReturnsReply() {
         TaskMaster taskMaster = createTaskMaster();
@@ -64,6 +67,7 @@ class LuckyNoCommandTest {
                 taskMaster.listTasks());
     }
 
+    /** Verifies that a delete command removes an existing task. */
     @Test
     void execute_deleteCommandWithExistingTask_deletesTaskAndReturnsReply() {
         TaskMaster taskMaster = createTaskMaster();
@@ -76,6 +80,7 @@ class LuckyNoCommandTest {
         assertEquals(0, taskMaster.getTaskCount());
     }
 
+    /** Verifies that a list command returns the task-list response. */
     @Test
     void execute_listCommandWithExistingTasks_returnsTaskList() {
         TaskMaster taskMaster = createTaskMaster();
@@ -85,6 +90,7 @@ class LuckyNoCommandTest {
         assertEquals(taskMaster.listTasks(), command.execute());
     }
 
+    /** Verifies that a find command returns matching dated tasks. */
     @Test
     void execute_findCommandWithMatchingDate_returnsMatchingTasks() {
         TaskMaster taskMaster = createTaskMaster();
@@ -95,6 +101,7 @@ class LuckyNoCommandTest {
         assertEquals(taskMaster.searchTasks(SEARCH_DATE), command.execute());
     }
 
+    /** Verifies that a bye command returns goodbye and requests exit. */
     @Test
     void execute_byeCommandWithoutArguments_returnsGoodbyeAndRequestsExit() {
         LuckyNoByeCommand command = new LuckyNoByeCommand();
@@ -103,6 +110,7 @@ class LuckyNoCommandTest {
         assertTrue(command.requestsExit());
     }
 
+    /** Creates a task master backed by a temporary CSV file. */
     private TaskMaster createTaskMaster() {
         return new TaskMaster(
                 100,

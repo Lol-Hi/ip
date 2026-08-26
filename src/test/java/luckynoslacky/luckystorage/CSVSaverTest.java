@@ -33,6 +33,7 @@ class CSVSaverTest {
     @TempDir
     Path temporaryDirectory;
 
+    /** Verifies CSV escaping for task records with special characters. */
     @Test
     void save_taskListWithSpecialCharacters_writesCsvRecords() throws Exception {
         Path dataFile = temporaryDirectory.resolve("luckyNoSlacky.csv");
@@ -62,6 +63,7 @@ class CSVSaverTest {
         }
     }
 
+    /** Verifies saving rewrites the file after a task is deleted. */
     @Test
     void save_afterTaskDeletion_rewritesCsvFile() throws Exception {
         Path dataFile = temporaryDirectory.resolve("luckyNoSlacky.csv");
@@ -82,6 +84,7 @@ class CSVSaverTest {
         }
     }
 
+    /** Verifies a missing data file is treated as an empty task list. */
     @Test
     void load_missingFile_returnsEmptyList() {
         Path dataFile = temporaryDirectory.resolve("missing.csv");
@@ -90,6 +93,7 @@ class CSVSaverTest {
         assertTrue(saver.load().isEmpty());
     }
 
+    /** Verifies saving creates a missing parent directory. */
     @Test
     void save_missingParentDirectory_createsDirectoryAndFile() {
         Path dataFile = temporaryDirectory
@@ -103,6 +107,7 @@ class CSVSaverTest {
         assertTrue(Files.isRegularFile(dataFile));
     }
 
+    /** Verifies an empty data file loads as an empty task list. */
     @Test
     void load_emptyFile_returnsEmptyList() throws Exception {
         Path dataFile = temporaryDirectory.resolve("empty.csv");
@@ -112,6 +117,7 @@ class CSVSaverTest {
         assertTrue(saver.load().isEmpty());
     }
 
+    /** Verifies valid CSV records restore tasks and completion statuses. */
     @Test
     void load_validCsv_returnsTasksAndStatuses() {
         Path dataFile = temporaryDirectory.resolve("luckyNoSlacky.csv");
@@ -135,6 +141,7 @@ class CSVSaverTest {
                 restored.listTasks());
     }
 
+    /** Verifies unknown task types are rejected during loading. */
     @Test
     void load_unknownTaskType_throwsStorageException() throws Exception {
         Path dataFile = temporaryDirectory.resolve("invalid.csv");
@@ -147,6 +154,7 @@ class CSVSaverTest {
         assertThrows(LuckyNoStorageException.class, saver::load);
     }
 
+    /** Verifies invalid completion flags are rejected during loading. */
     @Test
     void load_invalidCompletionStatus_throwsStorageException() throws Exception {
         Path dataFile = temporaryDirectory.resolve("invalid-status.csv");
@@ -159,6 +167,7 @@ class CSVSaverTest {
         assertThrows(LuckyNoStorageException.class, saver::load);
     }
 
+    /** Verifies invalid CSV headers are rejected during loading. */
     @Test
     void load_invalidHeader_throwsStorageException() throws Exception {
         Path dataFile = temporaryDirectory.resolve("invalid-header.csv");
@@ -170,6 +179,7 @@ class CSVSaverTest {
         assertThrows(LuckyNoStorageException.class, saver::load);
     }
 
+    /** Verifies malformed task records are rejected during loading. */
     @Test
     void load_malformedTaskRecord_throwsStorageException() throws Exception {
         Path dataFile = temporaryDirectory.resolve("malformed-record.csv");
@@ -182,6 +192,7 @@ class CSVSaverTest {
         assertThrows(LuckyNoStorageException.class, saver::load);
     }
 
+    /** Verifies records with missing fields are rejected during loading. */
     @Test
     void load_recordWithMissingFields_throwsStorageException() throws Exception {
         Path dataFile = temporaryDirectory.resolve("missing-fields.csv");
@@ -194,6 +205,7 @@ class CSVSaverTest {
         assertThrows(LuckyNoStorageException.class, saver::load);
     }
 
+    /** Verifies saving a null task master is rejected. */
     @Test
     void save_nullTaskMaster_throwsIllegalArgumentException() {
         CSVSaver saver = new CSVSaver(temporaryDirectory.resolve("tasks.csv"));
@@ -201,6 +213,7 @@ class CSVSaverTest {
         assertThrows(IllegalArgumentException.class, () -> saver.save(null));
     }
 
+    /** Verifies file paths that point to directories are rejected. */
     @Test
     void loadOrSave_directoryPath_throwsStorageException() throws Exception {
         Path dataPath = temporaryDirectory.resolve("directory");
@@ -212,6 +225,7 @@ class CSVSaverTest {
                 () -> saver.save(new TaskMaster(100, saver)));
     }
 
+    /** Verifies loading beyond task capacity is rejected. */
     @Test
     void load_tasksExceedingCapacity_throwsStorageException() {
         Path dataFile = temporaryDirectory.resolve("luckyNoSlacky.csv");

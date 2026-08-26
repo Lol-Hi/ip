@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
  */
 class DeadlineTaskTest {
 
+    /** Verifies that a deadline includes its formatted due time. */
     @Test
     void toString_deadlineTask_includesDeadline() {
         LocalDateTime deadline = LocalDateTime.of(2019, 10, 15, 14, 15);

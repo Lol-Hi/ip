@@ -27,10 +27,16 @@ public class LuckyNoSlacky {
     private final LuckyNoParser parserLucky;
     private final boolean loadError;
 
+    /** Creates the chatbot using the system clock. */
     LuckyNoSlacky() {
         this(new DateTimeParser());
     }
 
+    /**
+     * Creates the chatbot with a supplied date and time parser.
+     *
+     * @param dateTimeParser parser used to interpret date and time input
+     */
     LuckyNoSlacky(DateTimeParser dateTimeParser) {
         cliLucky = new LuckyNoCLI();
 
@@ -48,6 +54,11 @@ public class LuckyNoSlacky {
         parserLucky = new LuckyNoParser(dateTimeParser, tmLucky);
     }
 
+    /**
+     * Reads and executes commands until input is exhausted or the user exits.
+     *
+     * @return true if the user explicitly requested to exit
+     */
     private boolean chatLoop() {
         while (cliLucky.hasNextLine()) {
             String userInput = cliLucky.readCommand();
@@ -66,6 +77,11 @@ public class LuckyNoSlacky {
         return false;
     }
 
+    /**
+     * Starts the chatbot application.
+     *
+     * @param args command-line arguments, which are not currently used
+     */
     public static void main(String[] args) {
         LuckyNoSlacky lucky = new LuckyNoSlacky(createDateTimeParser());
         lucky.cliLucky.showGreeting();

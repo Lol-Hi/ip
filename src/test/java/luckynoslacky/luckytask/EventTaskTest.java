@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
  */
 class EventTaskTest {
 
+    /** Verifies that an event includes its formatted start and end times. */
     @Test
     void toString_eventTask_includesStartAndEndTimes() {
         LocalDateTime start = LocalDateTime.of(2026, 8, 6, 14, 0);
@@ -26,6 +27,7 @@ class EventTaskTest {
                 task.getCSVStorageFields());
     }
 
+    /** Verifies that an event ending before it starts is rejected. */
     @Test
     void EventTask_endBeforeStart_throwsIllegalArgumentException() {
         LocalDateTime start = LocalDateTime.of(2026, 8, 6, 16, 0);

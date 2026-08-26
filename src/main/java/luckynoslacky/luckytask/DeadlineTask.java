@@ -26,11 +26,22 @@ public class DeadlineTask extends Task {
         this.byTime = byTime;
     }
 
+    /**
+     * Returns the CSV fields for this deadline.
+     *
+     * @return deadline fields in CSV column order
+     */
     @Override
     public List<String> getCSVStorageFields() {
         return createCSVStorageFields('D', null, byTime);
     }
 
+    /**
+     * Checks whether the deadline falls on the supplied date.
+     *
+     * @param date date to check
+     * @return true if the deadline is on the supplied date
+     */
     @Override
     public boolean occursOn(LocalDate date) {
         return byTime.toLocalDate().equals(date);

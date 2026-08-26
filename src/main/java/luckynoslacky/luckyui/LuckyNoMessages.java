@@ -152,13 +152,21 @@ public final class LuckyNoMessages {
         return "Honggan la your system abit rabs ah, I cannot save your task";
     }
 
-    /** Returns the message shown for an invalid date or time. */
+    /**
+     * Returns the message shown for an invalid date or time.
+     *
+     * @return invalid date/time message
+     */
     public static String invalidDateTimeMessage() {
         return "Eh mr smart alec you tell me your calendar and clock got tell you "
                 + "time like this one meh?";
     }
 
-    /** Returns the message shown when a task's time order is impossible. */
+    /**
+     * Returns the message shown when a task's time order is impossible.
+     *
+     * @return time-order error message
+     */
     public static String timeTravelMessage() {
         return "you think you time travelling issit? check your date and time properly hor!";
     }
@@ -268,6 +276,7 @@ public final class LuckyNoMessages {
     /**
      * Returns the heading for a date-search result.
      *
+     * @param searchDate date used for the search
      * @return search-list heading
      */
     public static String findTasksListHeader(LocalDate searchDate) {

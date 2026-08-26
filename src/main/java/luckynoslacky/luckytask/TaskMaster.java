@@ -236,6 +236,7 @@ public class TaskMaster {
         taskRoster.addAll(tasks);
     }
 
+    /** Persists the current task list through the configured saver. */
     private void saveChanges() {
         savedLucky.save(this);
     }
@@ -266,6 +267,12 @@ public class TaskMaster {
         return result.toString();
     }
 
+    /**
+     * Restores a task's status after a failed persistence operation.
+     *
+     * @param task task whose status should be restored
+     * @param wasDone status before the attempted change
+     */
     private void restoreTaskStatus(Task task, boolean wasDone) {
         if (wasDone) {
             task.markAsDone();

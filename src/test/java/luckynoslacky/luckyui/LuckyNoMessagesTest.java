@@ -11,6 +11,7 @@ import luckynoslacky.luckyparser.LuckyNoParser;
  * Tests user-visible storage error messages.
  */
 class LuckyNoMessagesTest {
+    /** Verifies formats are selected correctly for dated commands. */
     @Test
     void invalidFormatMessage_knownCommandAndFormat_returnsFormattedMessage() {
         assertEquals(
@@ -32,6 +33,7 @@ class LuckyNoMessagesTest {
                         LuckyNoParser.CommandName.FIND));
     }
 
+    /** Verifies unsupported command formats are rejected internally. */
     @Test
     void invalidFormatMessage_commandWithoutFormat_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class,
@@ -41,6 +43,7 @@ class LuckyNoMessagesTest {
                 () -> LuckyNoMessages.invalidFormatMessage(null));
     }
 
+    /** Verifies the configured loading error message. */
     @Test
     void loadErrorMessage_noArguments_returnsConfiguredMessage() {
         assertEquals(
@@ -49,6 +52,7 @@ class LuckyNoMessagesTest {
                 LuckyNoMessages.loadErrorMessage());
     }
 
+    /** Verifies the configured saving error message. */
     @Test
     void saveErrorMessage_noArguments_returnsConfiguredMessage() {
         assertEquals(
