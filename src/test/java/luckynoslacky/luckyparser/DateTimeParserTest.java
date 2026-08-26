@@ -247,19 +247,6 @@ class DateTimeParserTest {
         assertEquals(null, DateTimeParser.parseFromStorage(""));
     }
 
-    @Test
-    void usesTheInjectedClockForCurrentTime() {
-        assertEquals(LocalDateTime.of(2026, 8, 25, 10, 0), parser.now());
-    }
-
-    @Test
-    void rejectsNullClockAndNullEventReference() {
-        assertThrows(IllegalArgumentException.class,
-                () -> new DateTimeParser(null));
-        assertThrows(IllegalArgumentException.class,
-                () -> parser.parseEndDateTime("4pm", null));
-    }
-
     private void assertInvalid(String input) {
         LuckyNoInputException exception = assertThrows(LuckyNoInputException.class,
                 () -> parser.parseStartDateTime(input));

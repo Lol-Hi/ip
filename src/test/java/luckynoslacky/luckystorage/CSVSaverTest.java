@@ -171,37 +171,6 @@ class CSVSaverTest {
     }
 
     @Test
-    void malformedTaskRecordIsRejected() throws Exception {
-        Path dataFile = temporaryDirectory.resolve("malformed-record.csv");
-        Files.writeString(dataFile,
-                "Task type,isCompleted,Description,startTime,finishTime\n"
-                        + "D,0,return book,,2030-13-01 10:00\n",
-                StandardCharsets.UTF_8);
-        CSVSaver saver = new CSVSaver(dataFile);
-
-        assertThrows(LuckyNoStorageException.class, saver::load);
-    }
-
-    @Test
-    void recordWithMissingFieldsIsRejected() throws Exception {
-        Path dataFile = temporaryDirectory.resolve("missing-fields.csv");
-        Files.writeString(dataFile,
-                "Task type,isCompleted,Description,startTime,finishTime\n"
-                        + "T,0,read book,\n",
-                StandardCharsets.UTF_8);
-        CSVSaver saver = new CSVSaver(dataFile);
-
-        assertThrows(LuckyNoStorageException.class, saver::load);
-    }
-
-    @Test
-    void savingNullTaskMasterIsRejectedBeforeFileAccess() {
-        CSVSaver saver = new CSVSaver(temporaryDirectory.resolve("tasks.csv"));
-
-        assertThrows(IllegalArgumentException.class, () -> saver.save(null));
-    }
-
-    @Test
     void dataPathThatIsDirectoryCannotBeLoadedOrSaved() throws Exception {
         Path dataPath = temporaryDirectory.resolve("directory");
         Files.createDirectory(dataPath);

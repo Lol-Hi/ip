@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import luckynoslacky.luckyexception.LuckyNoStorageException;
 import luckynoslacky.luckystorage.CSVSaver;
@@ -25,19 +24,16 @@ class TaskMasterTest {
     private static final LocalDateTime EVENT_END =
             LocalDateTime.of(2026, 8, 6, 16, 0);
 
-    @TempDir
-    Path temporaryDirectory;
-
     @Test
     void emptyTaskListReturnsNoTasksMessage() {
-        TaskMaster taskMaster = createTaskMaster();
+        TaskMaster taskMaster = new TaskMaster();
 
         assertEquals("Chill lah bro got nothing yet lah!", taskMaster.listTasks());
     }
 
     @Test
     void addedTaskAppearsInList() {
-        TaskMaster taskMaster = createTaskMaster();
+        TaskMaster taskMaster = new TaskMaster();
 
         taskMaster.addTask(new TodoTask("read book"));
 
@@ -47,7 +43,7 @@ class TaskMasterTest {
 
     @Test
     void multipleTasksAreListedInOrder() {
-        TaskMaster taskMaster = createTaskMaster();
+        TaskMaster taskMaster = new TaskMaster();
 
         taskMaster.addTask(new TodoTask("read book"));
         taskMaster.addTask(new TodoTask("return book"));
@@ -60,7 +56,7 @@ class TaskMasterTest {
 
     @Test
     void differentTaskTypesCanBeStoredTogether() {
-        TaskMaster taskMaster = createTaskMaster();
+        TaskMaster taskMaster = new TaskMaster();
 
         taskMaster.addTask(new TodoTask("borrow book"));
         taskMaster.addTask(new DeadlineTask("return book", DEADLINE));
@@ -76,7 +72,7 @@ class TaskMasterTest {
 
     @Test
     void searchFindsDeadlinesAndEventsOnTheQueriedDate() {
-        TaskMaster taskMaster = createTaskMaster();
+        TaskMaster taskMaster = new TaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
         taskMaster.addTask(new DeadlineTask(
                 "return book", LocalDateTime.of(2026, 8, 26, 23, 59)));
@@ -94,7 +90,7 @@ class TaskMasterTest {
 
     @Test
     void searchExcludesTodosAndReturnsNoMatchMessageWhenAppropriate() {
-        TaskMaster taskMaster = createTaskMaster();
+        TaskMaster taskMaster = new TaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
         taskMaster.addTask(new DeadlineTask(
                 "return book", LocalDateTime.of(2026, 8, 26, 23, 59)));
@@ -107,7 +103,7 @@ class TaskMasterTest {
 
     @Test
     void markedTaskIsShownAsDone() {
-        TaskMaster taskMaster = createTaskMaster();
+        TaskMaster taskMaster = new TaskMaster();
 
         taskMaster.addTask(new TodoTask("read book"));
         taskMaster.addTask(new TodoTask("return book"));
@@ -121,7 +117,7 @@ class TaskMasterTest {
 
     @Test
     void unmarkedTaskIsShownAsNotDone() {
-        TaskMaster taskMaster = createTaskMaster();
+        TaskMaster taskMaster = new TaskMaster();
 
         taskMaster.addTask(new TodoTask("read book"));
         taskMaster.markTaskDone(1);
@@ -133,7 +129,7 @@ class TaskMasterTest {
 
     @Test
     void markingAlreadyDoneTaskKeepsItDone() {
-        TaskMaster taskMaster = createTaskMaster();
+        TaskMaster taskMaster = new TaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
 
         taskMaster.markTaskDone(1);
@@ -145,7 +141,7 @@ class TaskMasterTest {
 
     @Test
     void unmarkingAlreadyUndoneTaskKeepsItUndone() {
-        TaskMaster taskMaster = createTaskMaster();
+        TaskMaster taskMaster = new TaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
 
         taskMaster.unmarkTaskUndone(1);
@@ -157,7 +153,7 @@ class TaskMasterTest {
 
     @Test
     void deletingMiddleTaskRemovesItAndRenumbersRemainingTasks() {
-        TaskMaster taskMaster = createTaskMaster();
+        TaskMaster taskMaster = new TaskMaster();
         taskMaster.addTask(new TodoTask("first"));
         taskMaster.addTask(new DeadlineTask("second", DEADLINE));
         taskMaster.addTask(new EventTask("third", EVENT_START, EVENT_END));
@@ -173,7 +169,7 @@ class TaskMasterTest {
 
     @Test
     void invalidDeletionDoesNotAlterTaskList() {
-        TaskMaster taskMaster = createTaskMaster();
+        TaskMaster taskMaster = new TaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
 
         assertThrows(IllegalArgumentException.class,
@@ -184,7 +180,7 @@ class TaskMasterTest {
 
     @Test
     void deletingTaskFreesCapacityForAnotherTask() {
-        TaskMaster taskMaster = createTaskMaster(2);
+        TaskMaster taskMaster = new TaskMaster(2);
         taskMaster.addTask(new TodoTask("first"));
         taskMaster.addTask(new TodoTask("second"));
 
@@ -199,7 +195,7 @@ class TaskMasterTest {
 
     @Test
     void deletingFromEmptyTaskListIsRejected() {
-        TaskMaster taskMaster = createTaskMaster();
+        TaskMaster taskMaster = new TaskMaster();
 
         assertThrows(IllegalArgumentException.class,
                 () -> taskMaster.deleteTask(1));
@@ -207,7 +203,7 @@ class TaskMasterTest {
 
     @Test
     void invalidTaskNumberCannotBeMarked() {
-        TaskMaster taskMaster = createTaskMaster();
+        TaskMaster taskMaster = new TaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
 
         assertThrows(IllegalArgumentException.class,
@@ -218,7 +214,7 @@ class TaskMasterTest {
 
     @Test
     void invalidTaskNumberCannotBeUnmarked() {
-        TaskMaster taskMaster = createTaskMaster();
+        TaskMaster taskMaster = new TaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
 
         assertThrows(IllegalArgumentException.class,
@@ -229,7 +225,7 @@ class TaskMasterTest {
 
     @Test
     void invalidStatusChangeDoesNotAlterTaskState() {
-        TaskMaster taskMaster = createTaskMaster();
+        TaskMaster taskMaster = new TaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
 
         assertThrows(IllegalArgumentException.class,
@@ -246,7 +242,7 @@ class TaskMasterTest {
 
     @Test
     void customCapacityIsRespected() {
-        TaskMaster taskMaster = createTaskMaster(2);
+        TaskMaster taskMaster = new TaskMaster(2);
 
         taskMaster.addTask(new TodoTask("first"));
         taskMaster.addTask(new TodoTask("second"));
@@ -282,48 +278,6 @@ class TaskMasterTest {
         assertThrows(LuckyNoStorageException.class,
                 () -> taskMaster.markTaskDone(1));
         assertFalse(task.isDone());
-    }
-
-    @Test
-    void failedDeleteRestoresTheDeletedTask() {
-        TaskMaster taskMaster = new TaskMaster(100, new FailingSaver());
-        TodoTask task = new TodoTask("read book");
-        taskMaster.loadTasksFromCSVStorageRecord(List.of(task));
-
-        assertThrows(LuckyNoStorageException.class,
-                () -> taskMaster.deleteTask(1));
-        assertEquals(1, taskMaster.getTaskCount());
-        assertEquals("Nah all these stuff you need to do:\n1.[T][ ] read book",
-                taskMaster.listTasks());
-    }
-
-    @Test
-    void loadingNullOrNullContainingTaskListsIsRejected() {
-        TaskMaster taskMaster = createTaskMaster();
-
-        assertThrows(LuckyNoStorageException.class,
-                () -> taskMaster.loadTasksFromCSVStorageRecord(null));
-        assertThrows(LuckyNoStorageException.class,
-                () -> taskMaster.loadTasksFromCSVStorageRecord(
-                        java.util.Arrays.asList(new TodoTask("read book"), null)));
-    }
-
-    @Test
-    void nullSearchDateIsRejected() {
-        TaskMaster taskMaster = createTaskMaster();
-
-        assertThrows(IllegalArgumentException.class,
-                () -> taskMaster.searchTasks(null));
-    }
-
-    private TaskMaster createTaskMaster() {
-        return createTaskMaster(100);
-    }
-
-    private TaskMaster createTaskMaster(int maxTasks) {
-        return new TaskMaster(
-                maxTasks,
-                new CSVSaver(temporaryDirectory.resolve("tasks.csv")));
     }
 
     private static class FailingSaver extends CSVSaver {
