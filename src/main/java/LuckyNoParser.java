@@ -5,16 +5,32 @@ import java.time.LocalDateTime;
 /**
  * Parses user input into commands and reports invalid input consistently.
  */
-public class LuckyNoScanner {
+public class LuckyNoParser {
     private final DateTimeParser dateTimeParser;
+    private final TaskMaster taskMaster;
 
     /** Creates a scanner using the current system clock. */
-    public LuckyNoScanner() {
-        this(new DateTimeParser());
+    public LuckyNoParser() {
+        this(new DateTimeParser(), new TaskMaster());
     }
 
-    LuckyNoScanner(DateTimeParser dateTimeParser) {
+    LuckyNoParser(DateTimeParser dateTimeParser) {
+        this(dateTimeParser, new TaskMaster());
+    }
+
+    LuckyNoParser(TaskMaster taskMaster) {
+        this(new DateTimeParser(), taskMaster);
+    }
+
+    LuckyNoParser(DateTimeParser dateTimeParser, TaskMaster taskMaster) {
+        if (dateTimeParser == null) {
+            throw new IllegalArgumentException("Date-time parser cannot be null.");
+        }
+        if (taskMaster == null) {
+            throw new IllegalArgumentException("Task master cannot be null.");
+        }
         this.dateTimeParser = dateTimeParser;
+        this.taskMaster = taskMaster;
     }
     /**
      * Represents a command name that can be entered by the user.
@@ -71,6 +87,26 @@ public class LuckyNoScanner {
      */
     public LuckyNoCommand parseCommand(String input, int taskCount)
             throws LuckyNoInputException {
+        return parseCommand(input, taskCount, taskMaster);
+    }
+
+    /**
+     * Parses input using the task master's current task count.
+     *
+     * @param input raw user input
+     * @return parsed command
+     * @throws LuckyNoInputException if the input is invalid
+     */
+    public LuckyNoCommand parseCommand(String input)
+            throws LuckyNoInputException {
+        return parseCommand(input, taskMaster.getTaskCount(), taskMaster);
+    }
+
+    private LuckyNoCommand parseCommand(
+            String input,
+            int taskCount,
+            TaskMaster commandTaskMaster)
+            throws LuckyNoInputException {
         if (input == null || input.trim().isEmpty()) {
             throw new LuckyNoInputException(LuckyNoMessages.missingCommandMessage());
         }
@@ -89,24 +125,28 @@ public class LuckyNoScanner {
         switch (commandName) {
         case BYE:
             checkNoArguments(arguments, CommandName.BYE.getInputName());
-            return new LuckyNoCommand(LuckyNoCommand.CommandType.BYE);
+            return new LuckyNoByeCommand();
         case LIST:
             checkNoArguments(arguments, CommandName.LIST.getInputName());
-            return new LuckyNoCommand(LuckyNoCommand.CommandType.LIST);
+            return new LuckyNoListCommand(commandTaskMaster);
         case TODO:
-            return new LuckyNoTaskCommand(parseTodo(arguments));
+            return new LuckyNoTaskCommand(parseTodo(arguments), commandTaskMaster);
         case DEADLINE:
-            return new LuckyNoTaskCommand(parseDeadline(arguments));
+            return new LuckyNoTaskCommand(
+                    parseDeadline(arguments), commandTaskMaster);
         case EVENT:
-            return new LuckyNoTaskCommand(parseEvent(arguments));
+            return new LuckyNoTaskCommand(parseEvent(arguments), commandTaskMaster);
         case MARK:
-            return new LuckyNoMarkCommand(parseTaskNumber(arguments, taskCount), true);
+            return new LuckyNoMarkCommand(
+                    parseTaskNumber(arguments, taskCount), true, commandTaskMaster);
         case UNMARK:
-            return new LuckyNoMarkCommand(parseTaskNumber(arguments, taskCount), false);
+            return new LuckyNoMarkCommand(
+                    parseTaskNumber(arguments, taskCount), false, commandTaskMaster);
         case DELETE:
-            return new LuckyNoDeleteCommand(parseTaskNumber(arguments, taskCount));
+            return new LuckyNoDeleteCommand(
+                    parseTaskNumber(arguments, taskCount), commandTaskMaster);
         case FIND:
-            return parseFind(arguments);
+            return parseFind(arguments, commandTaskMaster);
         default:
             throw new IllegalStateException("Unhandled command name.");
         }
@@ -152,7 +192,7 @@ public class LuckyNoScanner {
         if (byIndex <= 0) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
-                            "deadline", LuckyNoMessages.deadlineFormat()));
+                            CommandName.DEADLINE));
         }
 
         String description = arguments.substring(0, byIndex).trim();
@@ -160,7 +200,7 @@ public class LuckyNoScanner {
         if (description.isEmpty() || byTimeText.isEmpty()) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
-                            "deadline", LuckyNoMessages.deadlineFormat()));
+                            CommandName.DEADLINE));
         }
         LocalDateTime byTime = dateTimeParser.parseEndDateTime(byTimeText).value();
         if (byTime.isBefore(dateTimeParser.now())) {
@@ -173,25 +213,25 @@ public class LuckyNoScanner {
      * Parses a find command. Text before the {@code /on} tag is intentionally
      * ignored so that the command can be extended with more search options.
      */
-    private LuckyNoFindCommand parseFind(String arguments)
+    private LuckyNoFindCommand parseFind(String arguments, TaskMaster taskMaster)
             throws LuckyNoInputException {
         int onIndex = arguments.indexOf("/on");
         if (onIndex < 0) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
-                            "find", LuckyNoMessages.findFormat()));
+                            CommandName.FIND));
         }
 
         String dateText = arguments.substring(onIndex + 3).trim();
         if (dateText.isEmpty()) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
-                            "find", LuckyNoMessages.findFormat()));
+                            CommandName.FIND));
         }
 
         LocalDateTime searchDateTime =
                 dateTimeParser.parseStartDateTime(dateText).value();
-        return new LuckyNoFindCommand(searchDateTime);
+        return new LuckyNoFindCommand(searchDateTime, taskMaster);
     }
 
     private EventTask parseEvent(String arguments) throws LuckyNoInputException {
@@ -200,7 +240,7 @@ public class LuckyNoScanner {
         if (fromIndex <= 0 || toIndex <= fromIndex) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
-                            "event", LuckyNoMessages.eventFormat()));
+                            CommandName.EVENT));
         }
 
         String description = arguments.substring(0, fromIndex).trim();
@@ -209,7 +249,7 @@ public class LuckyNoScanner {
         if (description.isEmpty() || fromTimeText.isEmpty() || toTimeText.isEmpty()) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
-                            "event", LuckyNoMessages.eventFormat()));
+                            CommandName.EVENT));
         }
         DateTimeParser.ParsedDateTime fromTime =
                 dateTimeParser.parseStartDateTime(fromTimeText);

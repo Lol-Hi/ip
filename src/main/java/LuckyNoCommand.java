@@ -1,7 +1,7 @@
 /**
  * Represents a parsed chatbot command.
  */
-public class LuckyNoCommand {
+public abstract class LuckyNoCommand {
     /**
      * Represents the internal operation requested by a parsed command.
      */
@@ -25,12 +25,11 @@ public class LuckyNoCommand {
         this.commandType = commandType;
     }
 
-    /**
-     * Returns the internal command type.
-     *
-     * @return command type
-     */
-    public CommandType getCommandType() {
-        return commandType;
+    /** Executes this command and returns its user-facing reply. */
+    public abstract String execute();
+
+    /** Indicates whether the chat loop should terminate after execution. */
+    public boolean requestsExit() {
+        return false;
     }
 }

@@ -4,6 +4,7 @@
 public class LuckyNoMarkCommand extends LuckyNoCommand {
     private final int taskNumber;
     private final boolean markDone;
+    private final TaskMaster taskMaster;
 
     /**
      * Creates a command that sets a task's done status explicitly.
@@ -12,26 +13,24 @@ public class LuckyNoMarkCommand extends LuckyNoCommand {
      * @param markDone whether the task should be marked done
      */
     public LuckyNoMarkCommand(int taskNumber, boolean markDone) {
+        this(taskNumber, markDone, null);
+    }
+
+    LuckyNoMarkCommand(int taskNumber, boolean markDone, TaskMaster taskMaster) {
         super(CommandType.TOGGLE_TASK);
+        this.taskMaster = taskMaster;
         this.taskNumber = taskNumber;
         this.markDone = markDone;
     }
 
-    /**
-     * Returns the one-based task number.
-     *
-     * @return task number
-     */
-    public int getTaskNumber() {
-        return taskNumber;
-    }
+    @Override
+    public String execute() {
+        String formattedTask = markDone
+                ? this.taskMaster.markTaskDone(taskNumber)
+                : this.taskMaster.unmarkTaskUndone(taskNumber);
 
-    /**
-     * Returns whether this command requests the task to be done.
-     *
-     * @return true for mark, false for unmark
-     */
-    public boolean shouldMarkDone() {
-        return markDone;
+        return markDone
+                ? LuckyNoMessages.markedTaskMessage(formattedTask)
+                : LuckyNoMessages.unmarkedTaskMessage(formattedTask);
     }
 }

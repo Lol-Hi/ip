@@ -1,21 +1,17 @@
-import java.util.Scanner;
-
 /**
  * Starts the LuckyNoSlacky chatbot.
  */
 
 public class LuckyNoSlacky {
-    private static final String DIVIDER = "  ____________________________________________________________\n";
-
-    private final Scanner userScanner;
+    private final LuckyNoCLI cliLucky;
     private final TaskMaster tmLucky;
-    private final LuckyNoScanner luckyNoScanner;
+    private final LuckyNoParser parserLucky;
     private final boolean loadError;
 
     LuckyNoSlacky() {
-        userScanner = new Scanner(System.in);
+        cliLucky = new LuckyNoCLI();
 
-        LuckyNoCSVSaver csvSaver = new LuckyNoCSVSaver();
+        CSVSaver csvSaver = new CSVSaver();
         tmLucky = new TaskMaster(csvSaver);
 
         boolean failedToLoad = false;
@@ -26,106 +22,38 @@ public class LuckyNoSlacky {
         }
         loadError = failedToLoad;
 
-        luckyNoScanner = new LuckyNoScanner();
+        parserLucky = new LuckyNoParser(tmLucky);
     }
 
-    private static void printReply(String output) {
-        String indentedOutput = output.replace("\n", "\n  ");
-        System.out.print(DIVIDER + "  " + indentedOutput + "\n" + DIVIDER);
-    }
-
-    /**
-     * Echoes a piece of user input as a chatbot reply.
-     *
-     * @param input user input to echo
-     */
-    private static void echo(String input) {
-        printReply(input);
-    }
-
-    private void greet() {
-        System.out.print(DIVIDER + LuckyNoMessages.banner() + "\n");
-        printReply(LuckyNoMessages.greeting());
-    }
-
-    private void exit() {
-        printReply(LuckyNoMessages.goodbye());
-    }
-
-    private void handleTaskToggle(LuckyNoMarkCommand command) {
-        boolean markDone = command.shouldMarkDone();
-        String task = markDone
-                ? tmLucky.markTaskDone(command.getTaskNumber())
-                : tmLucky.unmarkTaskUndone(command.getTaskNumber());
-
-        String message = markDone
-                ? LuckyNoMessages.markedTaskMessage(task)
-                : LuckyNoMessages.unmarkedTaskMessage(task);
-
-        printReply(message);
-    }
-
-    private void addTask(Task task) {
-        tmLucky.addTask(task);
-
-        printReply(LuckyNoMessages.addedTaskMessage(
-                task, tmLucky.getTaskCount()));
-    }
-
-    private void handleTaskDeletion(LuckyNoDeleteCommand command) {
-        String task = tmLucky.deleteTask(command.getTaskNumber());
-        printReply(LuckyNoMessages.deletedTaskMessage(
-                task, tmLucky.getTaskCount()));
-    }
-
-    private void chatLoop() {
-        while (userScanner.hasNextLine()) {
-            String userInput = userScanner.nextLine();
+    private boolean chatLoop() {
+        while (cliLucky.hasNextLine()) {
+            String userInput = cliLucky.readCommand();
             try {
-                LuckyNoCommand command = luckyNoScanner.parseCommand(
-                        userInput, tmLucky.getTaskCount());
-                switch (command.getCommandType()) {
-                case BYE:
-                    return;
-                case LIST:
-                    printReply(tmLucky.listTasks());
-                    break;
-                case CREATE_TASK:
-                    addTask(((LuckyNoTaskCommand) command).getTask());
-                    break;
-                case TOGGLE_TASK:
-                    handleTaskToggle((LuckyNoMarkCommand) command);
-                    break;
-                case DELETE_TASK:
-                    handleTaskDeletion((LuckyNoDeleteCommand) command);
-                    break;
-                case FIND:
-                    LuckyNoFindCommand findCommand =
-                            (LuckyNoFindCommand) command;
-                    printReply(tmLucky.searchTasks(
-                            findCommand.getSearchDateTime()));
-                    break;
-                default:
-                    throw new IllegalStateException("Unknown parsed command.");
+                LuckyNoCommand command = parserLucky.parseCommand(userInput);
+                cliLucky.showReply(command.execute());
+                if (command.requestsExit()) {
+                    return true;
                 }
             } catch (LuckyNoInputException exception) {
-                printReply(exception.getMessage());
+                cliLucky.showReply(exception.getMessage());
             } catch (LuckyNoStorageException exception) {
-                printReply(LuckyNoMessages.saveErrorMessage());
+                cliLucky.showSavingError();
             }
         }
+        return false;
     }
 
     public static void main(String[] args) {
         LuckyNoSlacky lucky = new LuckyNoSlacky();
-        lucky.greet();
+        lucky.cliLucky.showGreeting();
 
         if (lucky.loadError) {
-            printReply(LuckyNoMessages.loadErrorMessage());
+            lucky.cliLucky.showLoadingError();
             return;
         }
 
-        lucky.chatLoop();
-        lucky.exit();
+        if (!lucky.chatLoop()) {
+            lucky.cliLucky.showGoodbye();
+        }
     }
 }
