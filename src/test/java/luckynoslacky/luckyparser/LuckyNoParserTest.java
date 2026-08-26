@@ -102,6 +102,19 @@ class LuckyNoParserTest {
     }
 
     @Test
+    void parseCommandUsesTheTaskMastersCurrentCountWhenCountIsOmitted()
+            throws LuckyNoInputException {
+        taskMaster.addTask(new TodoTask("read book"));
+
+        LuckyNoMarkCommand command = assertInstanceOf(LuckyNoMarkCommand.class,
+                scanner.parseCommand("mark 1"));
+
+        assertEquals(
+                LuckyNoMessages.markedTaskMessage("[T][X] read book"),
+                command.execute());
+    }
+
+    @Test
     void parsesDeleteCommandIntoDeleteCommand() throws LuckyNoInputException {
         taskMaster.addTask(new TodoTask("read book"));
         taskMaster.addTask(new TodoTask("return book"));
@@ -183,6 +196,18 @@ class LuckyNoParserTest {
         assertInputError("Eh HELLO you know how to type command one anot? \n"
                         + "Lai lai let me teach you: event <description> /from <start> /to <end>.",
                 "event meeting /from Mon 2pm /to", 0);
+    }
+
+    @Test
+    void rejectsReversedOrEmptyTaskFormatSections() {
+        String deadlineFormat = "Eh HELLO you know how to type command one anot? \n"
+                + "Lai lai let me teach you: deadline <description> /by <date/time>.";
+        String eventFormat = "Eh HELLO you know how to type command one anot? \n"
+                + "Lai lai let me teach you: event <description> /from <start> /to <end>.";
+
+        assertInputError(deadlineFormat, "deadline /by 2pm", 0);
+        assertInputError(eventFormat, "event /from 1pm /to 2pm", 0);
+        assertInputError(eventFormat, "event meeting /to 2pm /from 1pm", 0);
     }
 
     @Test
