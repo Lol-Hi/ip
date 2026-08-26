@@ -19,6 +19,12 @@ public class LuckyNoDeleteCommand extends LuckyNoCommand {
         this(taskNumber, null);
     }
 
+    /**
+     * Creates a task-deletion command attached to a task master.
+     *
+     * @param taskNumber one-based task number
+     * @param taskMaster task master whose task should be deleted
+     */
     public LuckyNoDeleteCommand(int taskNumber, TaskMaster taskMaster) {
         super(CommandType.DELETE_TASK);
         this.taskMaster = taskMaster;

@@ -2,8 +2,8 @@ package luckynoslacky.luckytask;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.List;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -23,11 +23,11 @@ class EventTaskTest {
                 task.toString());
         assertEquals(List.of("E", "0", "project meeting",
                         "2026-08-06 14:00", "2026-08-06 16:00"),
-                task.getCSVStorageFields());
+                task.getCsvStorageFields());
     }
 
     @Test
-    void EventTask_endBeforeStart_throwsIllegalArgumentException() {
+    void eventTask_endBeforeStart_throwsIllegalArgumentException() {
         LocalDateTime start = LocalDateTime.of(2026, 8, 6, 16, 0);
         LocalDateTime end = LocalDateTime.of(2026, 8, 6, 14, 0);
 

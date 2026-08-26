@@ -9,6 +9,11 @@ public class LuckyNoListCommand extends LuckyNoCommand {
 
     private final TaskMaster taskMaster;
 
+    /**
+     * Creates a list command attached to a task master.
+     *
+     * @param taskMaster task master whose tasks should be listed
+     */
     public LuckyNoListCommand(TaskMaster taskMaster) {
         super(CommandType.LIST);
         this.taskMaster = taskMaster;

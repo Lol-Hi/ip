@@ -2,8 +2,8 @@ package luckynoslacky.luckytask;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.List;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +20,7 @@ class DeadlineTaskTest {
         assertEquals("[D][ ] return book (by: Tue Oct 15 2019, 2.15pm)",
                 task.toString());
         assertEquals(List.of("D", "0", "return book", "", "2019-10-15 14:15"),
-                task.getCSVStorageFields());
+                task.getCsvStorageFields());
     }
 
 }

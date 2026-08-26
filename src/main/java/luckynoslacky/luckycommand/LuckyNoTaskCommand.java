@@ -20,6 +20,12 @@ public class LuckyNoTaskCommand extends LuckyNoCommand {
         this(task, null);
     }
 
+    /**
+     * Creates a task-creation command attached to a task master.
+     *
+     * @param task task to add
+     * @param taskMaster task master that should store the task
+     */
     public LuckyNoTaskCommand(Task task, TaskMaster taskMaster) {
         super(CommandType.CREATE_TASK);
         this.taskMaster = taskMaster;

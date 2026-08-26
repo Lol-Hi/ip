@@ -5,14 +5,14 @@ import java.util.Scanner;
 /**
  * Handles direct command-line interaction with the user.
  */
-public class LuckyNoCLI {
+public class LuckyNoCli {
     private static final String DIVIDER =
             "  ____________________________________________________________\n";
 
     private final Scanner scanner;
 
     /** Creates a command-line interface connected to standard input. */
-    public LuckyNoCLI() {
+    public LuckyNoCli() {
         scanner = new Scanner(System.in);
     }
 

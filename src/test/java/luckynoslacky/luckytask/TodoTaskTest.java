@@ -14,14 +14,14 @@ import org.junit.jupiter.api.Test;
 class TodoTaskTest {
 
     @Test
-    void TodoTask_newTask_isNotDone() {
+    void todoTask_newTask_isNotDone() {
         TodoTask task = new TodoTask("read book");
 
         assertFalse(task.isDone());
         assertEquals(" ", task.getStatusIcon());
         assertEquals("[T][ ] read book", task.toString());
         assertEquals(List.of("T", "0", "read book", "", ""),
-                task.getCSVStorageFields());
+                task.getCsvStorageFields());
     }
 
     @Test

@@ -36,11 +36,11 @@ public final class LuckyNoMessages {
         }
 
         String format = switch (commandName) {
-        case DEADLINE -> DEADLINE_FORMAT;
-        case EVENT -> EVENT_FORMAT;
-        case FIND -> FIND_FORMAT;
-        default -> throw new IllegalArgumentException(
-                "No format is defined for this command.");
+            case DEADLINE -> DEADLINE_FORMAT;
+            case EVENT -> EVENT_FORMAT;
+            case FIND -> FIND_FORMAT;
+            default -> throw new IllegalArgumentException(
+                    "No format is defined for this command.");
         };
 
         return "Eh HELLO you know how to type command one anot? \n"

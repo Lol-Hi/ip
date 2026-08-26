@@ -20,6 +20,12 @@ public class LuckyNoFindCommand extends LuckyNoCommand {
         this(searchDateTime, null);
     }
 
+    /**
+     * Creates a find command attached to a task master.
+     *
+     * @param searchDateTime date and time from the search query
+     * @param taskMaster task master to search
+     */
     public LuckyNoFindCommand(LocalDateTime searchDateTime, TaskMaster taskMaster) {
         super(CommandType.FIND);
         this.taskMaster = taskMaster;

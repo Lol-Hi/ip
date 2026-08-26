@@ -15,9 +15,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests command-line input and output handled by LuckyNoCLI.
+ * Tests command-line input and output handled by LuckyNoCli.
  */
-class LuckyNoCLITest {
+class LuckyNoCliTest {
     private static final String DIVIDER =
             "  ____________________________________________________________\n";
 
@@ -42,7 +42,7 @@ class LuckyNoCLITest {
 
     @Test
     void readCommand_inputLinesUntilExhausted_returnsEachCommand() {
-        LuckyNoCLI cli = createCliWithInput("todo read book\nbye\n");
+        LuckyNoCli cli = createCliWithInput("todo read book\nbye\n");
 
         assertTrue(cli.hasNextLine());
         assertEquals("todo read book", cli.readCommand());
@@ -53,7 +53,7 @@ class LuckyNoCLITest {
 
     @Test
     void showReply_userOutput_usesDividerAndIndentation() {
-        LuckyNoCLI cli = createCliWithInput("");
+        LuckyNoCli cli = createCliWithInput("");
 
         cli.showReply("first line\nsecond line");
 
@@ -64,7 +64,7 @@ class LuckyNoCLITest {
 
     @Test
     void showGreeting_noInput_displaysBannerAndGreeting() {
-        LuckyNoCLI cli = createCliWithInput("");
+        LuckyNoCli cli = createCliWithInput("");
 
         cli.showGreeting();
 
@@ -76,7 +76,7 @@ class LuckyNoCLITest {
 
     @Test
     void showGoodbyeAndStorageErrors_configuredMessages_displaysReplies() {
-        LuckyNoCLI cli = createCliWithInput("");
+        LuckyNoCli cli = createCliWithInput("");
 
         cli.showGoodbye();
         cli.showLoadingError();
@@ -91,7 +91,7 @@ class LuckyNoCLITest {
 
     @Test
     void echo_input_usesStandardReplyFormatting() {
-        LuckyNoCLI cli = createCliWithInput("");
+        LuckyNoCli cli = createCliWithInput("");
 
         cli.echo("hello LuckyNoSlacky");
 
@@ -100,10 +100,10 @@ class LuckyNoCLITest {
                 capturedOutput.toString(StandardCharsets.UTF_8));
     }
 
-    private LuckyNoCLI createCliWithInput(String input) {
+    private LuckyNoCli createCliWithInput(String input) {
         System.setIn(new ByteArrayInputStream(
                 input.getBytes(StandardCharsets.UTF_8)));
-        return new LuckyNoCLI();
+        return new LuckyNoCli();
     }
 
     private String expectedReply(String output) {

@@ -19,12 +19,16 @@ import org.apache.commons.csv.CSVRecord;
 
 import luckynoslacky.luckyexception.LuckyNoStorageException;
 import luckynoslacky.luckyparser.DateTimeParser;
-import luckynoslacky.luckytask.*;
+import luckynoslacky.luckytask.DeadlineTask;
+import luckynoslacky.luckytask.EventTask;
+import luckynoslacky.luckytask.Task;
+import luckynoslacky.luckytask.TaskMaster;
+import luckynoslacky.luckytask.TodoTask;
 
 /**
  * Saves the current task list as a CSV file.
  */
-public class CSVSaver {
+public class CsvSaver {
     private static final List<String> CSV_HEADER = List.of(
             "Task type",
             "isCompleted",
@@ -41,7 +45,7 @@ public class CSVSaver {
     /**
      * Creates a saver that writes to the application's default data file.
      */
-    public CSVSaver() {
+    public CsvSaver() {
         this(DEFAULT_DATA_FILE);
     }
 
@@ -50,7 +54,7 @@ public class CSVSaver {
      *
      * @param dataFile destination CSV file
      */
-    public CSVSaver(Path dataFile) {
+    public CsvSaver(Path dataFile) {
         this.dataFile = dataFile;
     }
 
@@ -101,7 +105,7 @@ public class CSVSaver {
              CSVPrinter printer = new CSVPrinter(writer, CSVFormat.DEFAULT)) {
             printer.printRecord(CSV_HEADER);
 
-            for (List<String> record : taskMaster.getCSVStorageRecords()) {
+            for (List<String> record : taskMaster.getCsvStorageRecords()) {
                 printer.printRecord(record);
             }
         }
@@ -162,7 +166,7 @@ public class CSVSaver {
 
             List<Task> tasks = new ArrayList<>();
             for (int i = 1; i < records.size(); i++) {
-                tasks.add(createTaskFromCSVStorageRecord(records.get(i)));
+                tasks.add(createTaskFromCsvStorageRecord(records.get(i)));
             }
 
             return List.copyOf(tasks);
@@ -183,7 +187,7 @@ public class CSVSaver {
         }
     }
 
-    private Task createTaskFromCSVStorageRecord(CSVRecord record) {
+    private Task createTaskFromCsvStorageRecord(CSVRecord record) {
         if (record.size() != EXPECTED_FIELD_COUNT) {
             throw invalidRecord(record, "incorrect number of fields");
         }

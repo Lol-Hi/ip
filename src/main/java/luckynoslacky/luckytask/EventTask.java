@@ -1,8 +1,8 @@
 package luckynoslacky.luckytask;
 
-import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Represents a task with a specified start and end time.
@@ -33,8 +33,8 @@ public class EventTask extends Task {
     }
 
     @Override
-    public List<String> getCSVStorageFields() {
-        return createCSVStorageFields('E', fromTime, toTime);
+    public List<String> getCsvStorageFields() {
+        return createCsvStorageFields('E', fromTime, toTime);
     }
 
     @Override

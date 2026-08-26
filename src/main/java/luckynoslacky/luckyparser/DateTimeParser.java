@@ -2,12 +2,12 @@ package luckynoslacky.luckyparser;
 
 import java.time.Clock;
 import java.time.DayOfWeek;
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.DateTimeException;
-import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.util.List;
@@ -24,7 +24,6 @@ import luckynoslacky.luckyui.LuckyNoMessages;
  * <p>The parser deliberately keeps the accepted formats explicit rather than
  * relying on locale-dependent parsing. This makes the same input behave the
  * same way on different computers.</p>
- *
  */
 public final class DateTimeParser {
     private static final Pattern TIME_PATTERN = Pattern.compile(
@@ -284,16 +283,16 @@ public final class DateTimeParser {
 
         if (prefix.modifier().equals("none")) {
             switch (value) {
-            case "today":
-                return today;
-            case "tomorrow":
-            case "tmr":
-                return today.plusDays(1);
-            case "yesterday":
-            case "ytd":
-                return today.minusDays(1);
-            default:
-                break;
+                case "today":
+                    return today;
+                case "tomorrow": // Fallthrough
+                case "tmr":
+                    return today.plusDays(1);
+                case "yesterday": // Fallthrough
+                case "ytd":
+                    return today.minusDays(1);
+                default:
+                    break;
             }
         }
 
@@ -395,9 +394,9 @@ public final class DateTimeParser {
 
     private static LocalDate resolveMonth(LocalDate today, Prefix prefix) {
         int monthOffset = switch (prefix.modifier()) {
-        case "next", "following" -> prefix.count();
-        case "coming" -> 1;
-        default -> 0;
+            case "next", "following" -> prefix.count();
+            case "coming" -> 1;
+            default -> 0;
         };
         return today.withDayOfMonth(1).plusMonths(monthOffset);
     }
@@ -405,9 +404,9 @@ public final class DateTimeParser {
     private static LocalDate resolveMonth(
             int month, LocalDate today, Prefix prefix) {
         int yearOffset = switch (prefix.modifier()) {
-        case "next", "following" -> prefix.count();
-        case "coming" -> 1;
-        default -> 0;
+            case "next", "following" -> prefix.count();
+            case "coming" -> 1;
+            default -> 0;
         };
         LocalDate candidate = LocalDate.of(today.getYear(), month, 1)
                 .plusYears(yearOffset);
@@ -419,9 +418,9 @@ public final class DateTimeParser {
 
     private static LocalDate resolveYear(LocalDate today, Prefix prefix) {
         int yearOffset = switch (prefix.modifier()) {
-        case "next", "following" -> prefix.count();
-        case "coming" -> 1;
-        default -> 0;
+            case "next", "following" -> prefix.count();
+            case "coming" -> 1;
+            default -> 0;
         };
         return LocalDate.of(today.getYear() + yearOffset, 1, 1);
     }

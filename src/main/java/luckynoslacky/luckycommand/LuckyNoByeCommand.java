@@ -7,6 +7,7 @@ import luckynoslacky.luckyui.LuckyNoMessages;
  */
 public class LuckyNoByeCommand extends LuckyNoCommand {
 
+    /** Creates a command that terminates the chatbot. */
     public LuckyNoByeCommand() {
         super(CommandType.BYE);
     }

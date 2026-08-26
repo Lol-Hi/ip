@@ -1,13 +1,13 @@
 package luckynoslacky.luckytask;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import luckynoslacky.luckyexception.LuckyNoStorageException;
-import luckynoslacky.luckystorage.CSVSaver;
+import luckynoslacky.luckystorage.CsvSaver;
 import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
@@ -16,9 +16,9 @@ import luckynoslacky.luckyui.LuckyNoMessages;
 public class TaskMaster {
     private static final int DEFAULT_MAX_TASKS = 100;
 
-    private final ArrayList<Task> taskRoster;
+    private final ArrayList<Task> tasks;
     private final int maxTasks;
-    private final CSVSaver savedLucky;
+    private final CsvSaver csvSaver;
 
     /**
      * Creates a task master with the default capacity of 100 tasks.
@@ -33,7 +33,7 @@ public class TaskMaster {
      * @param maxTasks maximum number of tasks that can be stored
      */
     public TaskMaster(int maxTasks) {
-        this(maxTasks, new CSVSaver());
+        this(maxTasks, new CsvSaver());
     }
 
     /**
@@ -41,7 +41,7 @@ public class TaskMaster {
      *
      * @param saver saver used after task-list mutations
      */
-    public TaskMaster(CSVSaver saver) {
+    public TaskMaster(CsvSaver saver) {
         this(DEFAULT_MAX_TASKS, saver);
     }
 
@@ -51,7 +51,7 @@ public class TaskMaster {
      * @param maxTasks maximum number of tasks that can be stored
      * @param saver saver used after task-list mutations
      */
-    public TaskMaster(int maxTasks, CSVSaver saver) {
+    public TaskMaster(int maxTasks, CsvSaver saver) {
         if (maxTasks <= 0) {
             throw new IllegalArgumentException("Maximum tasks must be positive.");
         }
@@ -61,8 +61,8 @@ public class TaskMaster {
         }
 
         this.maxTasks = maxTasks;
-        this.savedLucky = saver;
-        taskRoster = new ArrayList<>();
+        this.csvSaver = saver;
+        tasks = new ArrayList<>();
     }
 
     /**
@@ -71,7 +71,7 @@ public class TaskMaster {
      * @param task task description entered by the user
      */
     public void addTask(Task task) {
-        if (taskRoster.size() >= maxTasks) {
+        if (tasks.size() >= maxTasks) {
             throw new IllegalStateException("The task list is full.");
         }
 
@@ -79,11 +79,11 @@ public class TaskMaster {
             throw new IllegalArgumentException("Task cannot be null.");
         }
 
-        taskRoster.add(task);
+        tasks.add(task);
         try {
             saveChanges();
         } catch (LuckyNoStorageException exception) {
-            taskRoster.remove(taskRoster.size() - 1);
+            tasks.remove(tasks.size() - 1);
             throw exception;
         }
     }
@@ -94,7 +94,7 @@ public class TaskMaster {
      * @return current task count
      */
     public int getTaskCount() {
-        return taskRoster.size();
+        return tasks.size();
     }
 
     /**
@@ -103,12 +103,12 @@ public class TaskMaster {
      * @return formatted task list
      */
     public String listTasks() {
-        if (taskRoster.isEmpty()) {
+        if (tasks.isEmpty()) {
             return LuckyNoMessages.emptyTaskListMessage();
         }
 
         List<Integer> taskIndexes = new ArrayList<>();
-        for (int i = 0; i < taskRoster.size(); i++) {
+        for (int i = 0; i < tasks.size(); i++) {
             taskIndexes.add(i);
         }
         return formatTaskList(taskIndexes, LuckyNoMessages.taskListHeader(), "");
@@ -127,8 +127,8 @@ public class TaskMaster {
 
         LocalDate searchDate = searchDateTime.toLocalDate();
         List<Integer> matchingTaskIndexes = new ArrayList<>();
-        for (int i = 0; i < taskRoster.size(); i++) {
-            if (taskRoster.get(i).occursOn(searchDate)) {
+        for (int i = 0; i < tasks.size(); i++) {
+            if (tasks.get(i).occursOn(searchDate)) {
                 matchingTaskIndexes.add(i);
             }
         }
@@ -186,15 +186,15 @@ public class TaskMaster {
     public String deleteTask(int taskNumber) {
         int taskIndex = taskNumber - 1;
 
-        if (taskIndex < 0 || taskIndex >= taskRoster.size()) {
+        if (taskIndex < 0 || taskIndex >= tasks.size()) {
             throw new IllegalArgumentException("Invalid task number.");
         }
 
-        Task deletedTask = taskRoster.remove(taskIndex);
+        Task deletedTask = tasks.remove(taskIndex);
         try {
             saveChanges();
         } catch (LuckyNoStorageException exception) {
-            taskRoster.add(taskIndex, deletedTask);
+            tasks.add(taskIndex, deletedTask);
             throw exception;
         }
         return deletedTask.toString();
@@ -205,9 +205,9 @@ public class TaskMaster {
      *
      * @return immutable list of CSV records
      */
-    public List<List<String>> getCSVStorageRecords() {
-        return taskRoster.stream()
-                .map(Task::getCSVStorageFields)
+    public List<List<String>> getCsvStorageRecords() {
+        return tasks.stream()
+                .map(Task::getCsvStorageFields)
                 .collect(Collectors.toUnmodifiableList());
     }
 
@@ -217,7 +217,7 @@ public class TaskMaster {
      *
      * @param tasks tasks loaded from CSV storage
      */
-    public void loadTasksFromCSVStorageRecord(List<Task> tasks) {
+    public void loadTasksFromCsvStorageRecord(List<Task> tasks) {
         if (tasks == null) {
             throw new LuckyNoStorageException("Tasks cannot be null.");
         }
@@ -232,12 +232,12 @@ public class TaskMaster {
                     "Saved task list contains a null task.");
         }
 
-        taskRoster.clear();
-        taskRoster.addAll(tasks);
+        this.tasks.clear();
+        this.tasks.addAll(tasks);
     }
 
     private void saveChanges() {
-        savedLucky.save(this);
+        csvSaver.save(this);
     }
 
     /**
@@ -261,7 +261,7 @@ public class TaskMaster {
             result.append("\n")
                     .append(taskIndex + 1)
                     .append(".")
-                    .append(taskRoster.get(taskIndex));
+                    .append(tasks.get(taskIndex));
         }
         return result.toString();
     }
@@ -283,10 +283,10 @@ public class TaskMaster {
     private Task getTask(int taskNumber) {
         int taskIndex = taskNumber - 1;
 
-        if (taskIndex < 0 || taskIndex >= taskRoster.size()) {
+        if (taskIndex < 0 || taskIndex >= tasks.size()) {
             throw new IllegalArgumentException("Invalid task number.");
         }
 
-        return taskRoster.get(taskIndex);
+        return tasks.get(taskIndex);
     }
 }
