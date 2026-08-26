@@ -32,11 +32,22 @@ public class EventTask extends Task {
         this.toTime = toTime;
     }
 
+    /**
+     * Returns the CSV fields for this event.
+     *
+     * @return event fields in CSV column order
+     */
     @Override
     public List<String> getCSVStorageFields() {
         return createCSVStorageFields('E', fromTime, toTime);
     }
 
+    /**
+     * Checks whether the event spans the supplied date.
+     *
+     * @param date date to check
+     * @return true if the event occurs on the supplied date
+     */
     @Override
     public boolean occursOn(LocalDate date) {
         return !date.isBefore(fromTime.toLocalDate())

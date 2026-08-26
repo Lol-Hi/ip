@@ -98,7 +98,12 @@ public abstract class Task {
                 DateTimeParser.formatForStorage(finishTime));
     }
 
-    /** Formats a date and time using the chatbot's human-readable format. */
+    /**
+     * Formats a date and time using the chatbot's human-readable format.
+     *
+     * @param value date and time to format
+     * @return formatted date and time
+     */
     protected static String formatDateTime(LocalDateTime value) {
         return DISPLAY_FORMATTER.format(value)
                 .replace("AM", "am")

@@ -17,11 +17,22 @@ public class TodoTask extends Task {
         super(description);
     }
 
+    /**
+     * Returns the CSV fields for this ToDo.
+     *
+     * @return ToDo fields in CSV column order
+     */
     @Override
     public List<String> getCSVStorageFields() {
         return createCSVStorageFields('T', null, null);
     }
 
+    /**
+     * ToDos do not occur on a date because they have no date or time.
+     *
+     * @param date date to check
+     * @return always false
+     */
     @Override
     public boolean occursOn(LocalDate date) {
         return false;

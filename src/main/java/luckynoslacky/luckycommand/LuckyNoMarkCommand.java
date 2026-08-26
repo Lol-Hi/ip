@@ -21,6 +21,13 @@ public class LuckyNoMarkCommand extends LuckyNoCommand {
         this(taskNumber, markDone, null);
     }
 
+    /**
+     * Creates a task-status command bound to a task master.
+     *
+     * @param taskNumber one-based task number
+     * @param markDone whether the task should be marked done
+     * @param taskMaster task master containing the task
+     */
     public LuckyNoMarkCommand(int taskNumber, boolean markDone, TaskMaster taskMaster) {
         super(CommandType.TOGGLE_TASK);
         this.taskMaster = taskMaster;
@@ -28,6 +35,11 @@ public class LuckyNoMarkCommand extends LuckyNoCommand {
         this.markDone = markDone;
     }
 
+    /**
+     * Applies the requested status and returns the resulting reply.
+     *
+     * @return mark or unmark response
+     */
     @Override
     public String execute() {
         String formattedTask = markDone

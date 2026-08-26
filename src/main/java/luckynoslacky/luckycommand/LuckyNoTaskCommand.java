@@ -20,6 +20,12 @@ public class LuckyNoTaskCommand extends LuckyNoCommand {
         this(task, null);
     }
 
+    /**
+     * Creates a task-creation command bound to a task master.
+     *
+     * @param task task to add
+     * @param taskMaster task master that should receive the task
+     */
     public LuckyNoTaskCommand(Task task, TaskMaster taskMaster) {
         super(CommandType.CREATE_TASK);
         this.taskMaster = taskMaster;
@@ -29,6 +35,11 @@ public class LuckyNoTaskCommand extends LuckyNoCommand {
         this.task = task;
     }
 
+    /**
+     * Adds the task and returns the resulting user-facing reply.
+     *
+     * @return task-added response
+     */
     @Override
     public String execute() {
         this.taskMaster.addTask(task);

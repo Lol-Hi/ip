@@ -21,14 +21,30 @@ public class LuckyNoParser {
         this(new DateTimeParser(), new TaskMaster());
     }
 
+    /**
+     * Creates a parser using the supplied date/time parser.
+     *
+     * @param dateTimeParser parser used to resolve date/time arguments
+     */
     public LuckyNoParser(DateTimeParser dateTimeParser) {
         this(dateTimeParser, new TaskMaster());
     }
 
+    /**
+     * Creates a parser using the system clock and supplied task master.
+     *
+     * @param taskMaster task master attached to parsed commands
+     */
     public LuckyNoParser(TaskMaster taskMaster) {
         this(new DateTimeParser(), taskMaster);
     }
 
+    /**
+     * Creates a parser with explicit date/time and task-list dependencies.
+     *
+     * @param dateTimeParser parser used to resolve date/time arguments
+     * @param taskMaster task master attached to parsed commands
+     */
     public LuckyNoParser(DateTimeParser dateTimeParser, TaskMaster taskMaster) {
         if (dateTimeParser == null) {
             throw new IllegalArgumentException("Date-time parser cannot be null.");
@@ -43,14 +59,23 @@ public class LuckyNoParser {
      * Represents a command name that can be entered by the user.
      */
     public enum CommandName {
+        /** Exit command. */
         BYE("bye"),
+        /** List command. */
         LIST("list"),
+        /** ToDo creation command. */
         TODO("todo"),
+        /** Deadline creation command. */
         DEADLINE("deadline"),
+        /** Event creation command. */
         EVENT("event"),
+        /** Mark-done command. */
         MARK("mark"),
+        /** Mark-undone command. */
         UNMARK("unmark"),
+        /** Task-deletion command. */
         DELETE("delete"),
+        /** Date-search command. */
         FIND("find");
 
         private final String inputName;
@@ -109,6 +134,15 @@ public class LuckyNoParser {
         return parseCommand(input, taskMaster.getTaskCount(), taskMaster);
     }
 
+    /**
+     * Parses a command with an explicit task count and command dependency.
+     *
+     * @param input raw user input
+     * @param taskCount current number of tasks
+     * @param commandTaskMaster task master attached to parsed commands
+     * @return parsed command
+     * @throws LuckyNoInputException if the input is invalid
+     */
     private LuckyNoCommand parseCommand(
             String input,
             int taskCount,
@@ -159,6 +193,13 @@ public class LuckyNoParser {
         }
     }
 
+    /**
+     * Rejects arguments for commands that must stand alone.
+     *
+     * @param arguments command arguments
+     * @param command command name used in the error message
+     * @throws LuckyNoInputException if arguments are present
+     */
     private void checkNoArguments(String arguments, String command)
             throws LuckyNoInputException {
         if (!arguments.isEmpty()) {
@@ -167,6 +208,14 @@ public class LuckyNoParser {
         }
     }
 
+    /**
+     * Validates and converts a one-based task number.
+     *
+     * @param arguments task-number text
+     * @param taskCount number of tasks currently available
+     * @return validated one-based task number
+     * @throws LuckyNoInputException if the number is missing or out of range
+     */
     private int parseTaskNumber(String arguments, int taskCount)
             throws LuckyNoInputException {
         if (arguments.isEmpty() || arguments.matches(".*\\s+.*")) {
@@ -186,6 +235,13 @@ public class LuckyNoParser {
         }
     }
 
+    /**
+     * Parses the description of a ToDo command.
+     *
+     * @param arguments command arguments
+     * @return constructed ToDo task
+     * @throws LuckyNoInputException if the description is missing
+     */
     private TodoTask parseTodo(String arguments) throws LuckyNoInputException {
         if (arguments.isEmpty()) {
             throw new LuckyNoInputException(
@@ -194,6 +250,13 @@ public class LuckyNoParser {
         return new TodoTask(arguments);
     }
 
+    /**
+     * Parses a deadline description and its {@code /by} date/time.
+     *
+     * @param arguments command arguments
+     * @return constructed deadline task
+     * @throws LuckyNoInputException if the format or date/time is invalid
+     */
     private DeadlineTask parseDeadline(String arguments) throws LuckyNoInputException {
         int byIndex = arguments.indexOf("/by");
         if (byIndex <= 0) {
@@ -219,6 +282,11 @@ public class LuckyNoParser {
     /**
      * Parses a find command. Text before the {@code /on} tag is intentionally
      * ignored so that the command can be extended with more search options.
+     *
+     * @param arguments command arguments
+     * @param taskMaster task master attached to the parsed command
+     * @return parsed find command
+     * @throws LuckyNoInputException if the search format or date is invalid
      */
     private LuckyNoFindCommand parseFind(String arguments, TaskMaster taskMaster)
             throws LuckyNoInputException {
@@ -241,6 +309,13 @@ public class LuckyNoParser {
         return new LuckyNoFindCommand(searchDateTime, taskMaster);
     }
 
+    /**
+     * Parses an event description and its {@code /from} and {@code /to} times.
+     *
+     * @param arguments command arguments
+     * @return constructed event task
+     * @throws LuckyNoInputException if the format or date/time is invalid
+     */
     private EventTask parseEvent(String arguments) throws LuckyNoInputException {
         int fromIndex = arguments.indexOf("/from");
         int toIndex = arguments.indexOf("/to");

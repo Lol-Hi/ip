@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
  */
 class TodoTaskTest {
 
+    /** Verifies the initial status and storage/display form of a ToDo. */
     @Test
     void TodoTask_newTask_isNotDone() {
         TodoTask task = new TodoTask("read book");
@@ -24,6 +25,7 @@ class TodoTaskTest {
                 task.getCSVStorageFields());
     }
 
+    /** Verifies that marking an incomplete ToDo sets it to done. */
     @Test
     void markAsDone_incompleteTask_isDone() {
         TodoTask task = new TodoTask("read book");
@@ -35,6 +37,7 @@ class TodoTaskTest {
         assertEquals("[T][X] read book", task.toString());
     }
 
+    /** Verifies that unmarking a done ToDo clears its status. */
     @Test
     void unmarkAsUndone_doneTask_isNotDone() {
         TodoTask task = new TodoTask("read book");

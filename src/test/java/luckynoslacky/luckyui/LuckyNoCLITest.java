@@ -25,6 +25,7 @@ class LuckyNoCLITest {
     private PrintStream originalOutput;
     private ByteArrayOutputStream capturedOutput;
 
+    /** Redirects standard output before each CLI test. */
     @BeforeEach
     void setUp() {
         originalInput = System.in;
@@ -34,12 +35,14 @@ class LuckyNoCLITest {
         System.setOut(new PrintStream(capturedOutput, true, StandardCharsets.UTF_8));
     }
 
+    /** Restores standard input and output after each CLI test. */
     @AfterEach
     void tearDown() {
         System.setIn(originalInput);
         System.setOut(originalOutput);
     }
 
+    /** Verifies that commands are read until standard input is exhausted. */
     @Test
     void readCommand_inputLinesUntilExhausted_returnsEachCommand() {
         LuckyNoCLI cli = createCliWithInput("todo read book\nbye\n");
@@ -51,6 +54,7 @@ class LuckyNoCLITest {
         assertFalse(cli.hasNextLine());
     }
 
+    /** Verifies standard divider and indentation formatting for replies. */
     @Test
     void showReply_userOutput_usesDividerAndIndentation() {
         LuckyNoCLI cli = createCliWithInput("");
@@ -62,6 +66,7 @@ class LuckyNoCLITest {
                 capturedOutput.toString(StandardCharsets.UTF_8));
     }
 
+    /** Verifies that the banner and greeting are displayed together. */
     @Test
     void showGreeting_noInput_displaysBannerAndGreeting() {
         LuckyNoCLI cli = createCliWithInput("");
@@ -74,6 +79,7 @@ class LuckyNoCLITest {
                 capturedOutput.toString(StandardCharsets.UTF_8));
     }
 
+    /** Verifies goodbye, loading, and saving messages use reply formatting. */
     @Test
     void showGoodbyeAndStorageErrors_configuredMessages_displaysReplies() {
         LuckyNoCLI cli = createCliWithInput("");
@@ -89,6 +95,7 @@ class LuckyNoCLITest {
                 capturedOutput.toString(StandardCharsets.UTF_8));
     }
 
+    /** Verifies that echoed input uses standard reply formatting. */
     @Test
     void echo_input_usesStandardReplyFormatting() {
         LuckyNoCLI cli = createCliWithInput("");
@@ -100,12 +107,14 @@ class LuckyNoCLITest {
                 capturedOutput.toString(StandardCharsets.UTF_8));
     }
 
+    /** Creates a CLI connected to the supplied in-memory input. */
     private LuckyNoCLI createCliWithInput(String input) {
         System.setIn(new ByteArrayInputStream(
                 input.getBytes(StandardCharsets.UTF_8)));
         return new LuckyNoCLI();
     }
 
+    /** Builds the exact formatted output expected from the CLI. */
     private String expectedReply(String output) {
         String indentedOutput = output.replace("\n", "\n  ");
         return DIVIDER + "  " + indentedOutput + "\n" + DIVIDER;

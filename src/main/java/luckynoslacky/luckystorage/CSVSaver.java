@@ -78,6 +78,11 @@ public class CSVSaver {
         }
     }
 
+    /**
+     * Creates the parent directory for the data file when necessary.
+     *
+     * @throws IOException if the directory cannot be created
+     */
     private void createParentDirectory() throws IOException {
         Path parent = dataFile.getParent();
 
@@ -86,6 +91,12 @@ public class CSVSaver {
         }
     }
 
+    /**
+     * Creates a temporary file in the data file's directory.
+     *
+     * @return path to the temporary file
+     * @throws IOException if the temporary file cannot be created
+     */
     private Path createTemporaryFile() throws IOException {
         Path parent = dataFile.getParent();
 
@@ -94,6 +105,13 @@ public class CSVSaver {
                 : Files.createTempFile(parent, "luckyNoSlacky-", ".tmp");
     }
 
+    /**
+     * Writes the CSV header and task records to a temporary file.
+     *
+     * @param taskMaster task list to serialize
+     * @param outputFile temporary output file
+     * @throws IOException if writing the file fails
+     */
     private void writeCsvFile(TaskMaster taskMaster, Path outputFile)
             throws IOException {
         try (BufferedWriter writer = Files.newBufferedWriter(
@@ -107,6 +125,12 @@ public class CSVSaver {
         }
     }
 
+    /**
+     * Replaces the data file with the completed temporary file.
+     *
+     * @param temporaryFile completed temporary file
+     * @throws IOException if the replacement fails
+     */
     private void replaceDataFile(Path temporaryFile) throws IOException {
         try {
             Files.move(
@@ -122,6 +146,11 @@ public class CSVSaver {
         }
     }
 
+    /**
+     * Deletes a temporary file after a save attempt.
+     *
+     * @param temporaryFile temporary file to delete, or null if none was made
+     */
     private void deleteTemporaryFile(Path temporaryFile) {
         if (temporaryFile == null) {
             return;
@@ -177,12 +206,25 @@ public class CSVSaver {
         }
     }
 
+    /**
+     * Validates that a CSV header has the expected columns.
+     *
+     * @param header first CSV record in the data file
+     * @throws LuckyNoStorageException if the header is not recognized
+     */
     private void validateHeader(CSVRecord header) {
         if (!header.toList().equals(CSV_HEADER)) {
             throw new LuckyNoStorageException("Invalid task data header.");
         }
     }
 
+    /**
+     * Converts one CSV record into the corresponding task subtype.
+     *
+     * @param record CSV task record
+     * @return task represented by the record
+     * @throws LuckyNoStorageException if the record is malformed
+     */
     private Task createTaskFromCSVStorageRecord(CSVRecord record) {
         if (record.size() != EXPECTED_FIELD_COUNT) {
             throw invalidRecord(record, "incorrect number of fields");
@@ -223,6 +265,12 @@ public class CSVSaver {
         return task;
     }
 
+    /**
+     * Validates the completion flag stored in a CSV record.
+     *
+     * @param record CSV task record
+     * @throws LuckyNoStorageException if the flag is neither 0 nor 1
+     */
     private void validateCompletionStatus(CSVRecord record) {
         String completionStatus = record.get(1);
 
@@ -232,6 +280,13 @@ public class CSVSaver {
         }
     }
 
+    /**
+     * Creates a storage exception describing an invalid CSV record.
+     *
+     * @param record malformed CSV record
+     * @param reason explanation of the validation failure
+     * @return exception describing the invalid record
+     */
     private LuckyNoStorageException invalidRecord(
             CSVRecord record,
             String reason) {

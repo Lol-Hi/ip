@@ -28,6 +28,7 @@ class TaskMasterTest {
     @TempDir
     Path temporaryDirectory;
 
+    /** Verifies the response for an empty task list. */
     @Test
     void listTasks_emptyTaskList_returnsEmptyTaskListMessage() {
         TaskMaster taskMaster = createTaskMaster();
@@ -35,6 +36,7 @@ class TaskMasterTest {
         assertEquals("Chill lah bro got nothing yet lah!", taskMaster.listTasks());
     }
 
+    /** Verifies that a valid task is added and listed. */
     @Test
     void addTask_validTask_includesTaskInList() {
         TaskMaster taskMaster = createTaskMaster();
@@ -45,6 +47,7 @@ class TaskMasterTest {
                 taskMaster.listTasks());
     }
 
+    /** Verifies that listing preserves task insertion order. */
     @Test
     void listTasks_multipleTasks_preservesOrder() {
         TaskMaster taskMaster = createTaskMaster();
@@ -58,6 +61,7 @@ class TaskMasterTest {
                 taskMaster.listTasks());
     }
 
+    /** Verifies that all supported task types are formatted in a list. */
     @Test
     void listTasks_differentTaskTypes_formatsAllTypes() {
         TaskMaster taskMaster = createTaskMaster();
@@ -74,6 +78,7 @@ class TaskMasterTest {
                 taskMaster.listTasks());
     }
 
+    /** Verifies that search returns deadlines and events on a date. */
     @Test
     void searchTasks_matchingDate_returnsDeadlinesAndEvents() {
         TaskMaster taskMaster = createTaskMaster();
@@ -92,6 +97,7 @@ class TaskMasterTest {
                 taskMaster.searchTasks(LocalDateTime.of(2026, 8, 26, 0, 0)));
     }
 
+    /** Verifies that search excludes ToDos and dates without matches. */
     @Test
     void searchTasks_noMatchingDateOrTodoOnly_returnsNoMatchMessage() {
         TaskMaster taskMaster = createTaskMaster();
@@ -105,6 +111,7 @@ class TaskMasterTest {
                 taskMaster.searchTasks(LocalDateTime.of(2026, 8, 27, 0, 0)));
     }
 
+    /** Verifies that marking a valid task persists its done status. */
     @Test
     void markTaskDone_validTask_marksTaskAsDone() {
         TaskMaster taskMaster = createTaskMaster();
@@ -119,6 +126,7 @@ class TaskMasterTest {
                 taskMaster.listTasks());
     }
 
+    /** Verifies that unmarking a done task clears its status. */
     @Test
     void unmarkTaskUndone_doneTask_marksTaskAsUndone() {
         TaskMaster taskMaster = createTaskMaster();
@@ -131,6 +139,7 @@ class TaskMasterTest {
                 taskMaster.listTasks());
     }
 
+    /** Verifies that marking an already done task is idempotent. */
     @Test
     void markTaskDone_alreadyDoneTask_remainsDone() {
         TaskMaster taskMaster = createTaskMaster();
@@ -143,6 +152,7 @@ class TaskMasterTest {
                 taskMaster.listTasks());
     }
 
+    /** Verifies that unmarking an incomplete task is idempotent. */
     @Test
     void unmarkTaskUndone_alreadyUndoneTask_remainsUndone() {
         TaskMaster taskMaster = createTaskMaster();
@@ -155,6 +165,7 @@ class TaskMasterTest {
                 taskMaster.listTasks());
     }
 
+    /** Verifies that deletion removes and renumbers later tasks. */
     @Test
     void deleteTask_middleTask_removesAndRenumbersTasks() {
         TaskMaster taskMaster = createTaskMaster();
@@ -171,6 +182,7 @@ class TaskMasterTest {
                 taskMaster.listTasks());
     }
 
+    /** Verifies that an invalid deletion leaves the list unchanged. */
     @Test
     void deleteTask_invalidTaskNumber_preservesTaskList() {
         TaskMaster taskMaster = createTaskMaster();
@@ -182,6 +194,7 @@ class TaskMasterTest {
                 taskMaster.listTasks());
     }
 
+    /** Verifies that deletion frees capacity for a later task. */
     @Test
     void deleteTask_fullList_freesCapacity() {
         TaskMaster taskMaster = createTaskMaster(2);
@@ -197,6 +210,7 @@ class TaskMasterTest {
                 taskMaster.listTasks());
     }
 
+    /** Verifies that deletion from an empty list is rejected. */
     @Test
     void deleteTask_emptyList_throwsIllegalArgumentException() {
         TaskMaster taskMaster = createTaskMaster();
@@ -205,6 +219,7 @@ class TaskMasterTest {
                 () -> taskMaster.deleteTask(1));
     }
 
+    /** Verifies that invalid numbers are rejected when marking tasks. */
     @Test
     void markTaskDone_invalidTaskNumber_throwsIllegalArgumentException() {
         TaskMaster taskMaster = createTaskMaster();
@@ -216,6 +231,7 @@ class TaskMasterTest {
                 () -> taskMaster.markTaskDone(2));
     }
 
+    /** Verifies that invalid numbers are rejected when unmarking tasks. */
     @Test
     void unmarkTaskUndone_invalidTaskNumber_throwsIllegalArgumentException() {
         TaskMaster taskMaster = createTaskMaster();
@@ -227,6 +243,7 @@ class TaskMasterTest {
                 () -> taskMaster.unmarkTaskUndone(2));
     }
 
+    /** Verifies invalid status changes do not alter another task's state. */
     @Test
     void markOrUnmark_invalidTaskNumber_preservesTaskState() {
         TaskMaster taskMaster = createTaskMaster();
@@ -244,6 +261,7 @@ class TaskMasterTest {
                 taskMaster.listTasks());
     }
 
+    /** Verifies that the configured task capacity is enforced. */
     @Test
     void addTask_customCapacity_throwsWhenFull() {
         TaskMaster taskMaster = createTaskMaster(2);
@@ -255,6 +273,7 @@ class TaskMasterTest {
                 () -> taskMaster.addTask(new TodoTask("third")));
     }
 
+    /** Verifies that non-positive capacities are rejected. */
     @Test
     void TaskMaster_nonPositiveCapacity_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class,
@@ -264,6 +283,7 @@ class TaskMasterTest {
                 () -> new TaskMaster(-1));
     }
 
+    /** Verifies that a failed save rolls back an added task. */
     @Test
     void addTask_saveFailure_removesTask() {
         TaskMaster taskMaster = new TaskMaster(100, new FailingSaver());
@@ -273,6 +293,7 @@ class TaskMasterTest {
         assertEquals(0, taskMaster.getTaskCount());
     }
 
+    /** Verifies that a failed save rolls back a status change. */
     @Test
     void markTaskDone_saveFailure_restoresPreviousStatus() {
         TaskMaster taskMaster = new TaskMaster(100, new FailingSaver());
@@ -284,6 +305,7 @@ class TaskMasterTest {
         assertFalse(task.isDone());
     }
 
+    /** Verifies that a failed save restores a deleted task. */
     @Test
     void deleteTask_saveFailure_restoresDeletedTask() {
         TaskMaster taskMaster = new TaskMaster(100, new FailingSaver());
@@ -297,6 +319,7 @@ class TaskMasterTest {
                 taskMaster.listTasks());
     }
 
+    /** Verifies that null or null-containing loaded lists are rejected. */
     @Test
     void loadTasksFromCSVStorageRecord_nullOrNullTaskList_throwsStorageException() {
         TaskMaster taskMaster = createTaskMaster();
@@ -308,6 +331,7 @@ class TaskMasterTest {
                         java.util.Arrays.asList(new TodoTask("read book"), null)));
     }
 
+    /** Verifies that searching with a null date is rejected. */
     @Test
     void searchTasks_nullDate_throwsIllegalArgumentException() {
         TaskMaster taskMaster = createTaskMaster();
@@ -316,10 +340,12 @@ class TaskMasterTest {
                 () -> taskMaster.searchTasks(null));
     }
 
+    /** Creates a task master with the default test capacity. */
     private TaskMaster createTaskMaster() {
         return createTaskMaster(100);
     }
 
+    /** Creates a task master with a temporary backing file and capacity. */
     private TaskMaster createTaskMaster(int maxTasks) {
         return new TaskMaster(
                 maxTasks,
@@ -327,10 +353,12 @@ class TaskMasterTest {
     }
 
     private static class FailingSaver extends CSVSaver {
+        /** Creates a saver that fails every save attempt. */
         FailingSaver() {
             super(Path.of("unused.csv"));
         }
 
+        /** Always throws to simulate a persistence failure. */
         @Override
         public void save(TaskMaster taskMaster) {
             throw new LuckyNoStorageException("simulated save failure");
