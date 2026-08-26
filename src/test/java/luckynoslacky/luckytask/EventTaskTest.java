@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 class EventTaskTest {
 
     @Test
-    void eventTaskIncludesStartAndEndTimesInOutput() {
+    void toString_eventTask_includesStartAndEndTimes() {
         LocalDateTime start = LocalDateTime.of(2026, 8, 6, 14, 0);
         LocalDateTime end = LocalDateTime.of(2026, 8, 6, 16, 0);
         EventTask task = new EventTask("project meeting", start, end);
@@ -27,7 +27,7 @@ class EventTaskTest {
     }
 
     @Test
-    void eventEndingBeforeStartingIsRejected() {
+    void EventTask_endBeforeStart_throwsIllegalArgumentException() {
         LocalDateTime start = LocalDateTime.of(2026, 8, 6, 16, 0);
         LocalDateTime end = LocalDateTime.of(2026, 8, 6, 14, 0);
 

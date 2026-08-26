@@ -23,7 +23,7 @@ class DateTimeParserTest {
             new DateTimeParser(TEST_CLOCK);
 
     @Test
-    void acceptsSupportedDateFormats() throws Exception {
+    void parseStartDateTime_supportedDateFormats_returnsExpectedDateTime() throws Exception {
         LocalDateTime expected = LocalDateTime.of(2030, 10, 15, 0, 0);
 
         for (String input : new String[] {
@@ -42,7 +42,7 @@ class DateTimeParserTest {
     }
 
     @Test
-    void acceptsSupportedTimeFormats() throws Exception {
+    void parseStartDateTime_supportedTimeFormats_returnsExpectedDateTime() throws Exception {
         for (String input : new String[] {
                 "14:15", "14:15:30", "2pm", "2 pm", "2:15pm",
                 "2:15 pm", "2.15pm", "2.15 pm"}) {
@@ -57,7 +57,7 @@ class DateTimeParserTest {
     }
 
     @Test
-    void acceptsDateAndTimeTogether() throws Exception {
+    void parseStartDateTime_dateAndTime_returnsExpectedDateTime() throws Exception {
         assertEquals(LocalDateTime.of(2030, 10, 15, 14, 15),
                 parser.parseStartDateTime("2030-10-15 14:15").value());
         assertEquals(LocalDateTime.of(2030, 10, 15, 14, 15),
@@ -66,7 +66,7 @@ class DateTimeParserTest {
     }
 
     @Test
-    void interpretsInvalidYearZeroAsCompactMidnight() throws Exception {
+    void parseStartDateTime_yearZeroDate_reinterpretsAsCompactMidnight() throws Exception {
         assertEquals(LocalDateTime.of(2026, 8, 25, 0, 0),
                 parser.parseStartDateTime("25 Aug 0000").value());
         assertEquals(LocalDateTime.of(2026, 8, 25, 0, 0),
@@ -74,7 +74,7 @@ class DateTimeParserTest {
     }
 
     @Test
-    void keepsAmbiguousFourDigitValuesAsYears() throws Exception {
+    void parseStartDateTime_fourDigitValues_returnsYears() throws Exception {
         assertEquals(LocalDateTime.of(2030, 8, 25, 0, 0),
                 parser.parseStartDateTime("25 Aug 2030").value());
         assertEquals(LocalDateTime.of(2025, 8, 25, 0, 0),
@@ -84,7 +84,7 @@ class DateTimeParserTest {
     }
 
     @Test
-    void appliesDifferentDefaultsForStartAndEndDateOnlyValues() throws Exception {
+    void parseDateTime_dateOnlyValues_useStartAndEndDefaults() throws Exception {
         assertEquals(LocalDateTime.of(2026, 8, 25, 0, 0),
                 parser.parseStartDateTime("2026-08-25").value());
         assertEquals(LocalDateTime.of(2026, 8, 25, 23, 59),
@@ -92,7 +92,7 @@ class DateTimeParserTest {
     }
 
     @Test
-    void resolvesEventEndTimeOnReferenceDateWhenItHasNotPassed() throws Exception {
+    void parseEndDateTime_endTimeAfterStart_usesReferenceDate() throws Exception {
         LocalDateTime start = LocalDateTime.of(2026, 8, 25, 14, 0);
 
         DateTimeParser.ParsedDateTime end =
@@ -103,7 +103,7 @@ class DateTimeParserTest {
     }
 
     @Test
-    void resolvesEventEndTimeOnNextDateWhenItHasPassed() throws Exception {
+    void parseEndDateTime_endTimeBeforeStart_usesNextDate() throws Exception {
         LocalDateTime start = LocalDateTime.of(2026, 8, 25, 23, 0);
 
         DateTimeParser.ParsedDateTime end =
@@ -114,7 +114,7 @@ class DateTimeParserTest {
     }
 
     @Test
-    void preservesExplicitEventEndDateInsteadOfUsingReferenceDate() throws Exception {
+    void parseEndDateTime_explicitEndDate_ignoresReferenceDate() throws Exception {
         LocalDateTime start = LocalDateTime.of(2026, 8, 25, 23, 0);
 
         DateTimeParser.ParsedDateTime end =
@@ -125,7 +125,7 @@ class DateTimeParserTest {
     }
 
     @Test
-    void resolvesTimeOnlyValuesToTodayOrTomorrow() throws Exception {
+    void parseStartDateTime_timeOnlyValues_resolvesTodayOrTomorrow() throws Exception {
         assertEquals(LocalDateTime.of(2026, 8, 25, 14, 0),
                 parser.parseStartDateTime("2pm").value());
         assertEquals(LocalDateTime.of(2026, 8, 26, 9, 0),
@@ -133,7 +133,7 @@ class DateTimeParserTest {
     }
 
     @Test
-    void resolvesNamedRelativeDates() throws Exception {
+    void parseStartDateTime_namedRelativeDates_returnsExpectedDates() throws Exception {
         assertEquals(LocalDateTime.of(2026, 8, 25, 0, 0),
                 parser.parseStartDateTime("today").value());
         assertEquals(LocalDateTime.of(2026, 8, 26, 0, 0),
@@ -151,7 +151,7 @@ class DateTimeParserTest {
     }
 
     @Test
-    void resolvesRelativeDayOfMonthForms() throws Exception {
+    void parseStartDateTime_relativeDayOfMonthForms_returnsExpectedDates() throws Exception {
         assertEquals(LocalDateTime.of(2026, 8, 30, 0, 0),
                 parser.parseStartDateTime("30th").value());
         assertEquals(LocalDateTime.of(2026, 9, 15, 0, 0),
@@ -165,7 +165,7 @@ class DateTimeParserTest {
     }
 
     @Test
-    void resolvesRelativeWeekdayForms() throws Exception {
+    void parseStartDateTime_relativeWeekdayForms_returnsExpectedDates() throws Exception {
         assertEquals(LocalDateTime.of(2026, 8, 31, 0, 0),
                 parser.parseStartDateTime("Monday").value());
         assertEquals(LocalDateTime.of(2026, 8, 24, 0, 0),
@@ -187,7 +187,7 @@ class DateTimeParserTest {
     }
 
     @Test
-    void resolvesRelativeMonthAndYearForms() throws Exception {
+    void parseStartDateTime_relativeMonthAndYearForms_returnsExpectedDates() throws Exception {
         assertEquals(LocalDateTime.of(2027, 6, 6, 0, 0),
                 parser.parseStartDateTime("June 6th").value());
         assertEquals(LocalDateTime.of(2026, 9, 1, 0, 0),
@@ -209,7 +209,7 @@ class DateTimeParserTest {
     }
 
     @Test
-    void rejectsDatesOutsideTheirValidRanges() {
+    void parseStartDateTime_invalidDates_throwsInputException() {
         assertInvalid("the 32nd");
         assertInvalid("2030-01-32");
         assertInvalid("2030-13-01");
@@ -220,7 +220,7 @@ class DateTimeParserTest {
     }
 
     @Test
-    void rejectsTimesOutsideTheirValidRanges() {
+    void parseStartDateTime_invalidTimes_throwsInputException() {
         assertInvalid("24:00");
         assertInvalid("25:00");
         assertInvalid("12:60");
@@ -229,7 +229,7 @@ class DateTimeParserTest {
     }
 
     @Test
-    void rejectsBlankNullAndRandomPlaintext() {
+    void parseStartDateTime_blankNullOrPlaintext_throwsInputException() {
         assertInvalid("");
         assertInvalid("   ");
         assertInvalid(null);
@@ -237,7 +237,7 @@ class DateTimeParserTest {
     }
 
     @Test
-    void formatsAndReadsCsvDateTimes() {
+    void formatForStorage_validDateTime_roundTripsThroughStorageParser() {
         LocalDateTime value = LocalDateTime.of(2030, 10, 15, 14, 15);
         String stored = DateTimeParser.formatForStorage(value);
 
@@ -248,12 +248,12 @@ class DateTimeParserTest {
     }
 
     @Test
-    void usesTheInjectedClockForCurrentTime() {
+    void now_fixedClock_returnsFixedTime() {
         assertEquals(LocalDateTime.of(2026, 8, 25, 10, 0), parser.now());
     }
 
     @Test
-    void rejectsNullClockAndNullEventReference() {
+    void DateTimeParser_nullClockOrReference_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class,
                 () -> new DateTimeParser(null));
         assertThrows(IllegalArgumentException.class,

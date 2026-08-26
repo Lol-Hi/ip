@@ -45,7 +45,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void parsesTodoCommandIntoTaskCommand() throws LuckyNoInputException {
+    void parseCommand_todoInput_returnsTaskCommand() throws LuckyNoInputException {
         LuckyNoTaskCommand command = assertInstanceOf(LuckyNoTaskCommand.class,
                 scanner.parseCommand("todo borrow book", 0));
 
@@ -56,7 +56,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void parsesDeadlineCommandIntoDeadlineTask() throws LuckyNoInputException {
+    void parseCommand_deadlineInput_returnsDeadlineTaskCommand() throws LuckyNoInputException {
         LuckyNoTaskCommand command = assertInstanceOf(LuckyNoTaskCommand.class,
                 scanner.parseCommand("deadline return book /by 2026-10-15 14:15", 0));
 
@@ -70,7 +70,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void parsesEventCommandIntoEventTask() throws LuckyNoInputException {
+    void parseCommand_eventInput_returnsEventTaskCommand() throws LuckyNoInputException {
         LuckyNoTaskCommand command = assertInstanceOf(LuckyNoTaskCommand.class,
                 scanner.parseCommand("event project meeting /from 2026-08-06 14:00"
                         + " /to 2026-08-06 16:00", 0));
@@ -86,7 +86,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void parsesMarkAndUnmarkAsExplicitStatuses() throws LuckyNoInputException {
+    void parseCommand_markAndUnmarkInput_returnsExplicitStatuses() throws LuckyNoInputException {
         taskMaster.addTask(new TodoTask("read book"));
         LuckyNoMarkCommand mark = assertInstanceOf(LuckyNoMarkCommand.class,
                 scanner.parseCommand("mark 1", 1));
@@ -102,7 +102,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void parseCommandUsesTheTaskMastersCurrentCountWhenCountIsOmitted()
+    void parseCommand_taskMasterCountOmitted_usesCurrentCount()
             throws LuckyNoInputException {
         taskMaster.addTask(new TodoTask("read book"));
 
@@ -115,7 +115,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void parsesDeleteCommandIntoDeleteCommand() throws LuckyNoInputException {
+    void parseCommand_deleteInput_returnsDeleteCommand() throws LuckyNoInputException {
         taskMaster.addTask(new TodoTask("read book"));
         taskMaster.addTask(new TodoTask("return book"));
         taskMaster.addTask(new TodoTask("buy bread"));
@@ -129,7 +129,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void parsesListAndByeCommands() throws LuckyNoInputException {
+    void parseCommand_listAndByeInput_returnsCommands() throws LuckyNoInputException {
         assertEquals(
                 taskMaster.listTasks(),
                 scanner.parseCommand("list", 0).execute());
@@ -139,7 +139,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void parsesFindCommandAndIgnoresTextBeforeOnTag()
+    void parseCommand_findWithIgnoredText_returnsFindCommand()
             throws LuckyNoInputException {
         taskMaster.addTask(new DeadlineTask(
                 "return book", LocalDateTime.of(2026, 9, 2, 23, 59)));
@@ -152,14 +152,14 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void commandNameLookupReturnsKnownCommandOrEmptyOptional() {
+    void fromInput_knownAndUnknownTokens_returnsMatchOrEmptyOptional() {
         assertEquals(LuckyNoParser.CommandName.DELETE,
                 LuckyNoParser.CommandName.fromInput("DeLeTe").orElseThrow());
         assertTrue(LuckyNoParser.CommandName.fromInput("dance").isEmpty());
     }
 
     @Test
-    void acceptsCaseInsensitiveCommandsAndSurroundingWhitespace()
+    void parseCommand_caseInsensitiveAndWhitespace_returnsTaskCommand()
             throws LuckyNoInputException {
         LuckyNoTaskCommand command = assertInstanceOf(LuckyNoTaskCommand.class,
                 scanner.parseCommand("  ToDo   read book  ", 0));
@@ -171,14 +171,14 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void rejectsEmptyAndUnknownCommands() {
+    void parseCommand_emptyOrUnknownInput_throwsInputException() {
         assertInputError("Eh you mute issit?? Just say what you want lah!", "   ", 0);
         assertInputError("What talking you? I only understand todo, deadline, event, list, mark, unmark, delete, find, or bye, ok?",
                 "dance", 0);
     }
 
     @Test
-    void rejectsMalformedTaskCommands() {
+    void parseCommand_malformedTodoDeadlineOrEvent_throwsInputException() {
         assertInputError("You don't tell me what to do how I know what to do???", "todo", 0);
         assertInputError("Eh HELLO you know how to type command one anot? \n"
                         + "Lai lai let me teach you: deadline <description> /by <date/time>.",
@@ -189,7 +189,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void rejectsMissingDeadlineAndEventTimes() {
+    void parseCommand_missingDeadlineOrEventTime_throwsInputException() {
         assertInputError("Eh HELLO you know how to type command one anot? \n"
                         + "Lai lai let me teach you: deadline <description> /by <date/time>.",
                 "deadline return book /by", 0);
@@ -199,7 +199,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void rejectsReversedOrEmptyTaskFormatSections() {
+    void parseCommand_emptyOrReversedTaskSections_throwsInputException() {
         String deadlineFormat = "Eh HELLO you know how to type command one anot? \n"
                 + "Lai lai let me teach you: deadline <description> /by <date/time>.";
         String eventFormat = "Eh HELLO you know how to type command one anot? \n"
@@ -211,7 +211,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void rejectsMalformedFindCommands() {
+    void parseCommand_malformedFindInput_throwsInputException() {
         assertInputError("Eh HELLO you know how to type command one anot? \n"
                         + "Lai lai let me teach you: find /on <date>",
                 "find next Wednesday", 0);
@@ -229,7 +229,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void resolvesFlexibleDatePhrasesAgainstTheCurrentDate() throws Exception {
+    void parseCommand_relativeDatePhrases_usesFixedCurrentDate() throws Exception {
         assertEquals(LocalDateTime.of(2026, 9, 15, 0, 0),
                 parser.parseStartDateTime("the 15th").value());
         assertEquals(LocalDateTime.of(2026, 8, 30, 23, 59),
@@ -273,7 +273,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void resolvesTimeOnlyValuesToTodayOrTomorrow() throws Exception {
+    void parseCommand_timeOnlyValues_usesTodayOrTomorrow() throws Exception {
         assertEquals(LocalDateTime.of(2026, 8, 25, 14, 0),
                 parser.parseStartDateTime("2pm").value());
         assertEquals(LocalDateTime.of(2026, 8, 26, 9, 0),
@@ -281,7 +281,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void acceptsDocumentedDateAndTimeFormats() throws Exception {
+    void parseCommand_documentedDateTimeFormats_returnsExpectedValues() throws Exception {
         LocalDate expectedDate = LocalDate.of(2030, 10, 15);
         for (String input : new String[] {
                 "2030-10-15", "2030/10/15", "15/10/2030", "15-10-2030",
@@ -306,7 +306,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void usesStartAndEndDefaultsForDateOnlyValues() throws Exception {
+    void parseCommand_dateOnlyValues_useStartAndEndDefaults() throws Exception {
         assertEquals(LocalDateTime.of(2026, 8, 25, 0, 0),
                 parser.parseStartDateTime("2026-08-25").value());
         assertEquals(LocalDateTime.of(2026, 8, 25, 23, 59),
@@ -314,7 +314,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void rejectsInvalidAndImpossibleDateTimes() {
+    void parseCommand_invalidOrPastDateTimes_throwsInputException() {
         assertInputError(LuckyNoMessages.invalidDateTimeMessage(),
                 "deadline report /by definitely-not-a-date", 0);
         assertInputError(LuckyNoMessages.timeTravelMessage(),
@@ -326,7 +326,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void allowsPastEventStartWhenEventEndIsAfterIt() throws Exception {
+    void parseCommand_pastEventStartWithFutureEnd_succeeds() throws Exception {
         LuckyNoTaskCommand command = assertInstanceOf(LuckyNoTaskCommand.class,
                 scanner.parseCommand("event past meeting /from 25 Aug 2025"
                         + " /to 26 Aug 2025", 0));
@@ -342,7 +342,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void resolvesEventEndTimeRelativeToEventStart() throws Exception {
+    void parseCommand_timeOnlyEventEnd_usesStartDateOrNextDate() throws Exception {
         LuckyNoTaskCommand sameDay = assertInstanceOf(LuckyNoTaskCommand.class,
                 scanner.parseCommand("event afternoon meeting /from 25 Aug 2026 2pm"
                         + " /to 4pm", 0));
@@ -369,7 +369,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void rejectsInvalidTaskNumbers() {
+    void parseCommand_invalidTaskNumbers_throwsInputException() {
         assertInputError("Eh which task you talking about har? Can say clearly anot.", "mark", 1);
         assertInputError("You siao ah how to spin this task from thin air?", "mark 2", 1);
         assertInputError("Eh which task you talking about har? Can say clearly anot.",
@@ -385,7 +385,7 @@ class LuckyNoParserTest {
     }
 
     @Test
-    void rejectsArgumentsForListAndBye() {
+    void parseCommand_extraArgumentsForListAndBye_throwsInputException() {
         assertInputError("Why you so losor! Leave the list command to do its own thing lah", "list now", 0);
         assertInputError("Why you so losor! Leave the bye command to do its own thing lah", "bye now", 0);
     }

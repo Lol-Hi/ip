@@ -12,7 +12,7 @@ import luckynoslacky.luckyparser.LuckyNoParser;
  */
 class LuckyNoMessagesTest {
     @Test
-    void invalidFormatMessageUsesTheCommandNameAndItsFormat() {
+    void invalidFormatMessage_knownCommandAndFormat_returnsFormattedMessage() {
         assertEquals(
                 "Eh HELLO you know how to type command one anot? \n"
                         + "Lai lai let me teach you: deadline "
@@ -33,7 +33,7 @@ class LuckyNoMessagesTest {
     }
 
     @Test
-    void invalidFormatMessageRejectsCommandsWithoutFormats() {
+    void invalidFormatMessage_commandWithoutFormat_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class,
                 () -> LuckyNoMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.LIST));
@@ -42,7 +42,7 @@ class LuckyNoMessagesTest {
     }
 
     @Test
-    void loadErrorMessageMatchesConfiguredReply() {
+    void loadErrorMessage_noArguments_returnsConfiguredMessage() {
         assertEquals(
                 "Eh you so free ah, no tasks were loaded! "
                         + "If you think this is salah, check your task data file.",
@@ -50,7 +50,7 @@ class LuckyNoMessagesTest {
     }
 
     @Test
-    void saveErrorMessageMatchesConfiguredReply() {
+    void saveErrorMessage_noArguments_returnsConfiguredMessage() {
         assertEquals(
                 "Honggan la your system abit rabs ah, I cannot save your task",
                 LuckyNoMessages.saveErrorMessage());

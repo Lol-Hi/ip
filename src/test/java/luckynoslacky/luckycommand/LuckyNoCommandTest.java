@@ -26,7 +26,7 @@ class LuckyNoCommandTest {
     Path tempDir;
 
     @Test
-    void taskCommandExecutesTaskCreation() {
+    void execute_taskCommandWithTask_addsTaskAndReturnsReply() {
         TaskMaster taskMaster = createTaskMaster();
         TodoTask task = new TodoTask("read book");
         LuckyNoTaskCommand command = new LuckyNoTaskCommand(task, taskMaster);
@@ -37,7 +37,7 @@ class LuckyNoCommandTest {
     }
 
     @Test
-    void markCommandExecutesDoneStatusChange() {
+    void execute_markCommandWithUndoneTask_marksTaskDoneAndReturnsReply() {
         TaskMaster taskMaster = createTaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
         LuckyNoMarkCommand command = new LuckyNoMarkCommand(1, true, taskMaster);
@@ -50,7 +50,7 @@ class LuckyNoCommandTest {
     }
 
     @Test
-    void unmarkCommandExecutesNotDoneStatusChange() {
+    void execute_unmarkCommandWithDoneTask_marksTaskUndoneAndReturnsReply() {
         TaskMaster taskMaster = createTaskMaster();
         TodoTask task = new TodoTask("read book");
         task.markAsDone();
@@ -65,7 +65,7 @@ class LuckyNoCommandTest {
     }
 
     @Test
-    void deleteCommandExecutesTaskDeletion() {
+    void execute_deleteCommandWithExistingTask_deletesTaskAndReturnsReply() {
         TaskMaster taskMaster = createTaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
         LuckyNoDeleteCommand command = new LuckyNoDeleteCommand(1, taskMaster);
@@ -77,7 +77,7 @@ class LuckyNoCommandTest {
     }
 
     @Test
-    void listCommandExecutesTaskListing() {
+    void execute_listCommandWithExistingTasks_returnsTaskList() {
         TaskMaster taskMaster = createTaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
         LuckyNoListCommand command = new LuckyNoListCommand(taskMaster);
@@ -86,7 +86,7 @@ class LuckyNoCommandTest {
     }
 
     @Test
-    void findCommandExecutesDateSearch() {
+    void execute_findCommandWithMatchingDate_returnsMatchingTasks() {
         TaskMaster taskMaster = createTaskMaster();
         taskMaster.addTask(new DeadlineTask(
                 "return book", LocalDateTime.of(2026, 8, 26, 23, 59)));
@@ -96,7 +96,7 @@ class LuckyNoCommandTest {
     }
 
     @Test
-    void byeCommandReturnsGoodbyeAndRequestsExit() {
+    void execute_byeCommandWithoutArguments_returnsGoodbyeAndRequestsExit() {
         LuckyNoByeCommand command = new LuckyNoByeCommand();
 
         assertEquals(LuckyNoMessages.goodbye(), command.execute());

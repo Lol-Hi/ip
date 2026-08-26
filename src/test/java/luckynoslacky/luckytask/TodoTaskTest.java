@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 class TodoTaskTest {
 
     @Test
-    void newTodoTaskIsNotDone() {
+    void TodoTask_newTask_isNotDone() {
         TodoTask task = new TodoTask("read book");
 
         assertFalse(task.isDone());
@@ -25,7 +25,7 @@ class TodoTaskTest {
     }
 
     @Test
-    void todoTaskCanBeMarkedAsDone() {
+    void markAsDone_incompleteTask_isDone() {
         TodoTask task = new TodoTask("read book");
 
         task.markAsDone();
@@ -36,7 +36,7 @@ class TodoTaskTest {
     }
 
     @Test
-    void todoTaskCanBeUnmarkedAsUndone() {
+    void unmarkAsUndone_doneTask_isNotDone() {
         TodoTask task = new TodoTask("read book");
         task.markAsDone();
 
