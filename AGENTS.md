@@ -20,7 +20,16 @@ Unless the user says otherwise, assume that you are assisting a student working 
   * When suggesting a Git command, briefly explain what it does.
   * Add explanatory Javadoc comments to all classes and to nontrivial methods and fields when their purpose or behavior is not obvious.
   * Make generated code as self-explanatory as possible, and include explanatory comments where they improve understanding.
-  * When faced with a design choice, choose the simplest option that is sufficient for the requirements, while briefly explaining relevant more advanced alternatives.
+* When faced with a design choice, choose the simplest option that is sufficient for the requirements, while briefly explaining relevant more advanced alternatives.
+
+## Java coding standard
+
+All Java production and test code in this repository must follow the
+project-specific `$seedu-java-coding-standard` skill, based on the
+[SE-EDU intermediate Java coding standard](https://se-education.org/guides/conventions/java/intermediate.html).
+Use the skill when reviewing or changing Java code, including its naming,
+layout, import, encapsulation, and Javadoc requirements. Do not leave Java
+style violations in code changed during a task.
 
 # Project-specific requirements
 
