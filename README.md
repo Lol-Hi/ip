@@ -60,10 +60,30 @@ From the project root, compile the project and run the chatbot with:
 
 ```bash
 ./gradlew build
-java -cp build/classes/java/main LuckyNoSlacky
+java -cp build/classes/java/main luckynoslacky.LuckyNoSlacky
 ```
 
 On Windows, use `gradlew.bat build` instead of `./gradlew build`.
+
+### Run using the released JAR
+
+LuckyNoSlacky is also distributed as a fat JAR containing the application and
+its runtime dependencies. Save the JAR under
+at:
+
+```text
+build/libs/luckyNoSlacky.jar
+```
+
+To run the JAR, use Java 25 from the project root:
+
+```bash
+java -jar build/libs/luckyNoSlacky.jar
+```
+
+No additional dependency or classpath setup is needed.
+The relative `data/` folder and `data/luckyNoSlacky.csv` file will then be 
+created in the same `build/libs/` library.
 
 ### Task data persistence
 
