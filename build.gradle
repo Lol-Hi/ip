@@ -1,5 +1,7 @@
 plugins {
     id 'java'
+    id 'application'
+    id 'com.gradleup.shadow' version '9.5.1'
 }
 
 repositories {
@@ -8,8 +10,11 @@ repositories {
 
 dependencies {
     implementation 'org.apache.commons:commons-csv:1.14.1'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
+
+    String junitVersion = '5.14.4'
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.14.4'
 }
 
 java {
@@ -20,4 +25,31 @@ java {
 
 test {
     useJUnitPlatform()
+
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        showExceptions = true
+        exceptionFormat = 'full'
+        showCauses = true
+        showStackTraces = true
+        showStandardStreams = false
+    }
+}
+
+application {
+    mainClass = 'luckynoslacky.LuckyNoSlacky'
+}
+
+jar {
+    // A lean JAR file is not needed because the shadow JAR includes dependencies.
+    enabled = false
+    archiveClassifier = 'without-dependencies'
+}
+
+shadowJar {
+    archiveFileName = 'luckyNoSlacky.jar'
+}
+
+run {
+    standardInput = System.in
 }
