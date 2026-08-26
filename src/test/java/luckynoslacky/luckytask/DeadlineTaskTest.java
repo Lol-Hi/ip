@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 class DeadlineTaskTest {
 
     @Test
-    void deadlineTaskIncludesDeadlineInOutput() {
+    void toString_deadlineTask_includesDeadline() {
         LocalDateTime deadline = LocalDateTime.of(2019, 10, 15, 14, 15);
         DeadlineTask task = new DeadlineTask("return book", deadline);
 

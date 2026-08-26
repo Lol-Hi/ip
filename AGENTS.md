@@ -28,12 +28,20 @@ Unless the user says otherwise, assume that you are assisting a student working 
 
 After every code update:
 
-1. Review `test/ui-test-plan.md` against the changed behavior.
-2. Update the test plan when the change adds, removes, or changes a user-visible
+1. Review and update the relevant JUnit tests for the changed code. Name each
+   JUnit test method using the convention
+   `unitBeingTested_descriptionOfTestInputs_expectedOutcome`, with three
+   descriptive underscore-separated parts. The test suite should target
+   approximately the highest-value 50% of methods, giving priority to complex,
+   core, and business-critical logic. Do not leave JUnit tests stale after a
+   code change.
+2. Run the JUnit suite with Java 25 using `./gradlew test` and report failures.
+3. Review `test/ui-test-plan.md` against the changed behavior.
+4. Update the test plan when the change adds, removes, or changes a user-visible
    command, input rule, or console output. If no update is needed, state that
    explicitly.
-3. Invoke the project-specific `$test-ui` skill to run the documented UI tests.
-4. Report the console input and output record and stop at the first failed UI
+5. Invoke the project-specific `$test-ui` skill to run the documented UI tests.
+6. Report the console input and output record and stop at the first failed UI
    test case.
 
 ## Java version:

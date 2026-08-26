@@ -34,7 +34,7 @@ class CSVSaverTest {
     Path temporaryDirectory;
 
     @Test
-    void savesCurrentTaskListAsCsvRecords() throws Exception {
+    void save_taskListWithSpecialCharacters_writesCsvRecords() throws Exception {
         Path dataFile = temporaryDirectory.resolve("luckyNoSlacky.csv");
         CSVSaver saver = new CSVSaver(dataFile);
         TaskMaster taskMaster = new TaskMaster(100, saver);
@@ -63,7 +63,7 @@ class CSVSaverTest {
     }
 
     @Test
-    void rewritesFileAfterTaskIsDeleted() throws Exception {
+    void save_afterTaskDeletion_rewritesCsvFile() throws Exception {
         Path dataFile = temporaryDirectory.resolve("luckyNoSlacky.csv");
         CSVSaver saver = new CSVSaver(dataFile);
         TaskMaster taskMaster = new TaskMaster(100, saver);
@@ -83,7 +83,7 @@ class CSVSaverTest {
     }
 
     @Test
-    void missingCsvFileLoadsAsEmptyList() {
+    void load_missingFile_returnsEmptyList() {
         Path dataFile = temporaryDirectory.resolve("missing.csv");
         CSVSaver saver = new CSVSaver(dataFile);
 
@@ -91,7 +91,7 @@ class CSVSaverTest {
     }
 
     @Test
-    void saveCreatesMissingParentDirectories() {
+    void save_missingParentDirectory_createsDirectoryAndFile() {
         Path dataFile = temporaryDirectory
                 .resolve("nested")
                 .resolve("luckyNoSlacky.csv");
@@ -104,7 +104,7 @@ class CSVSaverTest {
     }
 
     @Test
-    void emptyCsvFileLoadsAsEmptyList() throws Exception {
+    void load_emptyFile_returnsEmptyList() throws Exception {
         Path dataFile = temporaryDirectory.resolve("empty.csv");
         Files.writeString(dataFile, "", StandardCharsets.UTF_8);
         CSVSaver saver = new CSVSaver(dataFile);
@@ -113,7 +113,7 @@ class CSVSaverTest {
     }
 
     @Test
-    void loadsTasksAndStatusesFromCsvStorage() {
+    void load_validCsv_returnsTasksAndStatuses() {
         Path dataFile = temporaryDirectory.resolve("luckyNoSlacky.csv");
         CSVSaver saver = new CSVSaver(dataFile);
         TaskMaster original = new TaskMaster(100, saver);
@@ -136,7 +136,7 @@ class CSVSaverTest {
     }
 
     @Test
-    void invalidTaskTypeInCsvFileIsRejected() throws Exception {
+    void load_unknownTaskType_throwsStorageException() throws Exception {
         Path dataFile = temporaryDirectory.resolve("invalid.csv");
         Files.writeString(dataFile,
                 "Task type,isCompleted,Description,startTime,finishTime\n"
@@ -148,7 +148,7 @@ class CSVSaverTest {
     }
 
     @Test
-    void invalidCompletionStatusInCsvFileIsRejected() throws Exception {
+    void load_invalidCompletionStatus_throwsStorageException() throws Exception {
         Path dataFile = temporaryDirectory.resolve("invalid-status.csv");
         Files.writeString(dataFile,
                 "Task type,isCompleted,Description,startTime,finishTime\n"
@@ -160,7 +160,7 @@ class CSVSaverTest {
     }
 
     @Test
-    void invalidHeaderInCsvFileIsRejected() throws Exception {
+    void load_invalidHeader_throwsStorageException() throws Exception {
         Path dataFile = temporaryDirectory.resolve("invalid-header.csv");
         Files.writeString(dataFile,
                 "type,status,description,start,end\n",
@@ -171,7 +171,38 @@ class CSVSaverTest {
     }
 
     @Test
-    void dataPathThatIsDirectoryCannotBeLoadedOrSaved() throws Exception {
+    void load_malformedTaskRecord_throwsStorageException() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("malformed-record.csv");
+        Files.writeString(dataFile,
+                "Task type,isCompleted,Description,startTime,finishTime\n"
+                        + "D,0,return book,,2030-13-01 10:00\n",
+                StandardCharsets.UTF_8);
+        CSVSaver saver = new CSVSaver(dataFile);
+
+        assertThrows(LuckyNoStorageException.class, saver::load);
+    }
+
+    @Test
+    void load_recordWithMissingFields_throwsStorageException() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("missing-fields.csv");
+        Files.writeString(dataFile,
+                "Task type,isCompleted,Description,startTime,finishTime\n"
+                        + "T,0,read book,\n",
+                StandardCharsets.UTF_8);
+        CSVSaver saver = new CSVSaver(dataFile);
+
+        assertThrows(LuckyNoStorageException.class, saver::load);
+    }
+
+    @Test
+    void save_nullTaskMaster_throwsIllegalArgumentException() {
+        CSVSaver saver = new CSVSaver(temporaryDirectory.resolve("tasks.csv"));
+
+        assertThrows(IllegalArgumentException.class, () -> saver.save(null));
+    }
+
+    @Test
+    void loadOrSave_directoryPath_throwsStorageException() throws Exception {
         Path dataPath = temporaryDirectory.resolve("directory");
         Files.createDirectory(dataPath);
         CSVSaver saver = new CSVSaver(dataPath);
@@ -182,7 +213,7 @@ class CSVSaverTest {
     }
 
     @Test
-    void loadedTaskCountCannotExceedTaskMasterCapacity() {
+    void load_tasksExceedingCapacity_throwsStorageException() {
         Path dataFile = temporaryDirectory.resolve("luckyNoSlacky.csv");
         CSVSaver saver = new CSVSaver(dataFile);
         TaskMaster taskMaster = new TaskMaster(1, saver);

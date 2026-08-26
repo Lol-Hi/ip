@@ -41,7 +41,7 @@ class LuckyNoCLITest {
     }
 
     @Test
-    void readsCommandsUntilInputIsExhausted() {
+    void readCommand_inputLinesUntilExhausted_returnsEachCommand() {
         LuckyNoCLI cli = createCliWithInput("todo read book\nbye\n");
 
         assertTrue(cli.hasNextLine());
@@ -52,7 +52,7 @@ class LuckyNoCLITest {
     }
 
     @Test
-    void showReplyUsesStandardDividerAndIndentation() {
+    void showReply_userOutput_usesDividerAndIndentation() {
         LuckyNoCLI cli = createCliWithInput("");
 
         cli.showReply("first line\nsecond line");
@@ -63,7 +63,7 @@ class LuckyNoCLITest {
     }
 
     @Test
-    void showGreetingDisplaysBannerAndGreeting() {
+    void showGreeting_noInput_displaysBannerAndGreeting() {
         LuckyNoCLI cli = createCliWithInput("");
 
         cli.showGreeting();
@@ -75,7 +75,7 @@ class LuckyNoCLITest {
     }
 
     @Test
-    void showGoodbyeAndStorageErrorsUseConfiguredMessages() {
+    void showGoodbyeAndStorageErrors_configuredMessages_displaysReplies() {
         LuckyNoCLI cli = createCliWithInput("");
 
         cli.showGoodbye();
@@ -90,7 +90,7 @@ class LuckyNoCLITest {
     }
 
     @Test
-    void echoUsesStandardReplyFormatting() {
+    void echo_input_usesStandardReplyFormatting() {
         LuckyNoCLI cli = createCliWithInput("");
 
         cli.echo("hello LuckyNoSlacky");
