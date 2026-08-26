@@ -3,6 +3,7 @@
 ## Test execution information
 
 - Program: Java 25 with the compiled application classes and CSV runtime dependencies
+- Main class: `luckynoslacky.LuckyNoSlacky`
 - Working directory: project root
 - Data isolation: reset `data/luckyNoSlacky.csv` before each test case
 - Deterministic clock: run with
