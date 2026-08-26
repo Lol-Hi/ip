@@ -11,8 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import luckynoslacky.luckyparser.DateTimeParser;
-import luckynoslacky.luckystorage.CSVSaver;
-import luckynoslacky.luckytask.*;
+import luckynoslacky.luckystorage.CsvSaver;
+import luckynoslacky.luckytask.DeadlineTask;
+import luckynoslacky.luckytask.TaskMaster;
+import luckynoslacky.luckytask.TodoTask;
 import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
@@ -114,6 +116,6 @@ class LuckyNoCommandTest {
     private TaskMaster createTaskMaster() {
         return new TaskMaster(
                 100,
-                new CSVSaver(tempDir.resolve("tasks.csv")));
+                new CsvSaver(tempDir.resolve("tasks.csv")));
     }
 }

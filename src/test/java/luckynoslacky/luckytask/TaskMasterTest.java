@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import luckynoslacky.luckyexception.LuckyNoStorageException;
-import luckynoslacky.luckystorage.CSVSaver;
+import luckynoslacky.luckystorage.CsvSaver;
 
 /**
  * Tests the task storage and listing behavior of TaskMaster.
@@ -275,7 +275,7 @@ class TaskMasterTest {
 
     /** Verifies that non-positive capacities are rejected. */
     @Test
-    void TaskMaster_nonPositiveCapacity_throwsIllegalArgumentException() {
+    void taskMaster_nonPositiveCapacity_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class,
                 () -> new TaskMaster(0));
 
@@ -298,7 +298,7 @@ class TaskMasterTest {
     void markTaskDone_saveFailure_restoresPreviousStatus() {
         TaskMaster taskMaster = new TaskMaster(100, new FailingSaver());
         TodoTask task = new TodoTask("read book");
-        taskMaster.loadTasksFromCSVStorageRecord(List.of(task));
+        taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
 
         assertThrows(LuckyNoStorageException.class,
                 () -> taskMaster.markTaskDone(1));
@@ -310,7 +310,7 @@ class TaskMasterTest {
     void deleteTask_saveFailure_restoresDeletedTask() {
         TaskMaster taskMaster = new TaskMaster(100, new FailingSaver());
         TodoTask task = new TodoTask("read book");
-        taskMaster.loadTasksFromCSVStorageRecord(List.of(task));
+        taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
 
         assertThrows(LuckyNoStorageException.class,
                 () -> taskMaster.deleteTask(1));
@@ -321,13 +321,13 @@ class TaskMasterTest {
 
     /** Verifies that null or null-containing loaded lists are rejected. */
     @Test
-    void loadTasksFromCSVStorageRecord_nullOrNullTaskList_throwsStorageException() {
+    void loadTasksFromCsvStorageRecord_nullOrNullTaskList_throwsStorageException() {
         TaskMaster taskMaster = createTaskMaster();
 
         assertThrows(LuckyNoStorageException.class,
-                () -> taskMaster.loadTasksFromCSVStorageRecord(null));
+                () -> taskMaster.loadTasksFromCsvStorageRecord(null));
         assertThrows(LuckyNoStorageException.class,
-                () -> taskMaster.loadTasksFromCSVStorageRecord(
+                () -> taskMaster.loadTasksFromCsvStorageRecord(
                         java.util.Arrays.asList(new TodoTask("read book"), null)));
     }
 
@@ -349,11 +349,11 @@ class TaskMasterTest {
     private TaskMaster createTaskMaster(int maxTasks) {
         return new TaskMaster(
                 maxTasks,
-                new CSVSaver(temporaryDirectory.resolve("tasks.csv")));
+                new CsvSaver(temporaryDirectory.resolve("tasks.csv")));
     }
 
-    private static class FailingSaver extends CSVSaver {
-        /** Creates a saver that fails every save attempt. */
+    /** Creates a saver that fails every save attempt. */
+    private static class FailingSaver extends CsvSaver {
         FailingSaver() {
             super(Path.of("unused.csv"));
         }

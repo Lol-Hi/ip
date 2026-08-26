@@ -42,14 +42,4 @@ public class LuckyNoDeleteCommand extends LuckyNoCommand {
         return LuckyNoMessages.deletedTaskMessage(
                 deletedTask, this.taskMaster.getTaskCount());
     }
-
-    /**
-     * Returns the one-based task number.
-     *
-     * @return task number
-     */
-    @Deprecated
-    public int getTaskNumber() {
-        return taskNumber;
-    }
 }

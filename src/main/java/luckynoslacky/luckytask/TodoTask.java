@@ -1,7 +1,7 @@
 package luckynoslacky.luckytask;
 
-import java.util.List;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * Represents a task without any date or time information.
@@ -23,8 +23,8 @@ public class TodoTask extends Task {
      * @return ToDo fields in CSV column order
      */
     @Override
-    public List<String> getCSVStorageFields() {
-        return createCSVStorageFields('T', null, null);
+    public List<String> getCsvStorageFields() {
+        return createCsvStorageFields('T', null, null);
     }
 
     /**

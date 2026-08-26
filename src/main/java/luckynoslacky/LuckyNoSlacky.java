@@ -5,26 +5,25 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 
-import luckynoslacky.luckyparser.DateTimeParser;
-import luckynoslacky.luckyparser.LuckyNoParser;
-import luckynoslacky.luckystorage.CSVSaver;
-import luckynoslacky.luckytask.TaskMaster;
-import luckynoslacky.luckyui.LuckyNoCLI;
 import luckynoslacky.luckycommand.LuckyNoCommand;
 import luckynoslacky.luckyexception.LuckyNoInputException;
 import luckynoslacky.luckyexception.LuckyNoStorageException;
+import luckynoslacky.luckyparser.DateTimeParser;
+import luckynoslacky.luckyparser.LuckyNoParser;
+import luckynoslacky.luckystorage.CsvSaver;
+import luckynoslacky.luckytask.TaskMaster;
+import luckynoslacky.luckyui.LuckyNoCli;
 
 /**
  * Starts the LuckyNoSlacky chatbot.
  */
-
 public class LuckyNoSlacky {
     private static final String FIXED_NOW_PROPERTY =
             "luckynoslacky.fixedNow";
 
-    private final LuckyNoCLI cliLucky;
-    private final TaskMaster tmLucky;
-    private final LuckyNoParser parserLucky;
+    private final LuckyNoCli commandLineInterface;
+    private final TaskMaster taskMaster;
+    private final LuckyNoParser parser;
     private final boolean loadError;
 
     /** Creates the chatbot using the system clock. */
@@ -38,20 +37,20 @@ public class LuckyNoSlacky {
      * @param dateTimeParser parser used to interpret date and time input
      */
     LuckyNoSlacky(DateTimeParser dateTimeParser) {
-        cliLucky = new LuckyNoCLI();
+        commandLineInterface = new LuckyNoCli();
 
-        CSVSaver csvSaver = new CSVSaver();
-        tmLucky = new TaskMaster(csvSaver);
+        CsvSaver csvSaver = new CsvSaver();
+        taskMaster = new TaskMaster(csvSaver);
 
         boolean failedToLoad = false;
         try {
-            tmLucky.loadTasksFromCSVStorageRecord(csvSaver.load());
+            taskMaster.loadTasksFromCsvStorageRecord(csvSaver.load());
         } catch (LuckyNoStorageException exception) {
             failedToLoad = true;
         }
         loadError = failedToLoad;
 
-        parserLucky = new LuckyNoParser(dateTimeParser, tmLucky);
+        parser = new LuckyNoParser(dateTimeParser, taskMaster);
     }
 
     /**
@@ -60,18 +59,18 @@ public class LuckyNoSlacky {
      * @return true if the user explicitly requested to exit
      */
     private boolean chatLoop() {
-        while (cliLucky.hasNextLine()) {
-            String userInput = cliLucky.readCommand();
+        while (commandLineInterface.hasNextLine()) {
+            String userInput = commandLineInterface.readCommand();
             try {
-                LuckyNoCommand command = parserLucky.parseCommand(userInput);
-                cliLucky.showReply(command.execute());
+                LuckyNoCommand command = parser.parseCommand(userInput);
+                commandLineInterface.showReply(command.execute());
                 if (command.requestsExit()) {
                     return true;
                 }
             } catch (LuckyNoInputException exception) {
-                cliLucky.showReply(exception.getMessage());
+                commandLineInterface.showReply(exception.getMessage());
             } catch (LuckyNoStorageException exception) {
-                cliLucky.showSavingError();
+                commandLineInterface.showSavingError();
             }
         }
         return false;
@@ -84,15 +83,15 @@ public class LuckyNoSlacky {
      */
     public static void main(String[] args) {
         LuckyNoSlacky lucky = new LuckyNoSlacky(createDateTimeParser());
-        lucky.cliLucky.showGreeting();
+        lucky.commandLineInterface.showGreeting();
 
         if (lucky.loadError) {
-            lucky.cliLucky.showLoadingError();
+            lucky.commandLineInterface.showLoadingError();
             return;
         }
 
         if (!lucky.chatLoop()) {
-            lucky.cliLucky.showGoodbye();
+            lucky.commandLineInterface.showGoodbye();
         }
     }
 

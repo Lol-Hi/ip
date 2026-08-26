@@ -15,14 +15,14 @@ class TodoTaskTest {
 
     /** Verifies the initial status and storage/display form of a ToDo. */
     @Test
-    void TodoTask_newTask_isNotDone() {
+    void todoTask_newTask_isNotDone() {
         TodoTask task = new TodoTask("read book");
 
         assertFalse(task.isDone());
         assertEquals(" ", task.getStatusIcon());
         assertEquals("[T][ ] read book", task.toString());
         assertEquals(List.of("T", "0", "read book", "", ""),
-                task.getCSVStorageFields());
+                task.getCsvStorageFields());
     }
 
     /** Verifies that marking an incomplete ToDo sets it to done. */

@@ -1,9 +1,9 @@
 package luckynoslacky.luckytask;
 
-import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 
 import luckynoslacky.luckyparser.DateTimeParser;
@@ -68,7 +68,7 @@ public abstract class Task {
      *
      * @return task fields in CSV column order
      */
-    public abstract List<String> getCSVStorageFields();
+    public abstract List<String> getCsvStorageFields();
 
     /**
      * Checks whether this task occurs on a date.
@@ -86,7 +86,7 @@ public abstract class Task {
      * @param finishTime task finish time, or an empty string when not applicable
      * @return fields in CSV column order
      */
-    protected final List<String> createCSVStorageFields(
+    protected final List<String> createCsvStorageFields(
             char taskType,
             LocalDateTime startTime,
             LocalDateTime finishTime) {

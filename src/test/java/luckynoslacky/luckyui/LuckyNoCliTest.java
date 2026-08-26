@@ -15,9 +15,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests command-line input and output handled by LuckyNoCLI.
+ * Tests command-line input and output handled by LuckyNoCli.
  */
-class LuckyNoCLITest {
+class LuckyNoCliTest {
     private static final String DIVIDER =
             "  ____________________________________________________________\n";
 
@@ -45,7 +45,7 @@ class LuckyNoCLITest {
     /** Verifies that commands are read until standard input is exhausted. */
     @Test
     void readCommand_inputLinesUntilExhausted_returnsEachCommand() {
-        LuckyNoCLI cli = createCliWithInput("todo read book\nbye\n");
+        LuckyNoCli cli = createCliWithInput("todo read book\nbye\n");
 
         assertTrue(cli.hasNextLine());
         assertEquals("todo read book", cli.readCommand());
@@ -57,7 +57,7 @@ class LuckyNoCLITest {
     /** Verifies standard divider and indentation formatting for replies. */
     @Test
     void showReply_userOutput_usesDividerAndIndentation() {
-        LuckyNoCLI cli = createCliWithInput("");
+        LuckyNoCli cli = createCliWithInput("");
 
         cli.showReply("first line\nsecond line");
 
@@ -69,7 +69,7 @@ class LuckyNoCLITest {
     /** Verifies that the banner and greeting are displayed together. */
     @Test
     void showGreeting_noInput_displaysBannerAndGreeting() {
-        LuckyNoCLI cli = createCliWithInput("");
+        LuckyNoCli cli = createCliWithInput("");
 
         cli.showGreeting();
 
@@ -82,7 +82,7 @@ class LuckyNoCLITest {
     /** Verifies goodbye, loading, and saving messages use reply formatting. */
     @Test
     void showGoodbyeAndStorageErrors_configuredMessages_displaysReplies() {
-        LuckyNoCLI cli = createCliWithInput("");
+        LuckyNoCli cli = createCliWithInput("");
 
         cli.showGoodbye();
         cli.showLoadingError();
@@ -98,7 +98,7 @@ class LuckyNoCLITest {
     /** Verifies that echoed input uses standard reply formatting. */
     @Test
     void echo_input_usesStandardReplyFormatting() {
-        LuckyNoCLI cli = createCliWithInput("");
+        LuckyNoCli cli = createCliWithInput("");
 
         cli.echo("hello LuckyNoSlacky");
 
@@ -108,10 +108,10 @@ class LuckyNoCLITest {
     }
 
     /** Creates a CLI connected to the supplied in-memory input. */
-    private LuckyNoCLI createCliWithInput(String input) {
+    private LuckyNoCli createCliWithInput(String input) {
         System.setIn(new ByteArrayInputStream(
                 input.getBytes(StandardCharsets.UTF_8)));
-        return new LuckyNoCLI();
+        return new LuckyNoCli();
     }
 
     /** Builds the exact formatted output expected from the CLI. */

@@ -1,8 +1,8 @@
 package luckynoslacky.luckytask;
 
-import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Represents a task that must be completed by a specified time.
@@ -32,8 +32,8 @@ public class DeadlineTask extends Task {
      * @return deadline fields in CSV column order
      */
     @Override
-    public List<String> getCSVStorageFields() {
-        return createCSVStorageFields('D', null, byTime);
+    public List<String> getCsvStorageFields() {
+        return createCsvStorageFields('D', null, byTime);
     }
 
     /**

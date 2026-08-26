@@ -1,12 +1,21 @@
 package luckynoslacky.luckyparser;
 
+import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.Optional;
-import java.time.LocalDateTime;
 
-import luckynoslacky.luckycommand.*;
+import luckynoslacky.luckycommand.LuckyNoByeCommand;
+import luckynoslacky.luckycommand.LuckyNoCommand;
+import luckynoslacky.luckycommand.LuckyNoDeleteCommand;
+import luckynoslacky.luckycommand.LuckyNoFindCommand;
+import luckynoslacky.luckycommand.LuckyNoListCommand;
+import luckynoslacky.luckycommand.LuckyNoMarkCommand;
+import luckynoslacky.luckycommand.LuckyNoTaskCommand;
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckytask.*;
+import luckynoslacky.luckytask.DeadlineTask;
+import luckynoslacky.luckytask.EventTask;
+import luckynoslacky.luckytask.TaskMaster;
+import luckynoslacky.luckytask.TodoTask;
 import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
@@ -16,7 +25,7 @@ public class LuckyNoParser {
     private final DateTimeParser dateTimeParser;
     private final TaskMaster taskMaster;
 
-    /** Creates a scanner using the current system clock. */
+    /** Creates a parser using the current system clock and a default task master. */
     public LuckyNoParser() {
         this(new DateTimeParser(), new TaskMaster());
     }
@@ -164,32 +173,32 @@ public class LuckyNoParser {
                         LuckyNoMessages.unknownCommandMessage()));
 
         switch (commandName) {
-        case BYE:
-            checkNoArguments(arguments, CommandName.BYE.getInputName());
-            return new LuckyNoByeCommand();
-        case LIST:
-            checkNoArguments(arguments, CommandName.LIST.getInputName());
-            return new LuckyNoListCommand(commandTaskMaster);
-        case TODO:
-            return new LuckyNoTaskCommand(parseTodo(arguments), commandTaskMaster);
-        case DEADLINE:
-            return new LuckyNoTaskCommand(
-                    parseDeadline(arguments), commandTaskMaster);
-        case EVENT:
-            return new LuckyNoTaskCommand(parseEvent(arguments), commandTaskMaster);
-        case MARK:
-            return new LuckyNoMarkCommand(
-                    parseTaskNumber(arguments, taskCount), true, commandTaskMaster);
-        case UNMARK:
-            return new LuckyNoMarkCommand(
-                    parseTaskNumber(arguments, taskCount), false, commandTaskMaster);
-        case DELETE:
-            return new LuckyNoDeleteCommand(
-                    parseTaskNumber(arguments, taskCount), commandTaskMaster);
-        case FIND:
-            return parseFind(arguments, commandTaskMaster);
-        default:
-            throw new IllegalStateException("Unhandled command name.");
+            case BYE:
+                checkNoArguments(arguments, CommandName.BYE.getInputName());
+                return new LuckyNoByeCommand();
+            case LIST:
+                checkNoArguments(arguments, CommandName.LIST.getInputName());
+                return new LuckyNoListCommand(commandTaskMaster);
+            case TODO:
+                return new LuckyNoTaskCommand(parseTodo(arguments), commandTaskMaster);
+            case DEADLINE:
+                return new LuckyNoTaskCommand(
+                        parseDeadline(arguments), commandTaskMaster);
+            case EVENT:
+                return new LuckyNoTaskCommand(parseEvent(arguments), commandTaskMaster);
+            case MARK:
+                return new LuckyNoMarkCommand(
+                        parseTaskNumber(arguments, taskCount), true, commandTaskMaster);
+            case UNMARK:
+                return new LuckyNoMarkCommand(
+                        parseTaskNumber(arguments, taskCount), false, commandTaskMaster);
+            case DELETE:
+                return new LuckyNoDeleteCommand(
+                        parseTaskNumber(arguments, taskCount), commandTaskMaster);
+            case FIND:
+                return parseFind(arguments, commandTaskMaster);
+            default:
+                throw new IllegalStateException("Unhandled command name.");
         }
     }
 

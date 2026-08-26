@@ -273,7 +273,7 @@ class DateTimeParserTest {
 
     /** Verifies null parser dependencies are rejected. */
     @Test
-    void DateTimeParser_nullClockOrReference_throwsIllegalArgumentException() {
+    void dateTimeParser_nullClockOrReference_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class,
                 () -> new DateTimeParser(null));
         assertThrows(IllegalArgumentException.class,

@@ -16,10 +16,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import luckynoslacky.luckycommand.*;
+import luckynoslacky.luckycommand.LuckyNoCommand;
+import luckynoslacky.luckycommand.LuckyNoDeleteCommand;
+import luckynoslacky.luckycommand.LuckyNoFindCommand;
+import luckynoslacky.luckycommand.LuckyNoMarkCommand;
+import luckynoslacky.luckycommand.LuckyNoTaskCommand;
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckystorage.CSVSaver;
-import luckynoslacky.luckytask.*;
+import luckynoslacky.luckystorage.CsvSaver;
+import luckynoslacky.luckytask.DeadlineTask;
+import luckynoslacky.luckytask.EventTask;
+import luckynoslacky.luckytask.TaskMaster;
+import luckynoslacky.luckytask.TodoTask;
 import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
@@ -41,7 +48,7 @@ class LuckyNoParserTest {
         parser = new DateTimeParser(TEST_CLOCK);
         taskMaster = new TaskMaster(
                 100,
-                new CSVSaver(tempDir.resolve("tasks.csv")));
+                new CsvSaver(tempDir.resolve("tasks.csv")));
         scanner = new LuckyNoParser(parser, taskMaster);
     }
 
@@ -185,7 +192,9 @@ class LuckyNoParserTest {
     @Test
     void parseCommand_emptyOrUnknownInput_throwsInputException() {
         assertInputError("Eh you mute issit?? Just say what you want lah!", "   ", 0);
-        assertInputError("What talking you? I only understand todo, deadline, event, list, mark, unmark, delete, find, or bye, ok?",
+        assertInputError(
+                "What talking you? I only understand todo, deadline, event, list, mark, "
+                        + "unmark, delete, find, or bye, ok?",
                 "dance", 0);
     }
 
