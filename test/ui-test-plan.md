@@ -5,6 +5,8 @@
 - Program: Java 25 with the compiled application classes and CSV runtime dependencies
 - Working directory: project root
 - Data isolation: reset `data/luckyNoSlacky.csv` before each test case
+- Deterministic clock: run with
+  `-Dluckynoslacky.fixedNow=2026-08-25T10:00:00Z` so relative dates are stable
 - Storage failure cases are covered by unit tests using prepared data files
 - Compact `HHMM` fallback and date-dependent resolution are covered by
   `DateTimeParserTest` with a fixed clock
