@@ -48,6 +48,10 @@ jar {
 
 shadowJar {
     archiveFileName = 'luckyNoSlacky.jar'
+
+    manifest {
+        attributes 'Main-Class': application.mainClass.get()
+    }
 }
 
 run {
