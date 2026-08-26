@@ -12,7 +12,7 @@ public class TaskMaster {
 
     private final ArrayList<Task> taskRoster;
     private final int maxTasks;
-    private final CSVSaver saver;
+    private final CSVSaver savedLucky;
 
     /**
      * Creates a task master with the default capacity of 100 tasks.
@@ -55,7 +55,7 @@ public class TaskMaster {
         }
 
         this.maxTasks = maxTasks;
-        this.saver = saver;
+        this.savedLucky = saver;
         taskRoster = new ArrayList<>();
     }
 
@@ -231,7 +231,7 @@ public class TaskMaster {
     }
 
     private void saveChanges() {
-        saver.save(this);
+        savedLucky.save(this);
     }
 
     /**

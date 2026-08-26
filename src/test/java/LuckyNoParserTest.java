@@ -17,7 +17,7 @@ import org.junit.jupiter.api.io.TempDir;
 /**
  * Tests parsing and validation of user input.
  */
-class LuckyNoScannerTest {
+class LuckyNoParserTest {
     private static final Clock TEST_CLOCK = Clock.fixed(
             Instant.parse("2026-08-25T10:00:00Z"), ZoneId.of("UTC"));
     @TempDir
@@ -25,7 +25,7 @@ class LuckyNoScannerTest {
 
     private DateTimeParser parser;
     private TaskMaster taskMaster;
-    private LuckyNoScanner scanner;
+    private LuckyNoParser scanner;
 
     @BeforeEach
     void setUp() {
@@ -33,7 +33,7 @@ class LuckyNoScannerTest {
         taskMaster = new TaskMaster(
                 100,
                 new CSVSaver(tempDir.resolve("tasks.csv")));
-        scanner = new LuckyNoScanner(parser, taskMaster);
+        scanner = new LuckyNoParser(parser, taskMaster);
     }
 
     @Test
@@ -132,9 +132,9 @@ class LuckyNoScannerTest {
 
     @Test
     void commandNameLookupReturnsKnownCommandOrEmptyOptional() {
-        assertEquals(LuckyNoScanner.CommandName.DELETE,
-                LuckyNoScanner.CommandName.fromInput("DeLeTe").orElseThrow());
-        assertTrue(LuckyNoScanner.CommandName.fromInput("dance").isEmpty());
+        assertEquals(LuckyNoParser.CommandName.DELETE,
+                LuckyNoParser.CommandName.fromInput("DeLeTe").orElseThrow());
+        assertTrue(LuckyNoParser.CommandName.fromInput("dance").isEmpty());
     }
 
     @Test

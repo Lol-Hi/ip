@@ -5,24 +5,24 @@ import java.time.LocalDateTime;
 /**
  * Parses user input into commands and reports invalid input consistently.
  */
-public class LuckyNoScanner {
+public class LuckyNoParser {
     private final DateTimeParser dateTimeParser;
     private final TaskMaster taskMaster;
 
     /** Creates a scanner using the current system clock. */
-    public LuckyNoScanner() {
+    public LuckyNoParser() {
         this(new DateTimeParser(), new TaskMaster());
     }
 
-    LuckyNoScanner(DateTimeParser dateTimeParser) {
+    LuckyNoParser(DateTimeParser dateTimeParser) {
         this(dateTimeParser, new TaskMaster());
     }
 
-    LuckyNoScanner(TaskMaster taskMaster) {
+    LuckyNoParser(TaskMaster taskMaster) {
         this(new DateTimeParser(), taskMaster);
     }
 
-    LuckyNoScanner(DateTimeParser dateTimeParser, TaskMaster taskMaster) {
+    LuckyNoParser(DateTimeParser dateTimeParser, TaskMaster taskMaster) {
         if (dateTimeParser == null) {
             throw new IllegalArgumentException("Date-time parser cannot be null.");
         }

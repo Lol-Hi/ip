@@ -25,7 +25,7 @@ public final class LuckyNoMessages {
      * @return formatted error message
      */
     public static String invalidFormatMessage(
-            LuckyNoScanner.CommandName commandName) {
+            LuckyNoParser.CommandName commandName) {
         if (commandName == null) {
             throw new IllegalArgumentException("Command name cannot be null.");
         }

@@ -1,19 +1,15 @@
-import java.util.Scanner;
-
 /**
  * Starts the LuckyNoSlacky chatbot.
  */
 
 public class LuckyNoSlacky {
-    private static final String DIVIDER = "  ____________________________________________________________\n";
-
-    private final Scanner userScanner;
+    private final LuckyNoCLI cliLucky;
     private final TaskMaster tmLucky;
-    private final LuckyNoScanner luckyNoScanner;
+    private final LuckyNoParser parserLucky;
     private final boolean loadError;
 
     LuckyNoSlacky() {
-        userScanner = new Scanner(System.in);
+        cliLucky = new LuckyNoCLI();
 
         CSVSaver csvSaver = new CSVSaver();
         tmLucky = new TaskMaster(csvSaver);
@@ -26,45 +22,22 @@ public class LuckyNoSlacky {
         }
         loadError = failedToLoad;
 
-        luckyNoScanner = new LuckyNoScanner(tmLucky);
-    }
-
-    private static void printReply(String output) {
-        String indentedOutput = output.replace("\n", "\n  ");
-        System.out.print(DIVIDER + "  " + indentedOutput + "\n" + DIVIDER);
-    }
-
-    /**
-     * Echoes a piece of user input as a chatbot reply.
-     *
-     * @param input user input to echo
-     */
-    private static void echo(String input) {
-        printReply(input);
-    }
-
-    private void greet() {
-        System.out.print(DIVIDER + LuckyNoMessages.banner() + "\n");
-        printReply(LuckyNoMessages.greeting());
-    }
-
-    private void exit() {
-        printReply(LuckyNoMessages.goodbye());
+        parserLucky = new LuckyNoParser(tmLucky);
     }
 
     private boolean chatLoop() {
-        while (userScanner.hasNextLine()) {
-            String userInput = userScanner.nextLine();
+        while (cliLucky.hasNextLine()) {
+            String userInput = cliLucky.readCommand();
             try {
-                LuckyNoCommand command = luckyNoScanner.parseCommand(userInput);
-                printReply(command.execute());
+                LuckyNoCommand command = parserLucky.parseCommand(userInput);
+                cliLucky.showReply(command.execute());
                 if (command.requestsExit()) {
                     return true;
                 }
             } catch (LuckyNoInputException exception) {
-                printReply(exception.getMessage());
+                cliLucky.showReply(exception.getMessage());
             } catch (LuckyNoStorageException exception) {
-                printReply(LuckyNoMessages.saveErrorMessage());
+                cliLucky.showSavingError();
             }
         }
         return false;
@@ -72,15 +45,15 @@ public class LuckyNoSlacky {
 
     public static void main(String[] args) {
         LuckyNoSlacky lucky = new LuckyNoSlacky();
-        lucky.greet();
+        lucky.cliLucky.showGreeting();
 
         if (lucky.loadError) {
-            printReply(LuckyNoMessages.loadErrorMessage());
+            lucky.cliLucky.showLoadingError();
             return;
         }
 
         if (!lucky.chatLoop()) {
-            lucky.exit();
+            lucky.cliLucky.showGoodbye();
         }
     }
 }
