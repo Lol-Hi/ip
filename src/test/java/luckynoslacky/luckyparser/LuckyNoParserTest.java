@@ -155,15 +155,30 @@ class LuckyNoParserTest {
 
     /** Verifies that text before the find tag is ignored. */
     @Test
-    void parseCommand_findWithIgnoredText_returnsFindCommand()
+    void parseCommand_findWithDescriptionAndDate_returnsMatchingTasks()
             throws LuckyNoInputException {
         taskMaster.addTask(new DeadlineTask(
                 "return book", LocalDateTime.of(2026, 9, 2, 23, 59)));
         LuckyNoFindCommand command = assertInstanceOf(LuckyNoFindCommand.class,
-                scanner.parseCommand("find anything /on next Wednesday", 0));
+                scanner.parseCommand("find book /on next Wednesday", 0));
 
         assertEquals(
-                taskMaster.searchTasks(LocalDateTime.of(2026, 9, 2, 0, 0)),
+                taskMaster.searchTasks(
+                        "book", LocalDateTime.of(2026, 9, 2, 0, 0)),
+                command.execute());
+    }
+
+    @Test
+    void parseCommand_findWithDescriptionOnly_returnsMatchingTasks()
+            throws LuckyNoInputException {
+        taskMaster.addTask(new TodoTask("read book"));
+        taskMaster.addTask(new TodoTask("buy bread"));
+
+        LuckyNoFindCommand command = assertInstanceOf(LuckyNoFindCommand.class,
+                scanner.parseCommand("find book", 0));
+
+        assertEquals(
+                taskMaster.searchTasks("book"),
                 command.execute());
     }
 
@@ -206,7 +221,7 @@ class LuckyNoParserTest {
                         + "Lai lai let me teach you: deadline <description> /by <date/time>.",
                 "deadline return book", 0);
         assertInputError("Eh HELLO you know how to type command one anot? \n"
-                        + "Lai lai let me teach you: event <description> /from <start> /to <end>.",
+                        + "Lai lai let me teach you: event <description> /from <start date/time> /to <end date/time>.",
                 "event meeting /from 2pm", 0);
     }
 
@@ -217,7 +232,7 @@ class LuckyNoParserTest {
                         + "Lai lai let me teach you: deadline <description> /by <date/time>.",
                 "deadline return book /by", 0);
         assertInputError("Eh HELLO you know how to type command one anot? \n"
-                        + "Lai lai let me teach you: event <description> /from <start> /to <end>.",
+                        + "Lai lai let me teach you: event <description> /from <start date/time> /to <end date/time>.",
                 "event meeting /from Mon 2pm /to", 0);
     }
 
@@ -227,7 +242,7 @@ class LuckyNoParserTest {
         String deadlineFormat = "Eh HELLO you know how to type command one anot? \n"
                 + "Lai lai let me teach you: deadline <description> /by <date/time>.";
         String eventFormat = "Eh HELLO you know how to type command one anot? \n"
-                + "Lai lai let me teach you: event <description> /from <start> /to <end>.";
+                + "Lai lai let me teach you: event <description> /from <start date/time> /to <end date/time>.";
 
         assertInputError(deadlineFormat, "deadline /by 2pm", 0);
         assertInputError(eventFormat, "event /from 1pm /to 2pm", 0);
@@ -238,10 +253,10 @@ class LuckyNoParserTest {
     @Test
     void parseCommand_malformedFindInput_throwsInputException() {
         assertInputError("Eh HELLO you know how to type command one anot? \n"
-                        + "Lai lai let me teach you: find /on <date>",
-                "find next Wednesday", 0);
+                        + "Lai lai let me teach you: find [<description>] [/on <date>]",
+                "find", 0);
         assertInputError("Eh HELLO you know how to type command one anot? \n"
-                        + "Lai lai let me teach you: find /on <date>",
+                        + "Lai lai let me teach you: find [<description>] [/on <date>]",
                 "find /on", 0);
         assertInputError(LuckyNoMessages.invalidDateTimeMessage(),
                 "find ignored /on definitely-not-a-date", 0);
@@ -251,6 +266,12 @@ class LuckyNoParserTest {
                 "find /on 2026-13-01", 0);
         assertInputError(LuckyNoMessages.invalidDateTimeMessage(),
                 "find /on 25:99", 0);
+        assertInputError("Eh HELLO you know how to type command one anot? \n"
+                        + "Lai lai let me teach you: find [<description>] [/on <date>]",
+                "find book /on", 0);
+        assertInputError("Eh HELLO you know how to type command one anot? \n"
+                        + "Lai lai let me teach you: find [<description>] [/on <date>]",
+                "find book /on tomorrow /on Friday", 0);
     }
 
     /** Verifies relative date phrases use the injected fixed date. */

@@ -5,34 +5,54 @@ import java.time.LocalDateTime;
 import luckynoslacky.luckytask.TaskMaster;
 
 /**
- * Represents a command that searches tasks occurring on a date.
+ * Represents a command that searches tasks by description, date, or both.
  */
 public class LuckyNoFindCommand extends LuckyNoCommand {
-    private final LocalDateTime searchDateTime;
+    private final String descriptionQuery;
+    private final LocalDateTime dateTimeQuery;
     private final TaskMaster taskMaster;
 
     /**
-     * Creates a find command.
+     * Creates a date-only find command.
      *
-     * @param searchDateTime date and time from the search query
+     * @param dateTimeQuery date and time from the search query
      */
-    public LuckyNoFindCommand(LocalDateTime searchDateTime) {
-        this(searchDateTime, null);
+    public LuckyNoFindCommand(LocalDateTime dateTimeQuery) {
+        this(null, dateTimeQuery, null);
     }
 
     /**
-     * Creates a find command bound to a task master.
+     * Creates a date-only find command with a task master.
      *
-     * @param searchDateTime date and time to search
-     * @param taskMaster task master containing the tasks to search
+     * @param dateTimeQuery date and time from the search query
+     * @param taskMaster task master to search
      */
-    public LuckyNoFindCommand(LocalDateTime searchDateTime, TaskMaster taskMaster) {
+    public LuckyNoFindCommand(
+            LocalDateTime dateTimeQuery,
+            TaskMaster taskMaster) {
+        this(null, dateTimeQuery, taskMaster);
+    }
+
+    /**
+     * Creates a find command with optional description and date filters.
+     * At least one filter must be supplied.
+     *
+     * @param descriptionQuery optional text to search for in task descriptions
+     * @param dateTimeQuery optional date and time from the search query
+     * @param taskMaster task master to search
+     */
+    public LuckyNoFindCommand(
+            String descriptionQuery,
+            LocalDateTime dateTimeQuery,
+            TaskMaster taskMaster) {
         super(CommandType.FIND);
-        this.taskMaster = taskMaster;
-        if (searchDateTime == null) {
-            throw new IllegalArgumentException("Search date cannot be null.");
+        if ((descriptionQuery == null || descriptionQuery.isBlank())
+                && dateTimeQuery == null) {
+            throw new IllegalArgumentException("Find query cannot be empty.");
         }
-        this.searchDateTime = searchDateTime;
+        this.descriptionQuery = descriptionQuery;
+        this.dateTimeQuery = dateTimeQuery;
+        this.taskMaster = taskMaster;
     }
 
     /**
@@ -42,6 +62,6 @@ public class LuckyNoFindCommand extends LuckyNoCommand {
      */
     @Override
     public String execute() {
-        return this.taskMaster.searchTasks(searchDateTime);
+        return this.taskMaster.searchTasks(descriptionQuery, dateTimeQuery);
     }
 }

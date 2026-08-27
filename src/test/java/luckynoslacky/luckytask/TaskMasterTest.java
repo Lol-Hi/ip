@@ -43,7 +43,7 @@ class TaskMasterTest {
 
         taskMaster.addTask(new TodoTask("read book"));
 
-        assertEquals("Nah all these stuff you need to do:\n1.[T][ ] read book",
+        assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
                 taskMaster.listTasks());
     }
 
@@ -55,7 +55,7 @@ class TaskMasterTest {
         taskMaster.addTask(new TodoTask("read book"));
         taskMaster.addTask(new TodoTask("return book"));
 
-        assertEquals("Nah all these stuff you need to do:\n"
+        assertEquals("Nah, all these things you need to do:\n"
                         + "1.[T][ ] read book\n"
                         + "2.[T][ ] return book",
                 taskMaster.listTasks());
@@ -70,7 +70,7 @@ class TaskMasterTest {
         taskMaster.addTask(new DeadlineTask("return book", DEADLINE));
         taskMaster.addTask(new EventTask("project meeting", EVENT_START, EVENT_END));
 
-        assertEquals("Nah all these stuff you need to do:\n"
+        assertEquals("Nah, all these things you need to do:\n"
                         + "1.[T][ ] borrow book\n"
                         + "2.[D][ ] return book (by: Sun Dec 06 2026, 11.59pm)\n"
                         + "3.[E][ ] project meeting (from: Thu Aug 06 2026, 2.00pm"
@@ -90,7 +90,7 @@ class TaskMasterTest {
                 LocalDateTime.of(2026, 8, 25, 14, 0),
                 LocalDateTime.of(2026, 8, 27, 16, 0)));
 
-        assertEquals("Nah, all these stuff you need to do on: Aug 26 2026\n"
+        assertEquals("Nah, all these things you need to do on: Aug 26 2026\n"
                         + "2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)\n"
                         + "3.[E][ ] project meeting (from: Tue Aug 25 2026, 2.00pm"
                         + " to: Thu Aug 27 2026, 4.00pm)",
@@ -113,6 +113,38 @@ class TaskMasterTest {
 
     /** Verifies that marking a valid task persists its done status. */
     @Test
+    void searchTasks_descriptionQuery_matchesDescriptionsCaseInsensitively() {
+        TaskMaster taskMaster = createTaskMaster();
+        taskMaster.addTask(new TodoTask("read book"));
+        taskMaster.addTask(new DeadlineTask(
+                "return book", LocalDateTime.of(2026, 8, 26, 23, 59)));
+        taskMaster.addTask(new TodoTask("buy bread"));
+
+        assertEquals("Nah, all these things you need to do:\n"
+                        + "1.[T][ ] read book\n"
+                        + "2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)",
+                taskMaster.searchTasks("BOOK"));
+    }
+
+    @Test
+    void searchTasks_descriptionAndDateQueries_returnsIntersection() {
+        TaskMaster taskMaster = createTaskMaster();
+        taskMaster.addTask(new TodoTask("read book"));
+        taskMaster.addTask(new DeadlineTask(
+                "return book", LocalDateTime.of(2026, 8, 26, 23, 59)));
+        taskMaster.addTask(new EventTask(
+                "book meeting",
+                LocalDateTime.of(2026, 8, 27, 14, 0),
+                LocalDateTime.of(2026, 8, 27, 16, 0)));
+
+        assertEquals("Nah, all these things you need to do on: Aug 26 2026\n"
+                        + "2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)",
+                taskMaster.searchTasks(
+                        "book",
+                        LocalDateTime.of(2026, 8, 26, 0, 0)));
+    }
+
+    @Test
     void markTaskDone_validTask_marksTaskAsDone() {
         TaskMaster taskMaster = createTaskMaster();
 
@@ -120,7 +152,7 @@ class TaskMasterTest {
         taskMaster.addTask(new TodoTask("return book"));
         taskMaster.markTaskDone(2);
 
-        assertEquals("Nah all these stuff you need to do:\n"
+        assertEquals("Nah, all these things you need to do:\n"
                         + "1.[T][ ] read book\n"
                         + "2.[T][X] return book",
                 taskMaster.listTasks());
@@ -135,7 +167,7 @@ class TaskMasterTest {
         taskMaster.markTaskDone(1);
         taskMaster.unmarkTaskUndone(1);
 
-        assertEquals("Nah all these stuff you need to do:\n1.[T][ ] read book",
+        assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
                 taskMaster.listTasks());
     }
 
@@ -148,7 +180,7 @@ class TaskMasterTest {
         taskMaster.markTaskDone(1);
         taskMaster.markTaskDone(1);
 
-        assertEquals("Nah all these stuff you need to do:\n1.[T][X] read book",
+        assertEquals("Nah, all these things you need to do:\n1.[T][X] read book",
                 taskMaster.listTasks());
     }
 
@@ -161,7 +193,7 @@ class TaskMasterTest {
         taskMaster.unmarkTaskUndone(1);
         taskMaster.unmarkTaskUndone(1);
 
-        assertEquals("Nah all these stuff you need to do:\n1.[T][ ] read book",
+        assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
                 taskMaster.listTasks());
     }
 
@@ -175,7 +207,7 @@ class TaskMasterTest {
 
         assertEquals("[D][ ] second (by: Sun Dec 06 2026, 11.59pm)",
                 taskMaster.deleteTask(2));
-        assertEquals("Nah all these stuff you need to do:\n"
+        assertEquals("Nah, all these things you need to do:\n"
                         + "1.[T][ ] first\n"
                         + "2.[E][ ] third (from: Thu Aug 06 2026, 2.00pm"
                         + " to: Thu Aug 06 2026, 4.00pm)",
@@ -190,7 +222,7 @@ class TaskMasterTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> taskMaster.deleteTask(2));
-        assertEquals("Nah all these stuff you need to do:\n1.[T][ ] read book",
+        assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
                 taskMaster.listTasks());
     }
 
@@ -204,7 +236,7 @@ class TaskMasterTest {
         taskMaster.deleteTask(1);
         taskMaster.addTask(new TodoTask("third"));
 
-        assertEquals("Nah all these stuff you need to do:\n"
+        assertEquals("Nah, all these things you need to do:\n"
                         + "1.[T][ ] second\n"
                         + "2.[T][ ] third",
                 taskMaster.listTasks());
@@ -251,13 +283,13 @@ class TaskMasterTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> taskMaster.markTaskDone(2));
-        assertEquals("Nah all these stuff you need to do:\n1.[T][ ] read book",
+        assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
                 taskMaster.listTasks());
 
         taskMaster.markTaskDone(1);
         assertThrows(IllegalArgumentException.class,
                 () -> taskMaster.unmarkTaskUndone(2));
-        assertEquals("Nah all these stuff you need to do:\n1.[T][X] read book",
+        assertEquals("Nah, all these things you need to do:\n1.[T][X] read book",
                 taskMaster.listTasks());
     }
 
@@ -315,7 +347,7 @@ class TaskMasterTest {
         assertThrows(LuckyNoStorageException.class,
                 () -> taskMaster.deleteTask(1));
         assertEquals(1, taskMaster.getTaskCount());
-        assertEquals("Nah all these stuff you need to do:\n1.[T][ ] read book",
+        assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
                 taskMaster.listTasks());
     }
 
@@ -337,7 +369,7 @@ class TaskMasterTest {
         TaskMaster taskMaster = createTaskMaster();
 
         assertThrows(IllegalArgumentException.class,
-                () -> taskMaster.searchTasks(null));
+                () -> taskMaster.searchTasks(null, null));
     }
 
     /** Creates a task master with the default test capacity. */

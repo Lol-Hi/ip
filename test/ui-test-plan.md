@@ -114,7 +114,7 @@ bye
   Now you got 7 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[E][ ] this monday (from: Mon Aug 24 2026, 12.00am to: Mon Aug 24 2026, 11.59pm)
   2.[E][ ] this sunday (from: Sun Aug 30 2026, 2.00pm to: Sun Aug 30 2026, 3.00pm)
   3.[E][ ] next wednesday (from: Wed Sep 02 2026, 2.00pm to: Wed Sep 02 2026, 3.00pm)
@@ -130,9 +130,10 @@ bye
 
 ## Test Case: Find tasks by date
 
-- Aim: Verify that `find /on <date>` returns deadlines and events on the
+- Aim: Verify that `find [<description>] [/on <date>]` returns deadlines and events on the
   queried date, excludes ToDos, preserves original task numbers, and reports
-  when no tasks match. Text before `/on` is ignored.
+  when no tasks match. Also verify that text before `/on` filters by
+  description.
 
 ### Input
 
@@ -140,8 +141,10 @@ bye
 todo read book
 deadline return book /by 26 Aug 2026 11:59pm
 event project meeting /from 25 Aug 2026 2pm /to 27 Aug 2026 4pm
-find anything /on 26 Aug 2026
+find /on 26 Aug 2026
+find book /on 26 Aug 2026
 find /on 28 Aug 2026
+find book
 bye
 ```
 
@@ -176,12 +179,21 @@ bye
   Now you got 3 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
-  Nah, all these stuff you need to do on: Aug 26 2026
+  Nah, all these things you need to do on: Aug 26 2026
   2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)
   3.[E][ ] project meeting (from: Tue Aug 25 2026, 2.00pm to: Thu Aug 27 2026, 4.00pm)
   ____________________________________________________________
   ____________________________________________________________
+  Nah, all these things you need to do on: Aug 26 2026
+  2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)
+  ____________________________________________________________
+  ____________________________________________________________
   Wah, you very free hor, got nothing to do sia!
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these things you need to do:
+  1.[T][ ] read book
+  2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -190,13 +202,13 @@ bye
 
 ## Test Case: Invalid find commands
 
-- Aim: Verify that a missing `/on` tag or missing search date produces a
-  validation error without terminating the chatbot.
+- Aim: Verify that a missing find query or search date, and invalid date text,
+  produce validation errors without terminating the chatbot.
 
 ### Input
 
 ```text
-find 2030-10-15
+find
 find /on
 find /on 32 Aug 2026
 find /on definitely-not-a-date
@@ -220,11 +232,11 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: find /on <date>
+  Lai lai let me teach you: find [<description>] [/on <date>]
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: find /on <date>
+  Lai lai let me teach you: find [<description>] [/on <date>]
   ____________________________________________________________
   ____________________________________________________________
   Eh mr smart alec you tell me your calendar and clock got tell you time like this one meh?
@@ -280,16 +292,16 @@ bye
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
-  Nah, all these stuff you need to do on: Aug 25 2026
+  Nah, all these things you need to do on: Aug 25 2026
   1.[D][ ] today task (by: Tue Aug 25 2026, 11.59pm)
   2.[E][ ] yesterday event (from: Mon Aug 24 2026, 12.00am to: Wed Aug 26 2026, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
-  Nah, all these stuff you need to do on: Aug 26 2026
+  Nah, all these things you need to do on: Aug 26 2026
   2.[E][ ] yesterday event (from: Mon Aug 24 2026, 12.00am to: Wed Aug 26 2026, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
-  Nah, all these stuff you need to do on: Aug 24 2026
+  Nah, all these things you need to do on: Aug 24 2026
   2.[E][ ] yesterday event (from: Mon Aug 24 2026, 12.00am to: Wed Aug 26 2026, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
@@ -359,7 +371,7 @@ bye
   Eh which task you talking about har? Can say clearly anot.
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] read book
   ____________________________________________________________
   ____________________________________________________________
@@ -382,7 +394,7 @@ bye
   Eh which task you talking about har? Can say clearly anot.
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][X] read book
   ____________________________________________________________
   ____________________________________________________________
@@ -390,7 +402,7 @@ bye
     [T][ ] read book
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] read book
   ____________________________________________________________
   ____________________________________________________________
@@ -446,7 +458,7 @@ BYE
   Why you so losor! Leave the list command to do its own thing lah
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] read book
   ____________________________________________________________
   ____________________________________________________________
@@ -459,7 +471,7 @@ BYE
   Lai lai let me teach you: deadline <description> /by <date/time>.
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] read book
   2.[D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
   ____________________________________________________________
@@ -470,10 +482,10 @@ BYE
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: event <description> /from <start> /to <end>.
+  Lai lai let me teach you: event <description> /from <start date/time> /to <end date/time>.
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] read book
   2.[D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
   3.[E][ ] meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
@@ -531,7 +543,7 @@ bye
   Now you got 3 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] borrow book
   2.[D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
   3.[E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
@@ -584,7 +596,7 @@ bye
     [T][ ] read book
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] read book
   ____________________________________________________________
   ____________________________________________________________
@@ -632,7 +644,7 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: event <description> /from <start> /to <end>.
+  Lai lai let me teach you: event <description> /from <start date/time> /to <end date/time>.
   ____________________________________________________________
   ____________________________________________________________
   You siao ah how to spin this task from thin air?
@@ -701,7 +713,7 @@ bye
     [T][ ] read book
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] read book
   ____________________________________________________________
   ____________________________________________________________
@@ -752,7 +764,7 @@ bye
   You don't tell me what to do how I know what to do???
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] read book
   ____________________________________________________________
   ____________________________________________________________
@@ -765,7 +777,7 @@ bye
   Lai lai let me teach you: deadline <description> /by <date/time>.
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] read book
   2.[D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
   ____________________________________________________________
@@ -776,10 +788,10 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: event <description> /from <start> /to <end>.
+  Lai lai let me teach you: event <description> /from <start date/time> /to <end date/time>.
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] read book
   2.[D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
   3.[E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
@@ -825,7 +837,7 @@ bye
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] /by /from /to !@#
   ____________________________________________________________
   ____________________________________________________________
@@ -839,7 +851,7 @@ bye
   Now you got 3 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] /by /from /to !@#
   2.[D][ ] do homework (by: Sun Dec 08 2030, 9.00am)
   3.[E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
@@ -909,7 +921,7 @@ bye
   You siao ah how to spin this task from thin air?
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] first task
   2.[T][X] second task
   3.[T][ ] third task
@@ -920,7 +932,7 @@ bye
   But you still got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] first task
   2.[T][ ] third task
   ____________________________________________________________
@@ -928,7 +940,7 @@ bye
   Eh which task you talking about har? Can say clearly anot.
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] first task
   2.[T][ ] third task
   ____________________________________________________________
@@ -936,7 +948,7 @@ bye
   Eh which task you talking about har? Can say clearly anot.
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] first task
   2.[T][ ] third task
   ____________________________________________________________
@@ -988,7 +1000,7 @@ bye
   You siao ah how to spin this task from thin air?
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] read book
   ____________________________________________________________
   ____________________________________________________________
@@ -999,7 +1011,7 @@ bye
   You siao ah how to spin this task from thin air?
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][X] read book
   ____________________________________________________________
   ____________________________________________________________
@@ -1010,7 +1022,7 @@ bye
   Eh which task you talking about har? Can say clearly anot.
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] read book
   ____________________________________________________________
   ____________________________________________________________
@@ -1117,7 +1129,7 @@ bye
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[E][ ] past meeting (from: Mon Aug 25 2025, 12.00am to: Tue Aug 26 2025, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
@@ -1164,7 +1176,7 @@ bye
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[E][ ] afternoon meeting (from: Tue Aug 25 2026, 2.00pm to: Tue Aug 25 2026, 4.00pm)
   2.[E][ ] overnight meeting (from: Tue Aug 25 2026, 11.00pm to: Wed Aug 26 2026, 1.00am)
   ____________________________________________________________

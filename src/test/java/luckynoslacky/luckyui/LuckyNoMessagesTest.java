@@ -23,12 +23,12 @@ class LuckyNoMessagesTest {
         assertEquals(
                 "Eh HELLO you know how to type command one anot? \n"
                         + "Lai lai let me teach you: event "
-                        + "<description> /from <start> /to <end>.",
+                        + "<description> /from <start date/time> /to <end date/time>.",
                 LuckyNoMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.EVENT));
         assertEquals(
                 "Eh HELLO you know how to type command one anot? \n"
-                        + "Lai lai let me teach you: find /on <date>",
+                        + "Lai lai let me teach you: find [<description>] [/on <date>]",
                 LuckyNoMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.FIND));
     }
