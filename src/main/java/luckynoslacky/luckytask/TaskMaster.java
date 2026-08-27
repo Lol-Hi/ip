@@ -115,27 +115,65 @@ public class TaskMaster {
     }
 
     /**
-     * Lists deadlines and events occurring on the queried date.
+     * Searches tasks by description.
      *
-     * @param searchDateTime date and time from the find command
+     * @param descriptionQuery text to search for in task descriptions
      * @return formatted matching task list
      */
-    public String searchTasks(LocalDateTime searchDateTime) {
-        if (searchDateTime == null) {
-            throw new IllegalArgumentException("Search date cannot be null.");
+    public String searchTasks(String descriptionQuery) {
+        return searchTasks(descriptionQuery, null);
+    }
+
+    /**
+     * Lists deadlines and events occurring on the queried date.
+     *
+     * @param dateTimeQuery date and time from the find command
+     * @return formatted matching task list
+     */
+    public String searchTasks(LocalDateTime dateTimeQuery) {
+        return searchTasks(null, dateTimeQuery);
+    }
+
+    /**
+     * Searches tasks using the supplied optional description and date filters.
+     * When both filters are present, a task must satisfy both filters.
+     *
+     * @param descriptionQuery optional text to search for in task descriptions
+     * @param dateTimeQuery optional date and time on which a task must occur
+     * @return formatted matching task list
+     */
+    public String searchTasks(
+            String descriptionQuery,
+            LocalDateTime dateTimeQuery) {
+        if (descriptionQuery != null && descriptionQuery.isBlank()) {
+            throw new IllegalArgumentException("Search description cannot be blank.");
         }
 
-        LocalDate searchDate = searchDateTime.toLocalDate();
+        if (descriptionQuery == null && dateTimeQuery == null) {
+            throw new IllegalArgumentException("Search query cannot be empty.");
+        }
+
+        LocalDate searchDate = dateTimeQuery == null
+                ? null
+                : dateTimeQuery.toLocalDate();
         List<Integer> matchingTaskIndexes = new ArrayList<>();
         for (int i = 0; i < taskRoster.size(); i++) {
-            if (taskRoster.get(i).occursOn(searchDate)) {
+            Task task = taskRoster.get(i);
+            boolean matchesDescription = descriptionQuery == null
+                    || task.matchesDescription(descriptionQuery);
+            boolean matchesDate = searchDate == null
+                    || task.occursOn(searchDate);
+            if (matchesDescription && matchesDate) {
                 matchingTaskIndexes.add(i);
             }
         }
 
+        String header = searchDate == null
+                ? LuckyNoMessages.taskListHeader()
+                : LuckyNoMessages.findTasksListHeader(searchDate);
         return formatTaskList(
                 matchingTaskIndexes,
-                LuckyNoMessages.findTasksListHeader(searchDate),
+                header,
                 LuckyNoMessages.noMatchingTasksMessage());
     }
 

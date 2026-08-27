@@ -64,6 +64,18 @@ public abstract class Task {
     }
 
     /**
+     * Checks whether this task's description contains a search query.
+     * Matching is case-insensitive and uses substring matching.
+     *
+     * @param query text to search for in the description
+     * @return true if the description contains the query
+     */
+    public boolean matchesDescription(String query) {
+        return description.toLowerCase(Locale.ROOT)
+                .contains(query.toLowerCase(Locale.ROOT));
+    }
+
+    /**
      * Returns the raw fields used to save this task as a CSV record.
      *
      * @return task fields in CSV column order

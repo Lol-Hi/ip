@@ -217,18 +217,27 @@ public class LuckyNoParser {
     }
 
     /**
-     * Parses a find command. Text before the {@code /on} tag is intentionally
-     * ignored so that the command can be extended with more search options.
+     * Parses a find command with an optional description and date filter.
+     * Text before the {@code /on} tag is treated as the description query.
      */
     private LuckyNoFindCommand parseFind(String arguments, TaskMaster taskMaster)
             throws LuckyNoInputException {
-        int onIndex = arguments.indexOf("/on");
-        if (onIndex < 0) {
+        if (arguments.isBlank()) {
             throw new LuckyNoInputException(
-                    LuckyNoMessages.invalidFormatMessage(
-                            CommandName.FIND));
+                    LuckyNoMessages.invalidFormatMessage(CommandName.FIND));
         }
 
+        int onIndex = arguments.indexOf("/on");
+        if (onIndex < 0) {
+            return new LuckyNoFindCommand(arguments.trim(), null, taskMaster);
+        }
+
+        if (arguments.indexOf("/on", onIndex + 3) >= 0) {
+            throw new LuckyNoInputException(
+                    LuckyNoMessages.invalidFormatMessage(CommandName.FIND));
+        }
+
+        String descriptionQuery = arguments.substring(0, onIndex).trim();
         String dateText = arguments.substring(onIndex + 3).trim();
         if (dateText.isEmpty()) {
             throw new LuckyNoInputException(
@@ -238,7 +247,13 @@ public class LuckyNoParser {
 
         LocalDateTime searchDateTime =
                 dateTimeParser.parseStartDateTime(dateText).value();
-        return new LuckyNoFindCommand(searchDateTime, taskMaster);
+        if (descriptionQuery.isEmpty()) {
+            descriptionQuery = null;
+        }
+        return new LuckyNoFindCommand(
+                descriptionQuery,
+                searchDateTime,
+                taskMaster);
     }
 
     private EventTask parseEvent(String arguments) throws LuckyNoInputException {

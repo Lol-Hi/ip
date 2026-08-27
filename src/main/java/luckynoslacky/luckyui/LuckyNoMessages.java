@@ -14,8 +14,8 @@ public final class LuckyNoMessages {
     private static final String DEADLINE_FORMAT =
             "<description> /by <date/time>.";
     private static final String EVENT_FORMAT =
-            "<description> /from <start> /to <end>.";
-    private static final String FIND_FORMAT = "/on <date>";
+            "<description> /from <start date/time> /to <end date/time>.";
+    private static final String FIND_FORMAT = "[<description>] [/on <date>]";
     private static final DateTimeFormatter FIND_DATE_FORMAT =
             DateTimeFormatter.ofPattern("MMM dd uuuu", Locale.ENGLISH);
 
@@ -262,7 +262,7 @@ public final class LuckyNoMessages {
      * @return task-list heading
      */
     public static String taskListHeader() {
-        return "Nah all these stuff you need to do:";
+        return "Nah, all these things you need to do:";
     }
 
     /**
@@ -274,7 +274,7 @@ public final class LuckyNoMessages {
         if (searchDate == null) {
             throw new IllegalArgumentException("Search date cannot be null.");
         }
-        return "Nah, all these stuff you need to do on: "
+        return "Nah, all these things you need to do on: "
                 + FIND_DATE_FORMAT.format(searchDate);
     }
 

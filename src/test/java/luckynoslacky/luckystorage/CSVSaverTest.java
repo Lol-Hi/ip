@@ -127,7 +127,7 @@ class CSVSaverTest {
         TaskMaster restored = new TaskMaster(100, saver);
         restored.loadTasksFromCSVStorageRecord(loadedTasks);
 
-        assertEquals("Nah all these stuff you need to do:\n"
+        assertEquals("Nah, all these things you need to do:\n"
                         + "1.[T][X] read, book\n"
                         + "2.[D][ ] return book (by: Sun Dec 06 2026, 11.59pm)\n"
                         + "3.[E][ ] project meeting (from: Thu Aug 06 2026, 2.00pm"
