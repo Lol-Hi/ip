@@ -10,7 +10,7 @@ running and can be marked as done or not done.
 - Add Deadline tasks with flexible date/time input.
 - Add Event tasks with flexible start and end date/time input.
 - List tasks in the order they were added.
-- Find deadlines and events that fall on a specified date.
+- Find tasks by description, date, or both.
 - Mark tasks as done or explicitly mark them as not done.
 - Delete tasks by their task number.
 - Store up to 100 tasks.
@@ -137,7 +137,7 @@ trailing spaces are ignored.
 | Mark Task as Done     | `mark <number>`                                                   | Marks the specified task as done. |
 | Unmark Task as Undone | `unmark <number>`                                                 | Marks the specified task as not done. |
 | Delete Task           | `delete <number>`                                                 | Removes the specified task from the list. |
-| Find Tasks by Date     | `find /on <date>`                                                 | Displays deadlines and events that fall on the specified date. |
+| Find Tasks             | `find [<description>] [/on <date>]`                               | Finds tasks by description, date, or both. |
 | Exit                  | `bye`                                                             | Exits the chatbot. |
 
 ### Adding tasks
@@ -215,26 +215,42 @@ The deleted task is removed from memory, and later tasks are renumbered. The
 command requires a valid task number. Failed deletion commands do not
 change the task list.
 
-### Finding tasks by date
+### Finding tasks
 
-Use the `find` command with the `/on` tag to search for tasks on a date:
+Use `find` with a description, a date, or both:
+
+```text
+find book
+find /on 26 Aug 2026
+find book /on 26 Aug 2026
+```
+
+Description queries use case-insensitive substring matching. For example,
+`find book` matches descriptions such as `read book` and `return book`.
+
+The `/on` tag limits the search to a specified date. It can be used without a
+description:
 
 ```text
 find /on 26 Aug 2026
 ```
 
-Text between `find` and `/on` is currently ignored, so this is also accepted:
+When both filters are provided, a task must satisfy both the description and
+date conditions:
 
 ```text
-find tasks due soon /on tmr
+find book /on tmr
 ```
 
-Find searches include:
+Date-only searches include:
 
 - Deadlines whose due date is the queried date.
 - Events whose start and end dates include the queried date.
 
-If there are no tasks on that date, LuckyNoSlacky replies:
+Description-only searches can match ToDos, Deadlines, and Events,
+using the regular task-list header.
+
+If there are no tasks found, LuckyNoSlacky replies:
 
 ```text
 Wah, you very free hor, got nothing to do sia!
@@ -323,7 +339,7 @@ deadline return book /by 2030-10-15 14:15
   ____________________________________________________________
 list
   ____________________________________________________________
-  Nah all these stuff you need to do:
+  Nah, all these things you need to do:
   1.[T][ ] borrow book
   2.[D][ ] return book (by: Tue Oct 15 2030, 2.15pm)
   ____________________________________________________________
