@@ -220,8 +220,8 @@ class TaskMasterTest {
         TaskMaster taskMaster = createTaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
 
-        assertThrows(IllegalArgumentException.class,
-                () -> taskMaster.deleteTask(2));
+        assertThrows(IllegalArgumentException.class, () ->
+                taskMaster.deleteTask(2));
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
                 taskMaster.listTasks());
     }
@@ -247,8 +247,8 @@ class TaskMasterTest {
     void deleteTask_emptyList_throwsIllegalArgumentException() {
         TaskMaster taskMaster = createTaskMaster();
 
-        assertThrows(IllegalArgumentException.class,
-                () -> taskMaster.deleteTask(1));
+        assertThrows(IllegalArgumentException.class, () ->
+                taskMaster.deleteTask(1));
     }
 
     /** Verifies that invalid numbers are rejected when marking tasks. */
@@ -257,10 +257,10 @@ class TaskMasterTest {
         TaskMaster taskMaster = createTaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
 
-        assertThrows(IllegalArgumentException.class,
-                () -> taskMaster.markTaskDone(0));
-        assertThrows(IllegalArgumentException.class,
-                () -> taskMaster.markTaskDone(2));
+        assertThrows(IllegalArgumentException.class, () ->
+                taskMaster.markTaskDone(0));
+        assertThrows(IllegalArgumentException.class, () ->
+                taskMaster.markTaskDone(2));
     }
 
     /** Verifies that invalid numbers are rejected when unmarking tasks. */
@@ -269,10 +269,10 @@ class TaskMasterTest {
         TaskMaster taskMaster = createTaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
 
-        assertThrows(IllegalArgumentException.class,
-                () -> taskMaster.unmarkTaskUndone(0));
-        assertThrows(IllegalArgumentException.class,
-                () -> taskMaster.unmarkTaskUndone(2));
+        assertThrows(IllegalArgumentException.class, () ->
+                taskMaster.unmarkTaskUndone(0));
+        assertThrows(IllegalArgumentException.class, () ->
+                taskMaster.unmarkTaskUndone(2));
     }
 
     /** Verifies invalid status changes do not alter another task's state. */
@@ -281,14 +281,14 @@ class TaskMasterTest {
         TaskMaster taskMaster = createTaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
 
-        assertThrows(IllegalArgumentException.class,
-                () -> taskMaster.markTaskDone(2));
+        assertThrows(IllegalArgumentException.class, () ->
+                taskMaster.markTaskDone(2));
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
                 taskMaster.listTasks());
 
         taskMaster.markTaskDone(1);
-        assertThrows(IllegalArgumentException.class,
-                () -> taskMaster.unmarkTaskUndone(2));
+        assertThrows(IllegalArgumentException.class, () ->
+                taskMaster.unmarkTaskUndone(2));
         assertEquals("Nah, all these things you need to do:\n1.[T][X] read book",
                 taskMaster.listTasks());
     }
@@ -301,18 +301,18 @@ class TaskMasterTest {
         taskMaster.addTask(new TodoTask("first"));
         taskMaster.addTask(new TodoTask("second"));
 
-        assertThrows(IllegalStateException.class,
-                () -> taskMaster.addTask(new TodoTask("third")));
+        assertThrows(IllegalStateException.class, () ->
+                taskMaster.addTask(new TodoTask("third")));
     }
 
     /** Verifies that non-positive capacities are rejected. */
     @Test
     void taskMaster_nonPositiveCapacity_throwsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class,
-                () -> new TaskMaster(0));
+        assertThrows(IllegalArgumentException.class, () ->
+                new TaskMaster(0));
 
-        assertThrows(IllegalArgumentException.class,
-                () -> new TaskMaster(-1));
+        assertThrows(IllegalArgumentException.class, () ->
+                new TaskMaster(-1));
     }
 
     /** Verifies that a failed save rolls back an added task. */
@@ -320,8 +320,8 @@ class TaskMasterTest {
     void addTask_saveFailure_removesTask() {
         TaskMaster taskMaster = new TaskMaster(100, new FailingSaver());
 
-        assertThrows(LuckyNoStorageException.class,
-                () -> taskMaster.addTask(new TodoTask("read book")));
+        assertThrows(LuckyNoStorageException.class, () ->
+                taskMaster.addTask(new TodoTask("read book")));
         assertEquals(0, taskMaster.getTaskCount());
     }
 
@@ -332,8 +332,8 @@ class TaskMasterTest {
         TodoTask task = new TodoTask("read book");
         taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
 
-        assertThrows(LuckyNoStorageException.class,
-                () -> taskMaster.markTaskDone(1));
+        assertThrows(LuckyNoStorageException.class, () ->
+                taskMaster.markTaskDone(1));
         assertFalse(task.isDone());
     }
 
@@ -344,8 +344,8 @@ class TaskMasterTest {
         TodoTask task = new TodoTask("read book");
         taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
 
-        assertThrows(LuckyNoStorageException.class,
-                () -> taskMaster.deleteTask(1));
+        assertThrows(LuckyNoStorageException.class, () ->
+                taskMaster.deleteTask(1));
         assertEquals(1, taskMaster.getTaskCount());
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
                 taskMaster.listTasks());
@@ -356,10 +356,10 @@ class TaskMasterTest {
     void loadTasksFromCsvStorageRecord_nullOrNullTaskList_throwsStorageException() {
         TaskMaster taskMaster = createTaskMaster();
 
-        assertThrows(LuckyNoStorageException.class,
-                () -> taskMaster.loadTasksFromCsvStorageRecord(null));
-        assertThrows(LuckyNoStorageException.class,
-                () -> taskMaster.loadTasksFromCsvStorageRecord(
+        assertThrows(LuckyNoStorageException.class, () ->
+                taskMaster.loadTasksFromCsvStorageRecord(null));
+        assertThrows(LuckyNoStorageException.class, () ->
+                taskMaster.loadTasksFromCsvStorageRecord(
                         java.util.Arrays.asList(new TodoTask("read book"), null)));
     }
 
@@ -368,8 +368,8 @@ class TaskMasterTest {
     void searchTasks_nullDate_throwsIllegalArgumentException() {
         TaskMaster taskMaster = createTaskMaster();
 
-        assertThrows(IllegalArgumentException.class,
-                () -> taskMaster.searchTasks(null, null));
+        assertThrows(IllegalArgumentException.class, () ->
+                taskMaster.searchTasks(null, null));
     }
 
     /** Creates a task master with the default test capacity. */

@@ -1,8 +1,8 @@
 package luckynoslacky.luckycommand;
 
-import luckynoslacky.luckyui.LuckyNoMessages;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
+import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Represents a command that creates a task.

@@ -1,7 +1,7 @@
 package luckynoslacky.luckycommand;
 
-import luckynoslacky.luckyui.LuckyNoMessages;
 import luckynoslacky.luckytask.TaskMaster;
+import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Represents either a mark or an unmark request.

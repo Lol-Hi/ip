@@ -1,8 +1,8 @@
 package luckynoslacky.luckyparser;
 
 import java.time.Clock;
-import java.time.DayOfWeek;
 import java.time.DateTimeException;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
