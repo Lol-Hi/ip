@@ -36,11 +36,11 @@ class LuckyNoMessagesTest {
     /** Verifies unsupported command formats are rejected internally. */
     @Test
     void invalidFormatMessage_commandWithoutFormat_throwsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class,
-                () -> LuckyNoMessages.invalidFormatMessage(
+        assertThrows(IllegalArgumentException.class, () ->
+                LuckyNoMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.LIST));
-        assertThrows(IllegalArgumentException.class,
-                () -> LuckyNoMessages.invalidFormatMessage(null));
+        assertThrows(IllegalArgumentException.class, () ->
+                LuckyNoMessages.invalidFormatMessage(null));
     }
 
     /** Verifies the configured loading error message. */

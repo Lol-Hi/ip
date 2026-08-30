@@ -33,8 +33,8 @@ class EventTaskTest {
         LocalDateTime start = LocalDateTime.of(2026, 8, 6, 16, 0);
         LocalDateTime end = LocalDateTime.of(2026, 8, 6, 14, 0);
 
-        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new EventTask("project meeting", start, end));
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () ->
+                new EventTask("project meeting", start, end));
     }
 
 }

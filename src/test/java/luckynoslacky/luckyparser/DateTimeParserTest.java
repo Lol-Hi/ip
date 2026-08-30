@@ -28,16 +28,16 @@ class DateTimeParserTest {
         LocalDateTime expected = LocalDateTime.of(2030, 10, 15, 0, 0);
 
         for (String input : new String[] {
-                "2030-10-15",
-                "2030/10/15",
-                "15/10/2030",
-                "15-10-2030",
-                "15 Oct 2030",
-                "15 October 2030",
-                "Oct 15 2030",
-                "October 15 2030",
-                "Tue Oct 15 2030",
-                "Tuesday, October 15 2030"}) {
+            "2030-10-15",
+            "2030/10/15",
+            "15/10/2030",
+            "15-10-2030",
+            "15 Oct 2030",
+            "15 October 2030",
+            "Oct 15 2030",
+            "October 15 2030",
+            "Tue Oct 15 2030",
+            "Tuesday, October 15 2030"}) {
             assertEquals(expected, parser.parseStartDateTime(input).value(), input);
         }
     }
@@ -46,8 +46,8 @@ class DateTimeParserTest {
     @Test
     void parseStartDateTime_supportedTimeFormats_returnsExpectedDateTime() throws Exception {
         for (String input : new String[] {
-                "14:15", "14:15:30", "2pm", "2 pm", "2:15pm",
-                "2:15 pm", "2.15pm", "2.15 pm"}) {
+            "14:15", "14:15:30", "2pm", "2 pm", "2:15pm",
+            "2:15 pm", "2.15pm", "2.15 pm"}) {
             LocalDateTime expected = input.contains("30")
                     ? LocalDateTime.of(2026, 8, 25, 14, 15, 30)
                     : input.contains(":15") || input.contains(".15")
@@ -274,16 +274,16 @@ class DateTimeParserTest {
     /** Verifies null parser dependencies are rejected. */
     @Test
     void dateTimeParser_nullClockOrReference_throwsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class,
-                () -> new DateTimeParser(null));
-        assertThrows(IllegalArgumentException.class,
-                () -> parser.parseEndDateTime("4pm", null));
+        assertThrows(IllegalArgumentException.class, () ->
+                new DateTimeParser(null));
+        assertThrows(IllegalArgumentException.class, () ->
+                parser.parseEndDateTime("4pm", null));
     }
 
     /** Asserts that an input produces the standard date/time error. */
     private void assertInvalid(String input) {
-        LuckyNoInputException exception = assertThrows(LuckyNoInputException.class,
-                () -> parser.parseStartDateTime(input));
+        LuckyNoInputException exception = assertThrows(
+                LuckyNoInputException.class, () -> parser.parseStartDateTime(input));
         assertEquals(LuckyNoMessages.invalidDateTimeMessage(), exception.getMessage());
     }
 }

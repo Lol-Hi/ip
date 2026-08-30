@@ -1,7 +1,7 @@
 package luckynoslacky.luckycommand;
 
-import luckynoslacky.luckyui.LuckyNoMessages;
 import luckynoslacky.luckytask.TaskMaster;
+import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Represents a request to delete a task.

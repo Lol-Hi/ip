@@ -225,8 +225,8 @@ class CsvSaverTest {
         CsvSaver saver = new CsvSaver(dataPath);
 
         assertThrows(LuckyNoStorageException.class, saver::load);
-        assertThrows(LuckyNoStorageException.class,
-                () -> saver.save(new TaskMaster(100, saver)));
+        assertThrows(LuckyNoStorageException.class, () ->
+                saver.save(new TaskMaster(100, saver)));
     }
 
     /** Verifies loading beyond task capacity is rejected. */
@@ -236,8 +236,8 @@ class CsvSaverTest {
         CsvSaver saver = new CsvSaver(dataFile);
         TaskMaster taskMaster = new TaskMaster(1, saver);
 
-        assertThrows(LuckyNoStorageException.class,
-                () -> taskMaster.loadTasksFromCsvStorageRecord(List.of(
+        assertThrows(LuckyNoStorageException.class, () ->
+                taskMaster.loadTasksFromCsvStorageRecord(List.of(
                         new TodoTask("first"),
                         new TodoTask("second"))));
     }

@@ -245,15 +245,15 @@ public class CsvSaver {
         Task task;
         try {
             task = switch (taskType) {
-            case "T" -> new TodoTask(description);
-            case "D" -> new DeadlineTask(
-                    description,
-                    DateTimeParser.parseFromStorage(finishTimeText));
-            case "E" -> new EventTask(
-                    description,
-                    DateTimeParser.parseFromStorage(startTimeText),
-                    DateTimeParser.parseFromStorage(finishTimeText));
-            default -> throw invalidRecord(record, "unknown task type");
+                case "T" -> new TodoTask(description);
+                case "D" -> new DeadlineTask(
+                        description,
+                        DateTimeParser.parseFromStorage(finishTimeText));
+                case "E" -> new EventTask(
+                        description,
+                        DateTimeParser.parseFromStorage(startTimeText),
+                        DateTimeParser.parseFromStorage(finishTimeText));
+                default -> throw invalidRecord(record, "unknown task type");
             };
         } catch (IllegalArgumentException exception) {
             throw new LuckyNoStorageException(

@@ -333,18 +333,18 @@ class LuckyNoParserTest {
     void parseCommand_documentedDateTimeFormats_returnsExpectedValues() throws Exception {
         LocalDate expectedDate = LocalDate.of(2030, 10, 15);
         for (String input : new String[] {
-                "2030-10-15", "2030/10/15", "15/10/2030", "15-10-2030",
-                "15 Oct 2030", "15 October 2030", "Oct 15 2030",
-                "October 15 2030", "Tue Oct 15 2030",
-                "Tuesday, October 15 2030"}) {
+            "2030-10-15", "2030/10/15", "15/10/2030", "15-10-2030",
+            "15 Oct 2030", "15 October 2030", "Oct 15 2030",
+            "October 15 2030", "Tue Oct 15 2030",
+            "Tuesday, October 15 2030"}) {
             assertEquals(expectedDate.atStartOfDay(),
                     parser.parseStartDateTime(input).value(), input);
         }
 
         LocalDateTime expectedTime = LocalDateTime.of(2026, 8, 25, 14, 15, 30);
         for (String input : new String[] {
-                "14:15", "14:15:30", "2pm", "2 pm", "2:15pm",
-                "2:15 pm", "2.15pm", "2.15 pm"}) {
+            "14:15", "14:15:30", "2pm", "2 pm", "2:15pm",
+            "2:15 pm", "2.15pm", "2.15 pm"}) {
             LocalDateTime expected = input.contains("30")
                     ? expectedTime
                     : input.contains(":15") || input.contains(".15")
@@ -447,8 +447,8 @@ class LuckyNoParserTest {
 
     /** Asserts that parsing an input returns the expected user-facing error. */
     private void assertInputError(String message, String input, int taskCount) {
-        LuckyNoInputException error = assertThrows(LuckyNoInputException.class,
-                () -> scanner.parseCommand(input, taskCount));
+        LuckyNoInputException error = assertThrows(
+                LuckyNoInputException.class, () -> scanner.parseCommand(input, taskCount));
         assertEquals(message, error.getMessage());
     }
 }
