@@ -23,6 +23,7 @@
                     AnchorPane.bottomAnchor="43.0">
             <content>
                 <VBox fx:id="dialogContainer"
+                      id="dialogContainer"
                       spacing="10.0"
                       fillWidth="true"
                       style="-fx-padding: 10px;" />
@@ -30,6 +31,7 @@
         </ScrollPane>
 
         <TextField fx:id="userInput"
+                   id="userInput"
                    prefHeight="41.0"
                    promptText="Enter command..."
                    onAction="#handleUserInput"
@@ -37,7 +39,8 @@
                    AnchorPane.rightAnchor="76.0"
                    AnchorPane.bottomAnchor="1.0" />
 
-        <Button text="Send"
+        <Button id="sendButton"
+                text="Send"
                 prefHeight="41.0"
                 prefWidth="70.0"
                 onAction="#handleUserInput"

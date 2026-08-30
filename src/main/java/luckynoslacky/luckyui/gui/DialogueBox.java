@@ -34,10 +34,12 @@ public class DialogueBox extends HBox {
             Pos alignment,
             String labelColor) {
         Label speaker = new Label(speakerLabel);
+        speaker.getStyleClass().add("speaker-label");
         speaker.setStyle(
                 "-fx-font-weight: bold; -fx-text-fill: " + labelColor + ";");
 
         Label content = new Label(message);
+        content.getStyleClass().add("message-content");
         content.setWrapText(true);
         content.setMaxWidth(280.0);
 
@@ -51,6 +53,7 @@ public class DialogueBox extends HBox {
 
         setAlignment(alignment);
         setSpacing(8.0);
+        getStyleClass().add("dialogue-box");
 
         if (alignment == Pos.CENTER_RIGHT) {
             getChildren().addAll(text, imageView);
