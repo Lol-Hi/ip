@@ -1,5 +1,6 @@
 package luckynoslacky.luckyui.gui;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -7,6 +8,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 import luckynoslacky.LuckyNoSlacky;
 import luckynoslacky.luckyui.LuckyNoMessages;
 
@@ -14,6 +16,8 @@ import luckynoslacky.luckyui.LuckyNoMessages;
  * Controls the main LuckyNoSlacky JavaFX window.
  */
 public class MainWindow {
+    private static final double EXIT_DELAY_SECONDS = 1.5;
+
     @FXML
     private ScrollPane scrollPane;
 
@@ -78,7 +82,11 @@ public class MainWindow {
 
         if (response.requestsExit()) {
             userInput.setDisable(true);
-            Platform.exit();
+
+            PauseTransition pause = new PauseTransition(
+                    Duration.seconds(EXIT_DELAY_SECONDS));
+            pause.setOnFinished(event -> Platform.exit());
+            pause.play();
         }
     }
 
