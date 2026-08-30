@@ -22,6 +22,15 @@ public class LuckyNoSlacky {
     private static final String FIXED_NOW_PROPERTY =
             "luckynoslacky.fixedNow";
 
+    /**
+     * Contains a chatbot reply and the action requested after displaying it.
+     *
+     * @param message user-facing reply
+     * @param requestsExit whether the interface should close
+     */
+    public record ChatResponse(String message, boolean requestsExit) {
+    }
+
     private final TaskMaster taskMaster;
     private final LuckyNoParser parser;
     private final boolean loadError;
@@ -78,16 +87,20 @@ public class LuckyNoSlacky {
      * Processes one command from a graphical user interface.
      *
      * @param input command entered by the user
-     * @return chatbot response
+     * @return chatbot response and exit status
      */
-    public String getResponse(String input) {
+    public ChatResponse getResponse(String input) {
         try {
             LuckyNoCommand command = parser.parseCommand(input);
-            return command.execute();
+            return new ChatResponse(
+                    command.execute(),
+                    command.requestsExit());
         } catch (LuckyNoInputException exception) {
-            return exception.getMessage();
+            return new ChatResponse(exception.getMessage(), false);
         } catch (LuckyNoStorageException exception) {
-            return LuckyNoMessages.saveErrorMessage();
+            return new ChatResponse(
+                    LuckyNoMessages.saveErrorMessage(),
+                    false);
         }
     }
 

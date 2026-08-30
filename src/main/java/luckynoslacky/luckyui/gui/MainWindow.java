@@ -1,5 +1,6 @@
 package luckynoslacky.luckyui.gui;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
@@ -71,8 +72,14 @@ public class MainWindow {
         }
 
         addUserMessage(input);
-        addChatbotMessage(chatbot.getResponse(input));
+        LuckyNoSlacky.ChatResponse response = chatbot.getResponse(input);
+        addChatbotMessage(response.message());
         userInput.clear();
+
+        if (response.requestsExit()) {
+            userInput.setDisable(true);
+            Platform.exit();
+        }
     }
 
     /**

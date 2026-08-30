@@ -1,6 +1,8 @@
 package luckynoslacky;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -17,6 +19,18 @@ class LuckyNoSlackyTest {
 
         assertEquals(
                 LuckyNoMessages.unknownCommandMessage(),
-                chatbot.getResponse("unknown command"));
+                chatbot.getResponse("unknown command").message());
+        assertFalse(chatbot.getResponse("unknown command").requestsExit());
+    }
+
+    /** Verifies that the bye command returns an exit signal to the GUI. */
+    @Test
+    void getResponse_byeCommand_returnsGoodbyeAndExitStatus() {
+        LuckyNoSlacky chatbot = new LuckyNoSlacky();
+
+        LuckyNoSlacky.ChatResponse response = chatbot.getResponse("bye");
+
+        assertEquals(LuckyNoMessages.goodbye(), response.message());
+        assertTrue(response.requestsExit());
     }
 }
