@@ -77,9 +77,9 @@ run {
     standardInput = System.in
 }
 
-tasks.register('runHelloWorld', JavaExec) {
+tasks.register('runGui', JavaExec) {
     group = 'application'
-    description = 'Runs the JavaFX Hello World smoke test.'
+    description = 'Runs the LuckyNoSlacky JavaFX interface.'
     classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'luckynoslacky.luckyui.gui.LuckyNoLauncher'
+    mainClass = 'luckynoslacky.luckyui.gui.Launcher'
 }
