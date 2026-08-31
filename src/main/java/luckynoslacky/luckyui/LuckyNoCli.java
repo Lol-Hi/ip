@@ -37,9 +37,10 @@ public class LuckyNoCli {
     /**
      * Prints a user-facing reply with the chatbot's standard formatting.
      *
-     * @param output reply to display
+     * @param messageParts ordered parts of the reply, joined with newlines
      */
-    public void showReply(String output) {
+    public void showReply(String... messageParts) {
+        String output = String.join("\n", messageParts);
         String indentedOutput = output.replace("\n", "\n  ");
         System.out.print(DIVIDER + "  " + indentedOutput + "\n" + DIVIDER);
     }

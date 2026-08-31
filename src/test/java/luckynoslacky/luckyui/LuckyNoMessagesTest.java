@@ -33,6 +33,34 @@ class LuckyNoMessagesTest {
                         LuckyNoParser.CommandName.FIND));
     }
 
+    /** Verifies that multiple valid formats are included in the error message. */
+    @Test
+    void invalidFormatMessage_multipleValidFormats_returnsAllFormats() {
+        assertEquals(
+                "Eh HELLO you know how to type command one anot? \n"
+                        + "Lai lai let me teach you: find <description> "
+                        + "or /on <date>",
+                LuckyNoMessages.invalidFormatMessage(
+                        LuckyNoParser.CommandName.FIND,
+                        "<description>",
+                        "/on <date>"));
+    }
+
+    /** Verifies that the banner retains its multiline layout. */
+    @Test
+    void banner_multipleLines_preservesExpectedLayout() {
+        assertEquals(
+                "     .--\"\"\"\"\"--.\n"
+                        + "   /  /^\\   /^\\  \\\n"
+                        + "  |  .---------.  |\n"
+                        + "  |  | | | | | |  |\n"
+                        + "   \\ '---------' /\n"
+                        + "     '-._____.-'\n"
+                        + "    [NO SLACKING]\n"
+                        + "  LuckyNoSlacky is here to help!",
+                LuckyNoMessages.banner());
+    }
+
     /** Verifies unsupported command formats are rejected internally. */
     @Test
     void invalidFormatMessage_commandWithoutFormat_throwsIllegalArgumentException() {
