@@ -16,6 +16,23 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.14.4'
+    testImplementation 'org.testfx:testfx-junit5:4.0.18'
+    testImplementation 'org.testfx:openjfx-monocle:17.0.10'
+    testImplementation 'org.hamcrest:hamcrest:2.2'
+
+    String javaFxVersion = '17.0.7'
+    implementation("org.openjfx:javafx-base:${javaFxVersion}:win")
+    implementation("org.openjfx:javafx-base:${javaFxVersion}:mac")
+    implementation("org.openjfx:javafx-base:${javaFxVersion}:linux")
+    implementation("org.openjfx:javafx-controls:${javaFxVersion}:win")
+    implementation("org.openjfx:javafx-controls:${javaFxVersion}:mac")
+    implementation("org.openjfx:javafx-controls:${javaFxVersion}:linux")
+    implementation("org.openjfx:javafx-fxml:${javaFxVersion}:win")
+    implementation("org.openjfx:javafx-fxml:${javaFxVersion}:mac")
+    implementation("org.openjfx:javafx-fxml:${javaFxVersion}:linux")
+    implementation("org.openjfx:javafx-graphics:${javaFxVersion}:win")
+    implementation("org.openjfx:javafx-graphics:${javaFxVersion}:mac")
+    implementation("org.openjfx:javafx-graphics:${javaFxVersion}:linux")
 }
 
 java {
@@ -28,8 +45,26 @@ checkstyle {
     toolVersion = '11.0.0'
 }
 
+def javaFxTestJvmArgs = [
+        '--add-exports=javafx.graphics/com.sun.glass.ui=ALL-UNNAMED',
+        '--add-exports=javafx.graphics/com.sun.javafx.application=ALL-UNNAMED',
+        '--add-exports=javafx.graphics/com.sun.javafx.util=ALL-UNNAMED',
+        '--add-exports=javafx.base/com.sun.javafx.logging=ALL-UNNAMED',
+        '--add-opens=javafx.graphics/com.sun.glass.ui=ALL-UNNAMED',
+        '--add-opens=javafx.graphics/javafx.stage=ALL-UNNAMED',
+        '--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED',
+        '--enable-native-access=javafx.graphics'
+]
+
+def configureJavaFxTest = { Test testTask ->
+    testTask.useJUnitPlatform()
+    testTask.systemProperty 'testfx.headless', 'true'
+    testTask.systemProperty 'prism.order', 'sw'
+    testTask.jvmArgs = javaFxTestJvmArgs
+}
+
 test {
-    useJUnitPlatform()
+    configureJavaFxTest(it)
 
     testLogging {
         events 'passed', 'skipped', 'failed'
@@ -38,6 +73,27 @@ test {
         showCauses = true
         showStackTraces = true
         showStandardStreams = false
+    }
+}
+
+tasks.register('guiTest', Test) {
+    group = 'verification'
+    description = 'Runs the deterministic JavaFX GUI regression tests.'
+    dependsOn testClasses
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    failFast = true
+    configureJavaFxTest(it)
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        showExceptions = true
+        exceptionFormat = 'full'
+        showCauses = true
+        showStackTraces = true
+        showStandardStreams = false
+    }
+    filter {
+        includeTestsMatching 'luckynoslacky.luckyui.gui.*Test'
     }
 }
 
@@ -61,4 +117,11 @@ shadowJar {
 
 run {
     standardInput = System.in
+}
+
+tasks.register('runGui', JavaExec) {
+    group = 'application'
+    description = 'Runs the LuckyNoSlacky JavaFX interface.'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'luckynoslacky.luckyui.gui.Launcher'
 }

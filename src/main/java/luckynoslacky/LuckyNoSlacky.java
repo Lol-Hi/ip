@@ -13,6 +13,7 @@ import luckynoslacky.luckyparser.LuckyNoParser;
 import luckynoslacky.luckystorage.CsvSaver;
 import luckynoslacky.luckytask.TaskMaster;
 import luckynoslacky.luckyui.LuckyNoCli;
+import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Starts the LuckyNoSlacky chatbot.
@@ -21,13 +22,21 @@ public class LuckyNoSlacky {
     private static final String FIXED_NOW_PROPERTY =
             "luckynoslacky.fixedNow";
 
-    private final LuckyNoCli commandLineInterface;
+    /**
+     * Contains a chatbot reply and the action requested after displaying it.
+     *
+     * @param message user-facing reply
+     * @param requestsExit whether the interface should close
+     */
+    public record ChatResponse(String message, boolean requestsExit) {
+    }
+
     private final TaskMaster taskMaster;
     private final LuckyNoParser parser;
     private final boolean loadError;
 
     /** Creates the chatbot using the system clock. */
-    LuckyNoSlacky() {
+    public LuckyNoSlacky() {
         this(new DateTimeParser());
     }
 
@@ -37,8 +46,6 @@ public class LuckyNoSlacky {
      * @param dateTimeParser parser used to interpret date and time input
      */
     LuckyNoSlacky(DateTimeParser dateTimeParser) {
-        commandLineInterface = new LuckyNoCli();
-
         CsvSaver csvSaver = new CsvSaver();
         taskMaster = new TaskMaster(csvSaver);
 
@@ -58,7 +65,7 @@ public class LuckyNoSlacky {
      *
      * @return true if the user explicitly requested to exit
      */
-    private boolean chatLoop() {
+    private boolean chatLoop(LuckyNoCli commandLineInterface) {
         while (commandLineInterface.hasNextLine()) {
             String userInput = commandLineInterface.readCommand();
             try {
@@ -77,21 +84,52 @@ public class LuckyNoSlacky {
     }
 
     /**
+     * Processes one command from a graphical user interface.
+     *
+     * @param input command entered by the user
+     * @return chatbot response and exit status
+     */
+    public ChatResponse getResponse(String input) {
+        try {
+            LuckyNoCommand command = parser.parseCommand(input);
+            return new ChatResponse(
+                    command.execute(),
+                    command.requestsExit());
+        } catch (LuckyNoInputException exception) {
+            return new ChatResponse(exception.getMessage(), false);
+        } catch (LuckyNoStorageException exception) {
+            return new ChatResponse(
+                    LuckyNoMessages.saveErrorMessage(),
+                    false);
+        }
+    }
+
+    /**
+     * Indicates whether loading the task data failed during startup.
+     *
+     * @return true if task data could not be loaded
+     */
+    public boolean hasLoadError() {
+        return loadError;
+    }
+
+    /**
      * Starts the chatbot application.
      *
      * @param args command-line arguments, which are not currently used
      */
     public static void main(String[] args) {
         LuckyNoSlacky lucky = new LuckyNoSlacky(createDateTimeParser());
-        lucky.commandLineInterface.showGreeting();
+        LuckyNoCli commandLineInterface = new LuckyNoCli();
+        commandLineInterface.showGreeting();
 
         if (lucky.loadError) {
-            lucky.commandLineInterface.showLoadingError();
+            commandLineInterface.showLoadingError();
             return;
         }
 
-        if (!lucky.chatLoop()) {
-            lucky.commandLineInterface.showGoodbye();
+        if (!lucky.chatLoop(commandLineInterface)) {
+            commandLineInterface.showGoodbye();
         }
     }
 
