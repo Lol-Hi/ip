@@ -12,11 +12,11 @@ import javafx.scene.shape.Circle;
  * Displays one speaker's message in the conversation.
  */
 public class DialogueBox extends HBox {
-    /** Colour used for chatbot speaker labels. */
-    public static final String CHATBOT_LABEL_COLOR = "#388E3C";
+    /** CSS style applied to chatbot dialogue rows. */
+    public static final String CHATBOT_DIALOGUE_STYLE = "chatbot-dialogue";
 
-    /** Colour used for user speaker labels. */
-    public static final String USER_LABEL_COLOR = "#1976D2";
+    /** CSS style applied to user dialogue rows. */
+    public static final String USER_DIALOGUE_STYLE = "user-dialogue";
 
     /**
      * Creates a dialogue row with a speaker label and avatar.
@@ -25,18 +25,16 @@ public class DialogueBox extends HBox {
      * @param message message content
      * @param avatar speaker profile image
      * @param alignment horizontal alignment of the row
-     * @param labelColor speaker label colour
+     * @param dialogueStyle CSS style identifying the speaker role
      */
     public DialogueBox(
             String speakerLabel,
             String message,
             Image avatar,
             Pos alignment,
-            String labelColor) {
+            String dialogueStyle) {
         Label speaker = new Label(speakerLabel);
         speaker.getStyleClass().add("speaker-label");
-        speaker.setStyle(
-                "-fx-font-weight: bold; -fx-text-fill: " + labelColor + ";");
 
         Label content = new Label(message);
         content.getStyleClass().add("message-content");
@@ -50,10 +48,11 @@ public class DialogueBox extends HBox {
         imageView.setFitHeight(45.0);
         imageView.setPreserveRatio(true);
         imageView.setClip(new Circle(22.5, 22.5, 22.5));
+        imageView.getStyleClass().add("avatar");
 
         setAlignment(alignment);
         setSpacing(8.0);
-        getStyleClass().add("dialogue-box");
+        getStyleClass().addAll("dialogue-box", dialogueStyle);
 
         if (alignment == Pos.CENTER_RIGHT) {
             getChildren().addAll(text, imageView);

@@ -37,7 +37,7 @@ class DialogueBoxTest {
                     "todo read book",
                     avatar,
                     Pos.CENTER_RIGHT,
-                    DialogueBox.USER_LABEL_COLOR);
+                    DialogueBox.USER_DIALOGUE_STYLE);
             stage.setScene(new Scene(dialogue));
             stage.show();
 
@@ -48,7 +48,10 @@ class DialogueBoxTest {
             assertEquals(Pos.CENTER_RIGHT, dialogue.getAlignment());
             assertEquals("You said:", speaker.getText());
             assertEquals("todo read book", content.getText());
-            assertTrue(speaker.getStyle().contains(DialogueBox.USER_LABEL_COLOR));
+            assertTrue(dialogue.getStyleClass().contains(
+                    DialogueBox.USER_DIALOGUE_STYLE));
+            assertTrue(speaker.getStyleClass().contains("speaker-label"));
+            assertTrue(content.getStyleClass().contains("message-content"));
         });
     }
 
@@ -62,7 +65,7 @@ class DialogueBoxTest {
                     "Got it.",
                     avatar,
                     Pos.CENTER_LEFT,
-                    DialogueBox.CHATBOT_LABEL_COLOR);
+                    DialogueBox.CHATBOT_DIALOGUE_STYLE);
             stage.setScene(new Scene(dialogue));
             stage.show();
 
@@ -73,7 +76,10 @@ class DialogueBoxTest {
             assertEquals(Pos.CENTER_LEFT, dialogue.getAlignment());
             assertEquals("LuckyNoSlacky said:", speaker.getText());
             assertEquals("Got it.", content.getText());
-            assertTrue(speaker.getStyle().contains(DialogueBox.CHATBOT_LABEL_COLOR));
+            assertTrue(dialogue.getStyleClass().contains(
+                    DialogueBox.CHATBOT_DIALOGUE_STYLE));
+            assertTrue(speaker.getStyleClass().contains("speaker-label"));
+            assertTrue(content.getStyleClass().contains("message-content"));
         });
     }
 }

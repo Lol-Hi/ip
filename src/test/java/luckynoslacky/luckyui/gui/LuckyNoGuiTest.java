@@ -31,6 +31,8 @@ class LuckyNoGuiTest {
         assertNotNull(stage.getScene());
         assertEquals(400.0, stage.getScene().getWidth());
         assertEquals(600.0, stage.getScene().getHeight());
+        assertEquals(320.0, stage.getMinWidth());
+        assertEquals(480.0, stage.getMinHeight());
         assertNotNull(stage.getScene().getRoot());
     }
 
@@ -38,6 +40,8 @@ class LuckyNoGuiTest {
     @Test
     void luckyNoGui_resourcePaths_areAvailable() {
         assertNotNull(LuckyNoGui.class.getResource("/view/MainWindow.fxml"));
+        assertNotNull(LuckyNoGui.class.getResource("/css/main.css"));
+        assertNotNull(LuckyNoGui.class.getResource("/css/dialogue-box.css"));
         assertNotNull(LuckyNoGui.class.getResource("/images/luckynoslacky.jpg"));
         assertNotNull(LuckyNoGui.class.getResource("/images/user.png"));
     }

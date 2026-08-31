@@ -4,10 +4,12 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
 <AnchorPane prefHeight="600.0"
             prefWidth="400.0"
+            stylesheets="@../css/main.css"
             xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="luckynoslacky.luckyui.gui.MainWindow">
@@ -20,31 +22,32 @@
                     AnchorPane.topAnchor="0.0"
                     AnchorPane.leftAnchor="0.0"
                     AnchorPane.rightAnchor="0.0"
-                    AnchorPane.bottomAnchor="43.0">
+                    AnchorPane.bottomAnchor="57.0">
             <content>
                 <VBox fx:id="dialogContainer"
                       id="dialogContainer"
                       spacing="10.0"
                       fillWidth="true"
-                      style="-fx-padding: 10px;" />
+                      styleClass="dialog-container" />
             </content>
         </ScrollPane>
 
-        <TextField fx:id="userInput"
-                   id="userInput"
-                   prefHeight="41.0"
-                   promptText="Enter command..."
-                   onAction="#handleUserInput"
-                   AnchorPane.leftAnchor="1.0"
-                   AnchorPane.rightAnchor="76.0"
-                   AnchorPane.bottomAnchor="1.0" />
+        <HBox spacing="8.0"
+              AnchorPane.leftAnchor="8.0"
+              AnchorPane.rightAnchor="8.0"
+              AnchorPane.bottomAnchor="8.0">
+            <TextField fx:id="userInput"
+                       id="userInput"
+                       prefHeight="41.0"
+                       promptText="Enter command..."
+                       onAction="#handleUserInput"
+                       HBox.hgrow="ALWAYS" />
 
-        <Button id="sendButton"
-                text="Send"
-                prefHeight="41.0"
-                prefWidth="70.0"
-                onAction="#handleUserInput"
-                AnchorPane.rightAnchor="1.0"
-                AnchorPane.bottomAnchor="1.0" />
+            <Button id="sendButton"
+                    text="Send"
+                    prefHeight="41.0"
+                    prefWidth="70.0"
+                    onAction="#handleUserInput" />
+        </HBox>
     </children>
 </AnchorPane>

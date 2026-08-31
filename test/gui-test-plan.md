@@ -14,7 +14,7 @@
   alignment.
 - Test: `DialogueBoxTest.dialogueBox_userMessage_displaysBlueLabelOnRight`
 - Expected result: The row is right-aligned, displays `You said:`, preserves
-  the message text, and applies the user label colour.
+  the message text, and applies the user dialogue CSS style.
 
 ## Test Case: DialogueBox displays chatbot messages
 
@@ -22,7 +22,7 @@
   alignment.
 - Test: `DialogueBoxTest.dialogueBox_chatbotMessage_displaysGreenLabelOnLeft`
 - Expected result: The row is left-aligned, displays `LuckyNoSlacky said:`,
-  preserves the message text, and applies the chatbot label colour.
+  preserves the message text, and applies the chatbot dialogue CSS style.
 
 ## Test Case: Main window displays a conversation
 
@@ -67,11 +67,28 @@
 
 ## Test Case: GUI resources are packaged
 
-- Aim: Verify that the FXML layout and both avatar images are available from
-  the application classpath.
+- Aim: Verify that the FXML layout, CSS stylesheets, and both avatar images are
+  available from the application classpath.
 - Test: `LuckyNoGuiTest.luckyNoGui_resourcePaths_areAvailable`
-- Expected result: The layout, chatbot avatar, and user avatar resources are
-  all found.
+- Expected result: The layout, both CSS stylesheets, chatbot avatar, and user
+  avatar resources are all found.
+
+## Test Case: Main window preserves usable minimum dimensions
+
+- Aim: Verify that the application prevents the window from becoming too small
+  for the conversation and input controls.
+- Test: `LuckyNoGuiTest.luckyNoGui_startApplication_createsConfiguredWindow`
+- Actions: Inspect the primary stage minimum width and height.
+- Expected result: The minimum dimensions are 320 by 480 pixels.
+
+## Test Case: Main window provides responsive input controls
+
+- Aim: Verify that the input field and Send button are placed in a responsive
+  bottom control row.
+- Test: Manual acceptance check
+- Actions: Resize the window horizontally and vertically.
+- Expected result: The input field expands with the window, while the Send
+  button remains at the bottom-right with a stable width.
 
 ## Acceptance checks beyond `guiTest`
 

@@ -102,7 +102,7 @@ public class MainWindow {
                         message,
                         userImage,
                         Pos.CENTER_RIGHT,
-                        DialogueBox.USER_LABEL_COLOR));
+                        DialogueBox.USER_DIALOGUE_STYLE));
     }
 
     /**
@@ -117,6 +117,6 @@ public class MainWindow {
                         message,
                         chatbotImage,
                         Pos.CENTER_LEFT,
-                        DialogueBox.CHATBOT_LABEL_COLOR));
+                        DialogueBox.CHATBOT_DIALOGUE_STYLE));
     }
 }
