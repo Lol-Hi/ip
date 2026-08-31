@@ -56,10 +56,10 @@ class LuckyNoCliTest {
 
     /** Verifies standard divider and indentation formatting for replies. */
     @Test
-    void showReply_userOutput_usesDividerAndIndentation() {
+    void showReply_multipleMessageParts_joinsWithNewlines() {
         LuckyNoCli cli = createCliWithInput("");
 
-        cli.showReply("first line\nsecond line");
+        cli.showReply("first line", "second line");
 
         assertEquals(
                 expectedReply("first line\nsecond line"),

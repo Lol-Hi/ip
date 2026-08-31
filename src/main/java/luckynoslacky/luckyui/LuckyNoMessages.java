@@ -24,28 +24,55 @@ public final class LuckyNoMessages {
     }
 
     /**
+     * Joins message lines with the newline separator used by the application.
+     *
+     * @param lines message lines in display order
+     * @return one message containing the supplied lines
+     */
+    private static String joinMessageLines(String... lines) {
+        return String.join("\n", lines);
+    }
+
+    /**
      * Returns a message for an invalid command format.
      *
      * @param commandName command whose format is invalid
+     * @param validFormats one or more valid formats for the command; when no
+     *     formats are supplied, the command's default format is used
      * @return formatted error message
      */
     public static String invalidFormatMessage(
-            LuckyNoParser.CommandName commandName) {
+            LuckyNoParser.CommandName commandName,
+            String... validFormats) {
         if (commandName == null) {
             throw new IllegalArgumentException("Command name cannot be null.");
         }
 
-        String format = switch (commandName) {
+        String[] formats = validFormats.length == 0
+                ? new String[]{defaultFormat(commandName)}
+                : validFormats;
+        String format = String.join(" or ", formats);
+
+        return joinMessageLines(
+                "Eh HELLO you know how to type command one anot? ",
+                "Lai lai let me teach you: "
+                        + commandName.getInputName() + " " + format);
+    }
+
+    /**
+     * Returns the default format for a command that supports format errors.
+     *
+     * @param commandName command whose default format is needed
+     * @return default command format
+     */
+    private static String defaultFormat(LuckyNoParser.CommandName commandName) {
+        return switch (commandName) {
             case DEADLINE -> DEADLINE_FORMAT;
             case EVENT -> EVENT_FORMAT;
             case FIND -> FIND_FORMAT;
             default -> throw new IllegalArgumentException(
                     "No format is defined for this command.");
         };
-
-        return "Eh HELLO you know how to type command one anot? \n"
-                + "Lai lai let me teach you: "
-                + commandName.getInputName() + " " + format;
     }
 
     /**
@@ -177,14 +204,15 @@ public final class LuckyNoMessages {
      * @return banner text
      */
     public static String banner() {
-        return "     .--\"\"\"\"\"--.\n"
-                + "   /  /^\\   /^\\  \\\n"
-                + "  |  .---------.  |\n"
-                + "  |  | | | | | |  |\n"
-                + "   \\ '---------' /\n"
-                + "     '-._____.-'\n"
-                + "    [NO SLACKING]\n"
-                + "  LuckyNoSlacky is here to help!";
+        return joinMessageLines(
+                "     .--\"\"\"\"\"--.",
+                "   /  /^\\   /^\\  \\",
+                "  |  .---------.  |",
+                "  |  | | | | | |  |",
+                "   \\ '---------' /",
+                "     '-._____.-'",
+                "    [NO SLACKING]",
+                "  LuckyNoSlacky is here to help!");
     }
 
     /**
@@ -214,10 +242,10 @@ public final class LuckyNoMessages {
      * @return task-added response
      */
     public static String addedTaskMessage(Task task, int taskCount) {
-        return "Got one more thing to remember ah: \n"
-                + "  " + task
-                + "\nNow you got " + taskCount
-                + " tasks to settle.";
+        return joinMessageLines(
+                "Got one more thing to remember ah: ",
+                "  " + task,
+                "Now you got " + taskCount + " tasks to settle.");
     }
 
     /**
@@ -227,7 +255,9 @@ public final class LuckyNoMessages {
      * @return mark response
      */
     public static String markedTaskMessage(String task) {
-        return "Swee lah you're done with this task:\n  " + task;
+        return joinMessageLines(
+                "Swee lah you're done with this task:",
+                "  " + task);
     }
 
     /**
@@ -237,8 +267,10 @@ public final class LuckyNoMessages {
      * @return unmark response
      */
     public static String unmarkedTaskMessage(String task) {
-        return "Eh salah you're not done with this task ah, "
-                + "must remember to do ah!\n  " + task;
+        return joinMessageLines(
+                "Eh salah you're not done with this task ah, "
+                        + "must remember to do ah!",
+                "  " + task);
     }
 
     /**
@@ -249,10 +281,10 @@ public final class LuckyNoMessages {
      * @return deletion response
      */
     public static String deletedTaskMessage(String task, int taskCount) {
-        return "Solid man can don't care about this one already:\n"
-                + "  " + task
-                + "\nBut you still got " + taskCount
-                + " tasks to settle.";
+        return joinMessageLines(
+                "Solid man can don't care about this one already:",
+                "  " + task,
+                "But you still got " + taskCount + " tasks to settle.");
     }
 
     /**
