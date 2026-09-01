@@ -20,7 +20,6 @@ public class LuckyNoMarkCommand extends LuckyNoCommand {
      * @throws IllegalArgumentException if {@code taskMaster} is null
      */
     public LuckyNoMarkCommand(int taskNumber, boolean markDone, TaskMaster taskMaster) {
-        super(CommandType.TOGGLE_TASK);
         this.taskMaster = requireTaskMaster(taskMaster);
         this.taskNumber = taskNumber;
         this.markDone = markDone;

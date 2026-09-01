@@ -39,7 +39,6 @@ public class LuckyNoFindCommand extends LuckyNoCommand {
             String descriptionQuery,
             LocalDateTime dateTimeQuery,
             TaskMaster taskMaster) {
-        super(CommandType.FIND);
         if ((descriptionQuery == null || descriptionQuery.isBlank())
                 && dateTimeQuery == null) {
             throw new IllegalArgumentException("Find query cannot be empty.");

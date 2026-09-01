@@ -18,7 +18,6 @@ public class LuckyNoDeleteCommand extends LuckyNoCommand {
      * @throws IllegalArgumentException if {@code taskMaster} is null
      */
     public LuckyNoDeleteCommand(int taskNumber, TaskMaster taskMaster) {
-        super(CommandType.DELETE_TASK);
         this.taskMaster = requireTaskMaster(taskMaster);
         this.taskNumber = taskNumber;
     }

@@ -16,7 +16,6 @@ public class LuckyNoListCommand extends LuckyNoCommand {
      * @throws IllegalArgumentException if {@code taskMaster} is null
      */
     public LuckyNoListCommand(TaskMaster taskMaster) {
-        super(CommandType.LIST);
         this.taskMaster = requireTaskMaster(taskMaster);
     }
 

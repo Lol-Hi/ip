@@ -7,35 +7,6 @@ import luckynoslacky.luckytask.TaskMaster;
  */
 public abstract class LuckyNoCommand {
     /**
-     * Represents the internal operation requested by a parsed command.
-     */
-    public enum CommandType {
-        /** Ends the chatbot session. */
-        BYE,
-        /** Lists all tasks. */
-        LIST,
-        /** Creates a task. */
-        CREATE_TASK,
-        /** Changes a task's done status. */
-        TOGGLE_TASK,
-        /** Deletes a task. */
-        DELETE_TASK,
-        /** Searches tasks by date. */
-        FIND
-    }
-
-    private final CommandType commandType;
-
-    /**
-     * Creates a parsed command.
-     *
-     * @param commandType internal type associated with the command
-     */
-    protected LuckyNoCommand(CommandType commandType) {
-        this.commandType = commandType;
-    }
-
-    /**
      * Validates a task master dependency before storing it in a command.
      *
      * @param taskMaster task master required by the command

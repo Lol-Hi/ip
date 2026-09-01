@@ -19,7 +19,6 @@ public class LuckyNoTaskCommand extends LuckyNoCommand {
      * @throws IllegalArgumentException if either argument is null
      */
     public LuckyNoTaskCommand(Task task, TaskMaster taskMaster) {
-        super(CommandType.CREATE_TASK);
         this.taskMaster = requireTaskMaster(taskMaster);
         if (task == null) {
             throw new IllegalArgumentException("Task cannot be null.");
