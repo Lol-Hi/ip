@@ -135,7 +135,8 @@ class DateTimeParserTest {
 
     /** Verifies time-only values resolve to today or tomorrow as appropriate. */
     @Test
-    void resolvesTimeOnlyValuesToTodayOrTomorrow() throws Exception {
+    void parseStartDateTime_timeOnlyValueBeforeOrAfterNow_resolvesToTodayOrTomorrow()
+            throws Exception {
         assertEquals(LocalDateTime.of(2026, 8, 25, 14, 0),
                 parser.parseStartDateTime("2pm").value());
         assertEquals(LocalDateTime.of(2026, 8, 26, 9, 0),

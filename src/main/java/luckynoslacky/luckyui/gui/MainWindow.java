@@ -80,7 +80,7 @@ public class MainWindow {
         addChatbotMessage(response.message());
         userInput.clear();
 
-        if (response.requestsExit()) {
+        if (response.shouldExit()) {
             userInput.setDisable(true);
 
             PauseTransition pause = new PauseTransition(

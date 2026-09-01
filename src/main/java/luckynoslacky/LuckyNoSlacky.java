@@ -26,9 +26,9 @@ public class LuckyNoSlacky {
      * Contains a chatbot reply and the action requested after displaying it.
      *
      * @param message user-facing reply
-     * @param requestsExit whether the interface should close
+     * @param shouldExit whether the interface should close
      */
-    public record ChatResponse(String message, boolean requestsExit) {
+    public record ChatResponse(String message, boolean shouldExit) {
     }
 
     private final TaskMaster taskMaster;
@@ -71,7 +71,7 @@ public class LuckyNoSlacky {
             try {
                 LuckyNoCommand command = parser.parseCommand(userInput);
                 commandLineInterface.showReply(command.execute());
-                if (command.requestsExit()) {
+                if (command.shouldExit()) {
                     return true;
                 }
             } catch (LuckyNoInputException exception) {
@@ -94,7 +94,7 @@ public class LuckyNoSlacky {
             LuckyNoCommand command = parser.parseCommand(input);
             return new ChatResponse(
                     command.execute(),
-                    command.requestsExit());
+                    command.shouldExit());
         } catch (LuckyNoInputException exception) {
             return new ChatResponse(exception.getMessage(), false);
         } catch (LuckyNoStorageException exception) {

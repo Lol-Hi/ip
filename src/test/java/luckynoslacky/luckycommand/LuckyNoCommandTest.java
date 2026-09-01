@@ -35,7 +35,7 @@ class LuckyNoCommandTest {
 
         assertEquals(LuckyNoMessages.addedTaskMessage(task, 1), command.execute());
         assertEquals(1, taskMaster.getTaskCount());
-        assertFalse(command.requestsExit());
+        assertFalse(command.shouldExit());
     }
 
     /** Verifies that a mark command marks an incomplete task. */
@@ -108,7 +108,7 @@ class LuckyNoCommandTest {
         LuckyNoByeCommand command = new LuckyNoByeCommand();
 
         assertEquals(LuckyNoMessages.goodbye(), command.execute());
-        assertTrue(command.requestsExit());
+        assertTrue(command.shouldExit());
     }
 
     /** Creates a task master backed by a temporary CSV file. */

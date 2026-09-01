@@ -150,7 +150,7 @@ class LuckyNoParserTest {
                 scanner.parseCommand("list", 0).execute());
         LuckyNoCommand bye = scanner.parseCommand("bye", 0);
         assertEquals(LuckyNoMessages.goodbye(), bye.execute());
-        assertTrue(bye.requestsExit());
+        assertTrue(bye.shouldExit());
     }
 
     /** Verifies that text before the find tag is ignored. */

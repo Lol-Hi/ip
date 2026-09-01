@@ -20,7 +20,7 @@ class LuckyNoSlackyTest {
         assertEquals(
                 LuckyNoMessages.unknownCommandMessage(),
                 chatbot.getResponse("unknown command").message());
-        assertFalse(chatbot.getResponse("unknown command").requestsExit());
+        assertFalse(chatbot.getResponse("unknown command").shouldExit());
     }
 
     /** Verifies that the bye command returns an exit signal to the GUI. */
@@ -31,6 +31,6 @@ class LuckyNoSlackyTest {
         LuckyNoSlacky.ChatResponse response = chatbot.getResponse("bye");
 
         assertEquals(LuckyNoMessages.goodbye(), response.message());
-        assertTrue(response.requestsExit());
+        assertTrue(response.shouldExit());
     }
 }

@@ -28,7 +28,7 @@ public class LuckyNoByeCommand extends LuckyNoCommand {
      * @return true because the bye command requests termination
      */
     @Override
-    public boolean requestsExit() {
+    public boolean shouldExit() {
         return true;
     }
 }

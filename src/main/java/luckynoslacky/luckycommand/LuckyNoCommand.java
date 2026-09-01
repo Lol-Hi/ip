@@ -45,7 +45,7 @@ public abstract class LuckyNoCommand {
      *
      * @return true if the command requests termination
      */
-    public boolean requestsExit() {
+    public boolean shouldExit() {
         return false;
     }
 }
