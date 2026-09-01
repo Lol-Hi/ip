@@ -53,8 +53,12 @@ public class CsvSaver {
      * Creates a saver that writes to a specified file.
      *
      * @param dataFile destination CSV file
+     * @throws IllegalArgumentException if {@code dataFile} is null
      */
     public CsvSaver(Path dataFile) {
+        if (dataFile == null) {
+            throw new IllegalArgumentException("Data file cannot be null.");
+        }
         this.dataFile = dataFile;
     }
 

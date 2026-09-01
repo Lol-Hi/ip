@@ -222,12 +222,7 @@ public class TaskMaster {
      * @return description of the deleted task
      */
     public String deleteTask(int taskNumber) {
-        int taskIndex = taskNumber - 1;
-
-        if (taskIndex < 0 || taskIndex >= tasks.size()) {
-            throw new IllegalArgumentException("Invalid task number.");
-        }
-
+        int taskIndex = getTaskIndex(taskNumber);
         Task deletedTask = tasks.remove(taskIndex);
         try {
             saveChanges();
@@ -326,12 +321,21 @@ public class TaskMaster {
      * @return the requested task
      */
     private Task getTask(int taskNumber) {
-        int taskIndex = taskNumber - 1;
+        return tasks.get(getTaskIndex(taskNumber));
+    }
 
+    /**
+     * Converts and validates a one-based task number.
+     *
+     * @param taskNumber one-based task number
+     * @return corresponding zero-based task index
+     * @throws IllegalArgumentException if the task number is outside the list
+     */
+    private int getTaskIndex(int taskNumber) {
+        int taskIndex = taskNumber - 1;
         if (taskIndex < 0 || taskIndex >= tasks.size()) {
             throw new IllegalArgumentException("Invalid task number.");
         }
-
-        return tasks.get(taskIndex);
+        return taskIndex;
     }
 }

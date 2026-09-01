@@ -13,19 +13,11 @@ public class LuckyNoFindCommand extends LuckyNoCommand {
     private final TaskMaster taskMaster;
 
     /**
-     * Creates a date-only find command.
-     *
-     * @param dateTimeQuery date and time from the search query
-     */
-    public LuckyNoFindCommand(LocalDateTime dateTimeQuery) {
-        this(null, dateTimeQuery, null);
-    }
-
-    /**
      * Creates a date-only find command with a task master.
      *
      * @param dateTimeQuery date and time from the search query
      * @param taskMaster task master to search
+     * @throws IllegalArgumentException if {@code taskMaster} is null
      */
     public LuckyNoFindCommand(
             LocalDateTime dateTimeQuery,
@@ -40,6 +32,8 @@ public class LuckyNoFindCommand extends LuckyNoCommand {
      * @param descriptionQuery optional text to search for in task descriptions
      * @param dateTimeQuery optional date and time from the search query
      * @param taskMaster task master to search
+     * @throws IllegalArgumentException if the query is empty or
+     *                                  {@code taskMaster} is null
      */
     public LuckyNoFindCommand(
             String descriptionQuery,
@@ -52,7 +46,7 @@ public class LuckyNoFindCommand extends LuckyNoCommand {
         }
         this.descriptionQuery = descriptionQuery;
         this.dateTimeQuery = dateTimeQuery;
-        this.taskMaster = taskMaster;
+        this.taskMaster = requireTaskMaster(taskMaster);
     }
 
     /**

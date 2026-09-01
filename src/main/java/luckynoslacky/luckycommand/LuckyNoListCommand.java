@@ -13,10 +13,11 @@ public class LuckyNoListCommand extends LuckyNoCommand {
      * Creates a list command bound to a task master.
      *
      * @param taskMaster task master whose tasks should be listed
+     * @throws IllegalArgumentException if {@code taskMaster} is null
      */
     public LuckyNoListCommand(TaskMaster taskMaster) {
         super(CommandType.LIST);
-        this.taskMaster = taskMaster;
+        this.taskMaster = requireTaskMaster(taskMaster);
     }
 
     /**

@@ -217,6 +217,12 @@ class CsvSaverTest {
         assertThrows(IllegalArgumentException.class, () -> saver.save(null));
     }
 
+    /** Verifies that a saver rejects a missing data-file path. */
+    @Test
+    void construct_nullDataFile_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> new CsvSaver(null));
+    }
+
     /** Verifies file paths that point to directories are rejected. */
     @Test
     void loadOrSave_directoryPath_throwsStorageException() throws Exception {

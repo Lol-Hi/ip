@@ -2,6 +2,7 @@ package luckynoslacky;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -32,5 +33,12 @@ class LuckyNoSlackyTest {
 
         assertEquals(LuckyNoMessages.goodbye(), response.message());
         assertTrue(response.shouldExit());
+    }
+
+    /** Verifies that the chatbot rejects a missing date/time parser. */
+    @Test
+    void construct_nullDateTimeParser_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new LuckyNoSlacky(null));
     }
 }

@@ -55,8 +55,12 @@ public class MainWindow {
      * Provides the chatbot used to process user commands.
      *
      * @param chatbot chatbot backend
+     * @throws IllegalArgumentException if {@code chatbot} is null
      */
     public void setChatbot(LuckyNoSlacky chatbot) {
+        if (chatbot == null) {
+            throw new IllegalArgumentException("Chatbot cannot be null.");
+        }
         this.chatbot = chatbot;
         addChatbotMessage(LuckyNoMessages.greeting());
 

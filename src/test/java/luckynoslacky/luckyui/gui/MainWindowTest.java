@@ -2,6 +2,7 @@ package luckynoslacky.luckyui.gui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -83,6 +84,15 @@ class MainWindowTest {
         robot.clickOn("#sendButton");
 
         assertEquals(1, dialogueContainer.getChildren().size());
+    }
+
+    /** Verifies that the main window rejects a missing chatbot dependency. */
+    @Test
+    void setChatbot_nullChatbot_throwsIllegalArgumentException() {
+        MainWindow controller = new MainWindow();
+
+        assertThrows(IllegalArgumentException.class, () ->
+                controller.setChatbot(null));
     }
 
     /** Returns the speaker label from a dialogue row's text container. */

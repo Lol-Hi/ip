@@ -44,8 +44,13 @@ public class LuckyNoSlacky {
      * Creates the chatbot with a supplied date and time parser.
      *
      * @param dateTimeParser parser used to interpret date and time input
+     * @throws IllegalArgumentException if {@code dateTimeParser} is null
      */
     LuckyNoSlacky(DateTimeParser dateTimeParser) {
+        if (dateTimeParser == null) {
+            throw new IllegalArgumentException("Date-time parser cannot be null.");
+        }
+
         CsvSaver csvSaver = new CsvSaver();
         taskMaster = new TaskMaster(csvSaver);
 
