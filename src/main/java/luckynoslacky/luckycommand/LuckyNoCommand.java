@@ -7,6 +7,12 @@ import luckynoslacky.luckytask.TaskMaster;
  */
 public abstract class LuckyNoCommand {
     /**
+     * Creates a command.
+     */
+    protected LuckyNoCommand() {
+    }
+
+    /**
      * Validates a task master dependency before storing it in a command.
      *
      * @param taskMaster task master required by the command

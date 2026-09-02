@@ -50,7 +50,7 @@ class LuckyNoCommandTest {
                 LuckyNoMessages.markedTaskMessage("[T][X] read book"),
                 command.execute());
         assertEquals("Nah, all these things you need to do:\n1.[T][X] read book",
-                taskMaster.listTasks());
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
 
     /** Verifies that an unmark command clears a task's done status. */
@@ -66,7 +66,7 @@ class LuckyNoCommandTest {
                 LuckyNoMessages.unmarkedTaskMessage("[T][ ] read book"),
                 command.execute());
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
-                taskMaster.listTasks());
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
 
     /** Verifies that a delete command removes an existing task. */
@@ -84,12 +84,14 @@ class LuckyNoCommandTest {
 
     /** Verifies that a list command returns the task-list response. */
     @Test
-    void execute_listCommandWithExistingTasks_returnsTaskList() {
+    void execute_listCommandWithExistingTasks_returnsTaskListMessage() {
         TaskMaster taskMaster = createTaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
         LuckyNoListCommand command = new LuckyNoListCommand(taskMaster);
 
-        assertEquals(taskMaster.listTasks(), command.execute());
+        assertEquals(
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()),
+                command.execute());
     }
 
     /** Verifies that a find command returns matching dated tasks. */
@@ -100,7 +102,9 @@ class LuckyNoCommandTest {
                 "return book", LocalDateTime.of(2026, 8, 26, 23, 59)));
         LuckyNoFindCommand command = new LuckyNoFindCommand(SEARCH_DATE, taskMaster);
 
-        assertEquals(taskMaster.searchTasks(SEARCH_DATE), command.execute());
+        assertEquals(
+                LuckyNoMessages.listTasksMessage(taskMaster.findTasks(SEARCH_DATE)),
+                command.execute());
     }
 
     /** Verifies that a bye command returns goodbye and requests exit. */

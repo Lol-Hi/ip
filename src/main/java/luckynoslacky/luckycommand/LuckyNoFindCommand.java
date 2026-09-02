@@ -3,6 +3,7 @@ package luckynoslacky.luckycommand;
 import java.time.LocalDateTime;
 
 import luckynoslacky.luckytask.TaskMaster;
+import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Represents a command that searches tasks by description, date, or both.
@@ -55,6 +56,7 @@ public class LuckyNoFindCommand extends LuckyNoCommand {
      */
     @Override
     public String execute() {
-        return this.taskMaster.searchTasks(descriptionQuery, dateTimeQuery);
+        return LuckyNoMessages.listTasksMessage(
+                taskMaster.findTasks(descriptionQuery, dateTimeQuery));
     }
 }

@@ -23,6 +23,7 @@ import luckynoslacky.luckytask.EventTask;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
 import luckynoslacky.luckytask.TodoTask;
+import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Tests CSV persistence of task lists.
@@ -142,7 +143,7 @@ class CsvSaverTest {
                         + "2.[D][ ] return book (by: Sun Dec 06 2026, 11.59pm)\n"
                         + "3.[E][ ] project meeting (from: Thu Aug 06 2026, 2.00pm"
                         + " to: Thu Aug 06 2026, 4.00pm)",
-                restored.listTasks());
+                LuckyNoMessages.listTasksMessage(restored.listTasks()));
     }
 
     /** Verifies unknown task types are rejected during loading. */

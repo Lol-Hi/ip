@@ -13,6 +13,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import luckynoslacky.luckyexception.LuckyNoStorageException;
 import luckynoslacky.luckystorage.CsvSaver;
+import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Tests the task storage and listing behavior of TaskMaster.
@@ -33,7 +34,8 @@ class TaskMasterTest {
     void listTasks_emptyTaskList_returnsEmptyTaskListMessage() {
         TaskMaster taskMaster = createTaskMaster();
 
-        assertEquals("Chill lah bro got nothing yet lah!", taskMaster.listTasks());
+        assertEquals("Chill lah bro got nothing yet lah!",
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
 
     /** Verifies that a valid task is added and listed. */
@@ -44,7 +46,7 @@ class TaskMasterTest {
         taskMaster.addTask(new TodoTask("read book"));
 
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
-                taskMaster.listTasks());
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
 
     /** Verifies that listing preserves task insertion order. */
@@ -58,7 +60,7 @@ class TaskMasterTest {
         assertEquals("Nah, all these things you need to do:\n"
                         + "1.[T][ ] read book\n"
                         + "2.[T][ ] return book",
-                taskMaster.listTasks());
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
 
     /** Verifies that all supported task types are formatted in a list. */
@@ -75,12 +77,12 @@ class TaskMasterTest {
                         + "2.[D][ ] return book (by: Sun Dec 06 2026, 11.59pm)\n"
                         + "3.[E][ ] project meeting (from: Thu Aug 06 2026, 2.00pm"
                         + " to: Thu Aug 06 2026, 4.00pm)",
-                taskMaster.listTasks());
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
 
     /** Verifies that search returns deadlines and events on a date. */
     @Test
-    void searchTasks_matchingDate_returnsDeadlinesAndEvents() {
+    void findTasks_matchingDate_returnsDeadlinesAndEvents() {
         TaskMaster taskMaster = createTaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
         taskMaster.addTask(new DeadlineTask(
@@ -94,26 +96,29 @@ class TaskMasterTest {
                         + "2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)\n"
                         + "3.[E][ ] project meeting (from: Tue Aug 25 2026, 2.00pm"
                         + " to: Thu Aug 27 2026, 4.00pm)",
-                taskMaster.searchTasks(LocalDateTime.of(2026, 8, 26, 0, 0)));
+                LuckyNoMessages.listTasksMessage(
+                        taskMaster.findTasks(LocalDateTime.of(2026, 8, 26, 0, 0))));
     }
 
     /** Verifies that search excludes ToDos and dates without matches. */
     @Test
-    void searchTasks_noMatchingDateOrTodoOnly_returnsNoMatchMessage() {
+    void findTasks_noMatchingDateOrTodoOnly_returnsEmptyTaskListMessage() {
         TaskMaster taskMaster = createTaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
         taskMaster.addTask(new DeadlineTask(
                 "return book", LocalDateTime.of(2026, 8, 26, 23, 59)));
 
-        assertEquals("Wah, you very free hor, got nothing to do sia!",
-                taskMaster.searchTasks(LocalDateTime.of(2026, 8, 25, 0, 0)));
-        assertEquals("Wah, you very free hor, got nothing to do sia!",
-                taskMaster.searchTasks(LocalDateTime.of(2026, 8, 27, 0, 0)));
+        assertEquals("Chill lah bro got nothing yet lah!",
+                LuckyNoMessages.listTasksMessage(
+                        taskMaster.findTasks(LocalDateTime.of(2026, 8, 25, 0, 0))));
+        assertEquals("Chill lah bro got nothing yet lah!",
+                LuckyNoMessages.listTasksMessage(
+                        taskMaster.findTasks(LocalDateTime.of(2026, 8, 27, 0, 0))));
     }
 
     /** Verifies that marking a valid task persists its done status. */
     @Test
-    void searchTasks_descriptionQuery_matchesDescriptionsCaseInsensitively() {
+    void findTasks_descriptionQuery_matchesDescriptionsCaseInsensitively() {
         TaskMaster taskMaster = createTaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
         taskMaster.addTask(new DeadlineTask(
@@ -123,11 +128,11 @@ class TaskMasterTest {
         assertEquals("Nah, all these things you need to do:\n"
                         + "1.[T][ ] read book\n"
                         + "2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)",
-                taskMaster.searchTasks("BOOK"));
+                LuckyNoMessages.listTasksMessage(taskMaster.findTasks("BOOK")));
     }
 
     @Test
-    void searchTasks_descriptionAndDateQueries_returnsIntersection() {
+    void findTasks_descriptionAndDateQueries_returnsIntersection() {
         TaskMaster taskMaster = createTaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
         taskMaster.addTask(new DeadlineTask(
@@ -139,9 +144,9 @@ class TaskMasterTest {
 
         assertEquals("Nah, all these things you need to do on: Aug 26 2026\n"
                         + "2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)",
-                taskMaster.searchTasks(
+                LuckyNoMessages.listTasksMessage(taskMaster.findTasks(
                         "book",
-                        LocalDateTime.of(2026, 8, 26, 0, 0)));
+                        LocalDateTime.of(2026, 8, 26, 0, 0))));
     }
 
     @Test
@@ -155,7 +160,7 @@ class TaskMasterTest {
         assertEquals("Nah, all these things you need to do:\n"
                         + "1.[T][ ] read book\n"
                         + "2.[T][X] return book",
-                taskMaster.listTasks());
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
 
     /** Verifies that unmarking a done task clears its status. */
@@ -168,7 +173,7 @@ class TaskMasterTest {
         taskMaster.unmarkTaskUndone(1);
 
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
-                taskMaster.listTasks());
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
 
     /** Verifies that marking an already done task is idempotent. */
@@ -181,7 +186,7 @@ class TaskMasterTest {
         taskMaster.markTaskDone(1);
 
         assertEquals("Nah, all these things you need to do:\n1.[T][X] read book",
-                taskMaster.listTasks());
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
 
     /** Verifies that unmarking an incomplete task is idempotent. */
@@ -194,7 +199,7 @@ class TaskMasterTest {
         taskMaster.unmarkTaskUndone(1);
 
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
-                taskMaster.listTasks());
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
 
     /** Verifies that deletion removes and renumbers later tasks. */
@@ -211,7 +216,7 @@ class TaskMasterTest {
                         + "1.[T][ ] first\n"
                         + "2.[E][ ] third (from: Thu Aug 06 2026, 2.00pm"
                         + " to: Thu Aug 06 2026, 4.00pm)",
-                taskMaster.listTasks());
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
 
     /** Verifies that an invalid deletion leaves the list unchanged. */
@@ -223,7 +228,7 @@ class TaskMasterTest {
         assertThrows(IllegalArgumentException.class, () ->
                 taskMaster.deleteTask(2));
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
-                taskMaster.listTasks());
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
 
     /** Verifies that deletion frees capacity for a later task. */
@@ -239,7 +244,7 @@ class TaskMasterTest {
         assertEquals("Nah, all these things you need to do:\n"
                         + "1.[T][ ] second\n"
                         + "2.[T][ ] third",
-                taskMaster.listTasks());
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
 
     /** Verifies that deletion from an empty list is rejected. */
@@ -284,13 +289,13 @@ class TaskMasterTest {
         assertThrows(IllegalArgumentException.class, () ->
                 taskMaster.markTaskDone(2));
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
-                taskMaster.listTasks());
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
 
         taskMaster.markTaskDone(1);
         assertThrows(IllegalArgumentException.class, () ->
                 taskMaster.unmarkTaskUndone(2));
         assertEquals("Nah, all these things you need to do:\n1.[T][X] read book",
-                taskMaster.listTasks());
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
 
     /** Verifies that the configured task capacity is enforced. */
@@ -348,7 +353,7 @@ class TaskMasterTest {
                 taskMaster.deleteTask(1));
         assertEquals(1, taskMaster.getTaskCount());
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
-                taskMaster.listTasks());
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
 
     /** Verifies that null or null-containing loaded lists are rejected. */
@@ -365,11 +370,11 @@ class TaskMasterTest {
 
     /** Verifies that searching with a null date is rejected. */
     @Test
-    void searchTasks_nullDate_throwsIllegalArgumentException() {
+    void findTasks_nullDate_throwsIllegalArgumentException() {
         TaskMaster taskMaster = createTaskMaster();
 
         assertThrows(IllegalArgumentException.class, () ->
-                taskMaster.searchTasks(null, null));
+                taskMaster.findTasks(null, null));
     }
 
     /** Creates a task master with the default test capacity. */

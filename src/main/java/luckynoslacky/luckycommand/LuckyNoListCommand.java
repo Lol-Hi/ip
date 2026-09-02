@@ -1,6 +1,7 @@
 package luckynoslacky.luckycommand;
 
 import luckynoslacky.luckytask.TaskMaster;
+import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Represents a request to list all stored tasks.
@@ -26,6 +27,6 @@ public class LuckyNoListCommand extends LuckyNoCommand {
      */
     @Override
     public String execute() {
-        return taskMaster.listTasks();
+        return LuckyNoMessages.listTasksMessage(taskMaster.listTasks());
     }
 }

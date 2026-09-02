@@ -1,11 +1,11 @@
 package luckynoslacky.luckyui;
 
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import luckynoslacky.luckyparser.LuckyNoParser;
 import luckynoslacky.luckytask.Task;
+import luckynoslacky.luckytask.TaskList;
 
 /**
  * Stores and formats all messages that can be shown to the user.
@@ -297,34 +297,25 @@ public final class LuckyNoMessages {
     }
 
     /**
-     * Returns the heading for a non-empty task list.
+     * Formats an indexed task list with the appropriate heading.
      *
-     * @return task-list heading
+     * @param taskList indexed task list to format
+     * @return formatted task-list response
      */
-    public static String taskListHeader() {
-        return "Nah, all these things you need to do:";
-    }
-
-    /**
-     * Returns the heading for a date-search result.
-     *
-     * @param searchDate date used for the search
-     * @return search-list heading
-     */
-    public static String findTasksListHeader(LocalDate searchDate) {
-        if (searchDate == null) {
-            throw new IllegalArgumentException("Search date cannot be null.");
+    public static String listTasksMessage(TaskList taskList) {
+        if (taskList == null) {
+            throw new IllegalArgumentException("Task list cannot be null.");
         }
-        return "Nah, all these things you need to do on: "
-                + FIND_DATE_FORMAT.format(searchDate);
-    }
 
-    /**
-     * Returns the message for a search with no matching deadline or event.
-     *
-     * @return no-match message
-     */
-    public static String noMatchingTasksMessage() {
-        return "Wah, you very free hor, got nothing to do sia!";
+        if (taskList.isEmpty()) {
+            return emptyTaskListMessage();
+        }
+
+        String header = taskList.getSearchDate()
+                .map(date -> "Nah, all these things you need to do on: "
+                        + FIND_DATE_FORMAT.format(date))
+                .orElse("Nah, all these things you need to do:");
+
+        return joinMessageLines(header, taskList.toDisplayString());
     }
 }

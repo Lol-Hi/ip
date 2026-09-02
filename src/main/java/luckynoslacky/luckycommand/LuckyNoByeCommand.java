@@ -7,6 +7,12 @@ import luckynoslacky.luckyui.LuckyNoMessages;
  */
 public class LuckyNoByeCommand extends LuckyNoCommand {
     /**
+     * Creates a command that requests termination of the chat loop.
+     */
+    public LuckyNoByeCommand() {
+    }
+
+    /**
      * Returns the chatbot's goodbye message.
      *
      * @return goodbye message

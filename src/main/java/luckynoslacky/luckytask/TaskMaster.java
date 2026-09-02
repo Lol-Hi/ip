@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 
 import luckynoslacky.luckyexception.LuckyNoStorageException;
 import luckynoslacky.luckystorage.CsvSaver;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Stores tasks entered by the user in memory.
@@ -98,40 +97,36 @@ public class TaskMaster {
     }
 
     /**
-     * Returns all stored tasks with numbering.
+     * Returns all stored tasks with their original one-based numbers.
      *
-     * @return formatted task list
+     * @return indexed task list
      */
-    public String listTasks() {
-        if (tasks.isEmpty()) {
-            return LuckyNoMessages.emptyTaskListMessage();
-        }
-
-        List<Integer> taskIndexes = new ArrayList<>();
+    public TaskList listTasks() {
+        TaskList result = new TaskList();
         for (int i = 0; i < tasks.size(); i++) {
-            taskIndexes.add(i);
+            result.addTask(i + 1, tasks.get(i));
         }
-        return formatTaskList(taskIndexes, LuckyNoMessages.taskListHeader(), "");
+        return result;
     }
 
     /**
      * Searches tasks by description.
      *
      * @param descriptionQuery text to search for in task descriptions
-     * @return formatted matching task list
+     * @return indexed matching task list
      */
-    public String searchTasks(String descriptionQuery) {
-        return searchTasks(descriptionQuery, null);
+    public TaskList findTasks(String descriptionQuery) {
+        return findTasks(descriptionQuery, null);
     }
 
     /**
      * Lists deadlines and events occurring on the queried date.
      *
      * @param dateTimeQuery date and time from the find command
-     * @return formatted matching task list
+     * @return indexed matching task list
      */
-    public String searchTasks(LocalDateTime dateTimeQuery) {
-        return searchTasks(null, dateTimeQuery);
+    public TaskList findTasks(LocalDateTime dateTimeQuery) {
+        return findTasks(null, dateTimeQuery);
     }
 
     /**
@@ -140,9 +135,9 @@ public class TaskMaster {
      *
      * @param descriptionQuery optional text to search for in task descriptions
      * @param dateTimeQuery optional date and time on which a task must occur
-     * @return formatted matching task list
+     * @return indexed matching task list
      */
-    public String searchTasks(
+    public TaskList findTasks(
             String descriptionQuery,
             LocalDateTime dateTimeQuery) {
         if (descriptionQuery != null && descriptionQuery.isBlank()) {
@@ -156,7 +151,7 @@ public class TaskMaster {
         LocalDate searchDate = dateTimeQuery == null
                 ? null
                 : dateTimeQuery.toLocalDate();
-        List<Integer> matchingTaskIndexes = new ArrayList<>();
+        TaskList matchingTasks = new TaskList(searchDate);
         for (int i = 0; i < tasks.size(); i++) {
             Task task = tasks.get(i);
             boolean matchesDescription = descriptionQuery == null
@@ -164,17 +159,11 @@ public class TaskMaster {
             boolean matchesDate = searchDate == null
                     || task.occursOn(searchDate);
             if (matchesDescription && matchesDate) {
-                matchingTaskIndexes.add(i);
+                matchingTasks.addTask(i + 1, task);
             }
         }
 
-        String header = searchDate == null
-                ? LuckyNoMessages.taskListHeader()
-                : LuckyNoMessages.findTasksListHeader(searchDate);
-        return formatTaskList(
-                matchingTaskIndexes,
-                header,
-                LuckyNoMessages.noMatchingTasksMessage());
+        return matchingTasks;
     }
 
     /**
@@ -272,32 +261,6 @@ public class TaskMaster {
     /** Persists the current task list through the configured saver. */
     private void saveChanges() {
         csvSaver.save(this);
-    }
-
-    /**
-     * Formats tasks using their original task numbers.
-     *
-     * @param taskIndexes zero-based indexes of tasks to display
-     * @param header heading to display above the tasks
-     * @param emptyMessage message to display when no indexes are supplied
-     * @return formatted task list
-     */
-    private String formatTaskList(
-            List<Integer> taskIndexes,
-            String header,
-            String emptyMessage) {
-        if (taskIndexes.isEmpty()) {
-            return emptyMessage;
-        }
-
-        StringBuilder result = new StringBuilder(header);
-        for (int taskIndex : taskIndexes) {
-            result.append("\n")
-                    .append(taskIndex + 1)
-                    .append(".")
-                    .append(tasks.get(taskIndex));
-        }
-        return result.toString();
     }
 
     /**

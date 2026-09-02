@@ -3,9 +3,13 @@ package luckynoslacky.luckyui;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.time.LocalDate;
+
 import org.junit.jupiter.api.Test;
 
 import luckynoslacky.luckyparser.LuckyNoParser;
+import luckynoslacky.luckytask.TaskList;
+import luckynoslacky.luckytask.TodoTask;
 
 /**
  * Tests user-visible storage error messages.
@@ -59,6 +63,26 @@ class LuckyNoMessagesTest {
                         + "    [NO SLACKING]\n"
                         + "  LuckyNoSlacky is here to help!",
                 LuckyNoMessages.banner());
+    }
+
+    /** Verifies that task-list messages use the relevant search header. */
+    @Test
+    void listTasksMessage_dateSearch_usesDateHeaderAndTaskLines() {
+        TaskList taskList = new TaskList(LocalDate.of(2026, 8, 26));
+        taskList.addTask(2, new TodoTask("read book"));
+
+        assertEquals(
+                "Nah, all these things you need to do on: Aug 26 2026\n"
+                        + "2.[T][ ] read book",
+                LuckyNoMessages.listTasksMessage(taskList));
+    }
+
+    /** Verifies that an empty task-list message is shared by empty searches. */
+    @Test
+    void listTasksMessage_emptySearch_usesEmptyTaskListMessage() {
+        assertEquals(
+                LuckyNoMessages.emptyTaskListMessage(),
+                LuckyNoMessages.listTasksMessage(new TaskList()));
     }
 
     /** Verifies unsupported command formats are rejected internally. */
