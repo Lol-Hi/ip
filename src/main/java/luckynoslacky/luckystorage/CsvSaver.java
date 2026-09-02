@@ -34,7 +34,7 @@ public class CsvSaver {
             "isCompleted",
             "Description",
             "startTime",
-            "finishTime");
+            "endTime");
     private static final int EXPECTED_FIELD_COUNT = 5;
 
     private static final Path DEFAULT_DATA_FILE =
@@ -242,7 +242,7 @@ public class CsvSaver {
         String completionStatus = record.get(1);
         String description = record.get(2);
         String startTimeText = record.get(3);
-        String finishTimeText = record.get(4);
+        String endTimeText = record.get(4);
 
         validateCompletionStatus(record);
 
@@ -252,11 +252,11 @@ public class CsvSaver {
                 case "T" -> new TodoTask(description);
                 case "D" -> new DeadlineTask(
                         description,
-                        DateTimeParser.parseFromStorage(finishTimeText));
+                        DateTimeParser.parseFromStorage(endTimeText));
                 case "E" -> new EventTask(
                         description,
                         DateTimeParser.parseFromStorage(startTimeText),
-                        DateTimeParser.parseFromStorage(finishTimeText));
+                        DateTimeParser.parseFromStorage(endTimeText));
                 default -> throw invalidRecord(record, "unknown task type");
             };
         } catch (IllegalArgumentException exception) {

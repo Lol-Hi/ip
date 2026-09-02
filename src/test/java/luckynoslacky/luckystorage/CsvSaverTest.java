@@ -54,7 +54,7 @@ class CsvSaverTest {
             List<CSVRecord> records = parser.getRecords();
 
             assertEquals(List.of(
-                    "Task type", "isCompleted", "Description", "startTime", "finishTime"),
+                    "Task type", "isCompleted", "Description", "startTime", "endTime"),
                     records.get(0).toList());
             assertEquals(List.of("T", "1", "read, book", "", ""),
                     records.get(1).toList());
@@ -150,7 +150,7 @@ class CsvSaverTest {
     void load_unknownTaskType_throwsStorageException() throws Exception {
         Path dataFile = temporaryDirectory.resolve("invalid.csv");
         Files.writeString(dataFile,
-                "Task type,isCompleted,Description,startTime,finishTime\n"
+                "Task type,isCompleted,Description,startTime,endTime\n"
                         + "X,0,unknown task,,\n",
                 StandardCharsets.UTF_8);
         CsvSaver saver = new CsvSaver(dataFile);
@@ -163,7 +163,7 @@ class CsvSaverTest {
     void load_invalidCompletionStatus_throwsStorageException() throws Exception {
         Path dataFile = temporaryDirectory.resolve("invalid-status.csv");
         Files.writeString(dataFile,
-                "Task type,isCompleted,Description,startTime,finishTime\n"
+                "Task type,isCompleted,Description,startTime,endTime\n"
                         + "T,2,read book,,\n",
                 StandardCharsets.UTF_8);
         CsvSaver saver = new CsvSaver(dataFile);
@@ -188,7 +188,7 @@ class CsvSaverTest {
     void load_malformedTaskRecord_throwsStorageException() throws Exception {
         Path dataFile = temporaryDirectory.resolve("malformed-record.csv");
         Files.writeString(dataFile,
-                "Task type,isCompleted,Description,startTime,finishTime\n"
+                "Task type,isCompleted,Description,startTime,endTime\n"
                         + "D,0,return book,,2030-13-01 10:00\n",
                 StandardCharsets.UTF_8);
         CsvSaver saver = new CsvSaver(dataFile);
@@ -201,7 +201,7 @@ class CsvSaverTest {
     void load_recordWithMissingFields_throwsStorageException() throws Exception {
         Path dataFile = temporaryDirectory.resolve("missing-fields.csv");
         Files.writeString(dataFile,
-                "Task type,isCompleted,Description,startTime,finishTime\n"
+                "Task type,isCompleted,Description,startTime,endTime\n"
                         + "T,0,read book,\n",
                 StandardCharsets.UTF_8);
         CsvSaver saver = new CsvSaver(dataFile);

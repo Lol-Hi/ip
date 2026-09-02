@@ -92,7 +92,7 @@ unmarked, or deleted. The data is stored in the relative path
 `data/luckyNoSlacky.csv` using the following columns:
 
 ```text
-Task type, isCompleted, Description, startTime, finishTime
+Task type, isCompleted, Description, startTime, endTime
 ```
 
 The data directory and CSV file are created automatically when the first task
@@ -102,8 +102,8 @@ chatbot starts with an empty task list.
 The time fields are used as follows:
 
 - ToDos leave both time fields empty.
-- Deadlines store the deadline in `finishTime`.
-- Events store their start time in `startTime` and end time in `finishTime`.
+- Deadlines store the deadline in `endTime`.
+- Events store their start time in `startTime` and end time in `endTime`.
 
 Date/time values are saved using `yyyy-MM-dd HH:mm` (for example,
 `2030-10-15 14:15`).

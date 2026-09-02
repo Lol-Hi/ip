@@ -95,19 +95,19 @@ public abstract class Task {
      *
      * @param taskType task type marker
      * @param startTime task start time, or an empty string when not applicable
-     * @param finishTime task finish time, or an empty string when not applicable
+     * @param endTime task end time, or an empty string when not applicable
      * @return fields in CSV column order
      */
     protected final List<String> createCsvStorageFields(
             char taskType,
             LocalDateTime startTime,
-            LocalDateTime finishTime) {
+            LocalDateTime endTime) {
         return List.of(
                 String.valueOf(taskType),
                 isDone ? "1" : "0",
                 description,
                 DateTimeParser.formatForStorage(startTime),
-                DateTimeParser.formatForStorage(finishTime));
+                DateTimeParser.formatForStorage(endTime));
     }
 
     /**
