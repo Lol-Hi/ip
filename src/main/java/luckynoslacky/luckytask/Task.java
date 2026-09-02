@@ -12,10 +12,75 @@ import luckynoslacky.luckyparser.DateTimeParser;
  * Represents the common state and behavior shared by all task types.
  */
 public abstract class Task {
+    /**
+     * Represents the completion state of a task and its external
+     * representations.
+     */
+    public enum TaskStatus {
+        /** Represents a task that has not been completed. */
+        NOT_DONE(" ", "0"),
+        /** Represents a task that has been completed. */
+        DONE("X", "1");
+
+        private final String displayIcon;
+        private final String storageValue;
+
+        /**
+         * Creates a task status with its display and storage representations.
+         *
+         * @param displayIcon icon used in task displays
+         * @param storageValue value used in CSV storage
+         */
+        TaskStatus(String displayIcon, String storageValue) {
+            this.displayIcon = displayIcon;
+            this.storageValue = storageValue;
+        }
+
+        /**
+         * Returns the icon used when displaying this status.
+         *
+         * @return display icon
+         */
+        public String getDisplayIcon() {
+            return displayIcon;
+        }
+
+        /**
+         * Returns the value used to store this status in a CSV record.
+         *
+         * @return CSV completion value
+         */
+        public String getStorageValue() {
+            return storageValue;
+        }
+
+        /**
+         * Converts a CSV completion value into its corresponding task status.
+         *
+         * @param value CSV completion value
+         * @return status represented by the value
+         * @throws IllegalArgumentException if the value is not {@code 0} or
+         *                                  {@code 1}
+         */
+        public static TaskStatus fromStorageValue(String value) {
+            if (value == null) {
+                throw new IllegalArgumentException(
+                        "Completion status cannot be null.");
+            }
+
+            return switch (value) {
+                case "0" -> NOT_DONE;
+                case "1" -> DONE;
+                default -> throw new IllegalArgumentException(
+                        "Invalid completion status: " + value);
+            };
+        }
+    }
+
     private static final DateTimeFormatter DISPLAY_FORMATTER =
             DateTimeFormatter.ofPattern("EEE MMM dd uuuu, h.mma", Locale.ENGLISH);
     private final String description;
-    private boolean isDone;
+    private TaskStatus status;
 
     /**
      * Creates an incomplete task.
@@ -28,21 +93,21 @@ public abstract class Task {
         }
 
         this.description = description;
-        this.isDone = false;
+        this.status = TaskStatus.NOT_DONE;
     }
 
     /**
      * Marks this task as done.
      */
     public void markAsDone() {
-        isDone = true;
+        status = TaskStatus.DONE;
     }
 
     /**
      * Marks this task as not done.
      */
     public void unmarkAsUndone() {
-        isDone = false;
+        status = TaskStatus.NOT_DONE;
     }
 
     /**
@@ -51,7 +116,7 @@ public abstract class Task {
      * @return X for a done task, or a space for an incomplete task
      */
     public String getStatusIcon() {
-        return isDone ? "X" : " ";
+        return status.getDisplayIcon();
     }
 
     /**
@@ -60,7 +125,7 @@ public abstract class Task {
      * @return true if the task is done
      */
     public boolean isDone() {
-        return isDone;
+        return status == TaskStatus.DONE;
     }
 
     /**
@@ -104,7 +169,7 @@ public abstract class Task {
             LocalDateTime endTime) {
         return List.of(
                 String.valueOf(taskType),
-                isDone ? "1" : "0",
+                status.getStorageValue(),
                 description,
                 DateTimeParser.formatForStorage(startTime),
                 DateTimeParser.formatForStorage(endTime));

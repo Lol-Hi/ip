@@ -239,12 +239,11 @@ public class CsvSaver {
         }
 
         String taskType = record.get(0);
-        String completionStatus = record.get(1);
         String description = record.get(2);
         String startTimeText = record.get(3);
         String endTimeText = record.get(4);
 
-        validateCompletionStatus(record);
+        Task.TaskStatus completionStatus = parseCompletionStatus(record);
 
         Task task;
         try {
@@ -266,7 +265,7 @@ public class CsvSaver {
                     exception);
         }
 
-        if (completionStatus.equals("1")) {
+        if (completionStatus == Task.TaskStatus.DONE) {
             task.markAsDone();
         }
 
@@ -279,11 +278,10 @@ public class CsvSaver {
      * @param record CSV task record
      * @throws LuckyNoStorageException if the flag is neither 0 nor 1
      */
-    private void validateCompletionStatus(CSVRecord record) {
-        String completionStatus = record.get(1);
-
-        if (!completionStatus.equals("0")
-                && !completionStatus.equals("1")) {
+    private Task.TaskStatus parseCompletionStatus(CSVRecord record) {
+        try {
+            return Task.TaskStatus.fromStorageValue(record.get(1));
+        } catch (IllegalArgumentException exception) {
             throw invalidRecord(record, "invalid completion status");
         }
     }
