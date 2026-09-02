@@ -15,7 +15,7 @@ import luckynoslacky.luckystorage.CsvSaver;
 public class TaskMaster {
     private static final int DEFAULT_MAX_TASKS = 100;
 
-    private final ArrayList<Task> tasks;
+    private final List<Task> tasks;
     private final int maxTasks;
     private final CsvSaver csvSaver;
 
