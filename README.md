@@ -65,6 +65,17 @@ java -cp build/classes/java/main luckynoslacky.LuckyNoSlacky
 
 On Windows, use `gradlew.bat build` instead of `./gradlew build`.
 
+### Run the JavaFX GUI
+
+From the project root, launch the graphical interface with:
+
+```bash
+./gradlew runGui
+```
+
+On Windows, use `gradlew.bat runGui` instead. Ensure that Java 25 is
+configured before launching the application.
+
 ### Run using the released JAR
 
 LuckyNoSlacky is also distributed as a fat JAR containing the application and
