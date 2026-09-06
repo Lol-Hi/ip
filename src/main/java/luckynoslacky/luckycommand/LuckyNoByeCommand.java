@@ -6,10 +6,10 @@ import luckynoslacky.luckyui.LuckyNoMessages;
  * Represents a request to leave the chatbot.
  */
 public class LuckyNoByeCommand extends LuckyNoCommand {
-
-    /** Creates a command that ends the chatbot session. */
+    /**
+     * Creates a command that requests termination of the chat loop.
+     */
     public LuckyNoByeCommand() {
-        super(CommandType.BYE);
     }
 
     /**
@@ -28,7 +28,7 @@ public class LuckyNoByeCommand extends LuckyNoCommand {
      * @return true because the bye command requests termination
      */
     @Override
-    public boolean requestsExit() {
+    public boolean shouldExit() {
         return true;
     }
 }

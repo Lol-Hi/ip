@@ -8,28 +8,28 @@ import java.util.List;
  * Represents a task with a specified start and end time.
  */
 public class EventTask extends Task {
-    private final LocalDateTime fromTime;
-    private final LocalDateTime toTime;
+    private final LocalDateTime startTime;
+    private final LocalDateTime endTime;
 
     /**
      * Creates an incomplete event task.
      *
      * @param description task description
-     * @param fromTime event start date and time
-     * @param toTime event end date and time
+     * @param startTime event start date and time
+     * @param endTime event end date and time
      */
-    public EventTask(String description, LocalDateTime fromTime, LocalDateTime toTime) {
+    public EventTask(String description, LocalDateTime startTime, LocalDateTime endTime) {
         super(description);
 
-        if (fromTime == null || toTime == null) {
+        if (startTime == null || endTime == null) {
             throw new IllegalArgumentException("Event times cannot be empty.");
         }
-        if (toTime.isBefore(fromTime)) {
+        if (endTime.isBefore(startTime)) {
             throw new IllegalArgumentException("Event end cannot be before its start.");
         }
 
-        this.fromTime = fromTime;
-        this.toTime = toTime;
+        this.startTime = startTime;
+        this.endTime = endTime;
     }
 
     /**
@@ -39,7 +39,7 @@ public class EventTask extends Task {
      */
     @Override
     public List<String> getCsvStorageFields() {
-        return createCsvStorageFields('E', fromTime, toTime);
+        return createCsvStorageFields('E', startTime, endTime);
     }
 
     /**
@@ -50,8 +50,8 @@ public class EventTask extends Task {
      */
     @Override
     public boolean occursOn(LocalDate date) {
-        return !date.isBefore(fromTime.toLocalDate())
-                && !date.isAfter(toTime.toLocalDate());
+        return !date.isBefore(startTime.toLocalDate())
+                && !date.isAfter(endTime.toLocalDate());
     }
 
     /**
@@ -62,7 +62,7 @@ public class EventTask extends Task {
     @Override
     public String toString() {
         return "[E]" + super.toString()
-                + " (from: " + Task.formatDateTime(fromTime)
-                + " to: " + Task.formatDateTime(toTime) + ")";
+                + " (from: " + Task.formatDateTime(startTime)
+                + " to: " + Task.formatDateTime(endTime) + ")";
     }
 }

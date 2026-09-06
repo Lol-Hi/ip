@@ -211,10 +211,10 @@ public final class DateTimeParser {
             return new ParsedDateTime(LocalDateTime.of(resolvedDate, time), true);
         }
 
-        int split = findDateTimeSplit(normalized);
-        if (split > 0) {
-            String dateText = normalized.substring(0, split).trim();
-            String timeText = normalized.substring(split).trim();
+        int dateTimeSplitIndex = findDateTimeSplit(normalized);
+        if (dateTimeSplitIndex > 0) {
+            String dateText = normalized.substring(0, dateTimeSplitIndex).trim();
+            String timeText = normalized.substring(dateTimeSplitIndex).trim();
             LocalTime dateTime = parseTime(timeText);
             if (dateTime != null) {
                 LocalDate date = parseDate(dateText, today);
@@ -422,7 +422,7 @@ public final class DateTimeParser {
     /**
      * Attempts each explicitly supported absolute date formatter.
      *
-     * @param value normalized date text
+     * @param normalizedDateText normalized date text
      * @return parsed date, or null if no formatter accepts the value
      */
     private static LocalDate parseWithKnownFormat(String value) {
@@ -668,9 +668,9 @@ public final class DateTimeParser {
      * @param value normalized date text
      * @return parsed prefix and remaining date expression
      */
-    private static Prefix extractPrefix(String value) {
+    private static Prefix extractPrefix(String normalizedDateText) {
         int count = 0;
-        String remainder = value;
+        String remainder = normalizedDateText;
 
         if (remainder.startsWith("this coming ")) {
             return new Prefix("coming", 1,

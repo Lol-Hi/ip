@@ -12,25 +12,15 @@ public class LuckyNoMarkCommand extends LuckyNoCommand {
     private final TaskMaster taskMaster;
 
     /**
-     * Creates a command that sets a task's done status explicitly.
-     *
-     * @param taskNumber one-based task number
-     * @param markDone whether the task should be marked done
-     */
-    public LuckyNoMarkCommand(int taskNumber, boolean markDone) {
-        this(taskNumber, markDone, null);
-    }
-
-    /**
      * Creates a task-status command bound to a task master.
      *
      * @param taskNumber one-based task number
      * @param markDone whether the task should be marked done
      * @param taskMaster task master containing the task
+     * @throws IllegalArgumentException if {@code taskMaster} is null
      */
     public LuckyNoMarkCommand(int taskNumber, boolean markDone, TaskMaster taskMaster) {
-        super(CommandType.TOGGLE_TASK);
-        this.taskMaster = taskMaster;
+        this.taskMaster = requireTaskMaster(taskMaster);
         this.taskNumber = taskNumber;
         this.markDone = markDone;
     }

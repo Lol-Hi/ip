@@ -146,11 +146,11 @@ class LuckyNoParserTest {
     @Test
     void parseCommand_listAndByeInput_returnsCommands() throws LuckyNoInputException {
         assertEquals(
-                taskMaster.listTasks(),
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()),
                 scanner.parseCommand("list", 0).execute());
         LuckyNoCommand bye = scanner.parseCommand("bye", 0);
         assertEquals(LuckyNoMessages.goodbye(), bye.execute());
-        assertTrue(bye.requestsExit());
+        assertTrue(bye.shouldExit());
     }
 
     /** Verifies that text before the find tag is ignored. */
@@ -163,8 +163,8 @@ class LuckyNoParserTest {
                 scanner.parseCommand("find book /on next Wednesday", 0));
 
         assertEquals(
-                taskMaster.searchTasks(
-                        "book", LocalDateTime.of(2026, 9, 2, 0, 0)),
+                LuckyNoMessages.listTasksMessage(taskMaster.findTasks(
+                        "book", LocalDateTime.of(2026, 9, 2, 0, 0))),
                 command.execute());
     }
 
@@ -178,7 +178,7 @@ class LuckyNoParserTest {
                 scanner.parseCommand("find book", 0));
 
         assertEquals(
-                taskMaster.searchTasks("book"),
+                LuckyNoMessages.listTasksMessage(taskMaster.findTasks("book")),
                 command.execute());
     }
 

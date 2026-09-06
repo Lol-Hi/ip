@@ -206,14 +206,14 @@ public class LuckyNoParser {
      * Rejects arguments for commands that must stand alone.
      *
      * @param arguments command arguments
-     * @param command command name used in the error message
+     * @param commandName command name used in the error message
      * @throws LuckyNoInputException if arguments are present
      */
-    private void checkNoArguments(String arguments, String command)
+    private void checkNoArguments(String arguments, String commandName)
             throws LuckyNoInputException {
         if (!arguments.isEmpty()) {
             throw new LuckyNoInputException(
-                    LuckyNoMessages.extraArgumentsMessage(command));
+                    LuckyNoMessages.extraArgumentsMessage(commandName));
         }
     }
 
@@ -350,20 +350,20 @@ public class LuckyNoParser {
         }
 
         String description = arguments.substring(0, fromIndex).trim();
-        String fromTimeText = arguments.substring(fromIndex + 5, toIndex).trim();
-        String toTimeText = arguments.substring(toIndex + 3).trim();
-        if (description.isEmpty() || fromTimeText.isEmpty() || toTimeText.isEmpty()) {
+        String startTimeText = arguments.substring(fromIndex + 5, toIndex).trim();
+        String endTimeText = arguments.substring(toIndex + 3).trim();
+        if (description.isEmpty() || startTimeText.isEmpty() || endTimeText.isEmpty()) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
                             CommandName.EVENT));
         }
-        DateTimeParser.ParsedDateTime fromTime =
-                dateTimeParser.parseStartDateTime(fromTimeText);
-        DateTimeParser.ParsedDateTime toTime =
-                dateTimeParser.parseEndDateTime(toTimeText, fromTime.value());
-        if (toTime.value().isBefore(fromTime.value())) {
+        DateTimeParser.ParsedDateTime startTime =
+                dateTimeParser.parseStartDateTime(startTimeText);
+        DateTimeParser.ParsedDateTime endTime =
+                dateTimeParser.parseEndDateTime(endTimeText, startTime.value());
+        if (endTime.value().isBefore(startTime.value())) {
             throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
         }
-        return new EventTask(description, fromTime.value(), toTime.value());
+        return new EventTask(description, startTime.value(), endTime.value());
     }
 }

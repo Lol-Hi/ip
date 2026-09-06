@@ -2,6 +2,7 @@ package luckynoslacky.luckycommand;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
@@ -35,7 +36,7 @@ class LuckyNoCommandTest {
 
         assertEquals(LuckyNoMessages.addedTaskMessage(task, 1), command.execute());
         assertEquals(1, taskMaster.getTaskCount());
-        assertFalse(command.requestsExit());
+        assertFalse(command.shouldExit());
     }
 
     /** Verifies that a mark command marks an incomplete task. */
@@ -49,7 +50,7 @@ class LuckyNoCommandTest {
                 LuckyNoMessages.markedTaskMessage("[T][X] read book"),
                 command.execute());
         assertEquals("Nah, all these things you need to do:\n1.[T][X] read book",
-                taskMaster.listTasks());
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
 
     /** Verifies that an unmark command clears a task's done status. */
@@ -65,7 +66,7 @@ class LuckyNoCommandTest {
                 LuckyNoMessages.unmarkedTaskMessage("[T][ ] read book"),
                 command.execute());
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
-                taskMaster.listTasks());
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
 
     /** Verifies that a delete command removes an existing task. */
@@ -83,12 +84,14 @@ class LuckyNoCommandTest {
 
     /** Verifies that a list command returns the task-list response. */
     @Test
-    void execute_listCommandWithExistingTasks_returnsTaskList() {
+    void execute_listCommandWithExistingTasks_returnsTaskListMessage() {
         TaskMaster taskMaster = createTaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
         LuckyNoListCommand command = new LuckyNoListCommand(taskMaster);
 
-        assertEquals(taskMaster.listTasks(), command.execute());
+        assertEquals(
+                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()),
+                command.execute());
     }
 
     /** Verifies that a find command returns matching dated tasks. */
@@ -99,7 +102,9 @@ class LuckyNoCommandTest {
                 "return book", LocalDateTime.of(2026, 8, 26, 23, 59)));
         LuckyNoFindCommand command = new LuckyNoFindCommand(SEARCH_DATE, taskMaster);
 
-        assertEquals(taskMaster.searchTasks(SEARCH_DATE), command.execute());
+        assertEquals(
+                LuckyNoMessages.listTasksMessage(taskMaster.findTasks(SEARCH_DATE)),
+                command.execute());
     }
 
     /** Verifies that a bye command returns goodbye and requests exit. */
@@ -108,7 +113,42 @@ class LuckyNoCommandTest {
         LuckyNoByeCommand command = new LuckyNoByeCommand();
 
         assertEquals(LuckyNoMessages.goodbye(), command.execute());
-        assertTrue(command.requestsExit());
+        assertTrue(command.shouldExit());
+    }
+
+    /** Verifies that task commands reject a missing task master. */
+    @Test
+    void construct_taskCommandWithoutTaskMaster_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new LuckyNoTaskCommand(new TodoTask("read book"), null));
+    }
+
+    /** Verifies that mark commands reject a missing task master. */
+    @Test
+    void construct_markCommandWithoutTaskMaster_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new LuckyNoMarkCommand(1, true, null));
+    }
+
+    /** Verifies that delete commands reject a missing task master. */
+    @Test
+    void construct_deleteCommandWithoutTaskMaster_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new LuckyNoDeleteCommand(1, null));
+    }
+
+    /** Verifies that list commands reject a missing task master. */
+    @Test
+    void construct_listCommandWithoutTaskMaster_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new LuckyNoListCommand(null));
+    }
+
+    /** Verifies that find commands reject a missing task master. */
+    @Test
+    void construct_findCommandWithoutTaskMaster_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new LuckyNoFindCommand(SEARCH_DATE, null));
     }
 
     /** Creates a task master backed by a temporary CSV file. */

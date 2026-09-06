@@ -12,23 +12,14 @@ public class LuckyNoTaskCommand extends LuckyNoCommand {
     private final TaskMaster taskMaster;
 
     /**
-     * Creates a task-creation command containing the already constructed task.
-     *
-     * @param task task to add
-     */
-    public LuckyNoTaskCommand(Task task) {
-        this(task, null);
-    }
-
-    /**
      * Creates a task-creation command bound to a task master.
      *
      * @param task task to add
      * @param taskMaster task master that should receive the task
+     * @throws IllegalArgumentException if either argument is null
      */
     public LuckyNoTaskCommand(Task task, TaskMaster taskMaster) {
-        super(CommandType.CREATE_TASK);
-        this.taskMaster = taskMaster;
+        this.taskMaster = requireTaskMaster(taskMaster);
         if (task == null) {
             throw new IllegalArgumentException("Task cannot be null.");
         }

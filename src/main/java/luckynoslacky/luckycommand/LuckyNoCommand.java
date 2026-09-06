@@ -1,36 +1,29 @@
 package luckynoslacky.luckycommand;
 
+import luckynoslacky.luckytask.TaskMaster;
+
 /**
  * Represents a parsed chatbot command.
  */
 public abstract class LuckyNoCommand {
     /**
-     * Represents the internal operation requested by a parsed command.
+     * Creates a command.
      */
-    public enum CommandType {
-        /** Ends the chatbot session. */
-        BYE,
-        /** Lists all tasks. */
-        LIST,
-        /** Creates a task. */
-        CREATE_TASK,
-        /** Changes a task's done status. */
-        TOGGLE_TASK,
-        /** Deletes a task. */
-        DELETE_TASK,
-        /** Searches tasks by date. */
-        FIND
+    protected LuckyNoCommand() {
     }
 
-    private final CommandType commandType;
-
     /**
-     * Creates a parsed command.
+     * Validates a task master dependency before storing it in a command.
      *
-     * @param commandType internal type used to dispatch the command
+     * @param taskMaster task master required by the command
+     * @return the non-null task master
+     * @throws IllegalArgumentException if {@code taskMaster} is null
      */
-    protected LuckyNoCommand(CommandType commandType) {
-        this.commandType = commandType;
+    protected static TaskMaster requireTaskMaster(TaskMaster taskMaster) {
+        if (taskMaster == null) {
+            throw new IllegalArgumentException("Task master cannot be null.");
+        }
+        return taskMaster;
     }
 
     /**
@@ -45,7 +38,7 @@ public abstract class LuckyNoCommand {
      *
      * @return true if the command requests termination
      */
-    public boolean requestsExit() {
+    public boolean shouldExit() {
         return false;
     }
 }
