@@ -206,14 +206,14 @@ public class LuckyNoParser {
      * Rejects arguments for commands that must stand alone.
      *
      * @param arguments command arguments
-     * @param command command name used in the error message
+     * @param commandName command name used in the error message
      * @throws LuckyNoInputException if arguments are present
      */
-    private void checkNoArguments(String arguments, String command)
+    private void checkNoArguments(String arguments, String commandName)
             throws LuckyNoInputException {
         if (!arguments.isEmpty()) {
             throw new LuckyNoInputException(
-                    LuckyNoMessages.extraArgumentsMessage(command));
+                    LuckyNoMessages.extraArgumentsMessage(commandName));
         }
     }
 
