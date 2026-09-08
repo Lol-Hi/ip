@@ -327,10 +327,7 @@ public final class DateTimeParser {
      * @return true if the candidate can be parsed as a date
      */
     private static boolean isValidDateWithYear(String dateText, String yearText) {
-        String normalizedDateText = normalizeDate(dateText).replaceFirst(
-                "^(monday|tuesday|wednesday|thursday|friday|saturday|sunday"
-                        + "|mon|tue|wed|thu|fri|sat|sun)\\s+",
-                "");
+        String normalizedDateText = removeWeekdayPrefix(normalizeDate(dateText));
         String candidateDateText = normalizedDateText + " " + yearText;
         return parseWithKnownFormat(candidateDateText) != null;
     }
@@ -347,51 +344,74 @@ public final class DateTimeParser {
             throws LuckyNoInputException {
         String normalizedDateText = normalizeDate(dateText);
         Prefix prefix = extractPrefix(normalizedDateText);
-        String remainingDateText = prefix.remainder();
+        String dateExpression = prefix.remainder();
 
-        DayOfWeek weekday = parseWeekday(remainingDateText);
+        LocalDate relativeDate = parseRelativeDate(dateExpression, today, prefix);
+        if (relativeDate != null) {
+            return relativeDate;
+        }
+
+        String dateWithoutWeekday = removeWeekdayPrefix(dateExpression);
+        return parseDateExpression(dateWithoutWeekday, today, prefix);
+    }
+
+    /**
+     * Resolves a date expression that uses a relative keyword.
+     *
+     * @param dateExpression date expression after prefix extraction
+     * @param today current date used for relative resolution
+     * @param prefix relative-date prefix
+     * @return resolved relative date, or null when the expression is absolute
+     */
+    private static LocalDate parseRelativeDate(
+            String dateExpression, LocalDate today, Prefix prefix) {
+        DayOfWeek weekday = parseWeekday(dateExpression);
         if (weekday != null) {
             return resolveWeekday(weekday, today, prefix);
         }
 
-        if (prefix.modifier().equals("none")) {
-            switch (remainingDateText) {
-                case "today":
-                    return today;
-                case "tomorrow": // Fallthrough
-                case "tmr":
-                    return today.plusDays(1);
-                case "yesterday": // Fallthrough
-                case "ytd":
-                    return today.minusDays(1);
-                default:
-                    break;
-            }
+        if (!prefix.modifier().equals("none")) {
+            return null;
         }
 
-        remainingDateText = remainingDateText.replaceFirst(
-                "^(monday|tuesday|wednesday|thursday|friday|saturday|sunday"
-                        + "|mon|tue|wed|thu|fri|sat|sun)\\s+",
-                "");
+        return switch (dateExpression) {
+            case "today" -> today;
+            case "tomorrow", "tmr" -> today.plusDays(1);
+            case "yesterday", "ytd" -> today.minusDays(1);
+            default -> null;
+        };
+    }
 
-        if (remainingDateText.equals("month")) {
+    /**
+     * Parses an absolute or relative date expression that is not a weekday.
+     *
+     * @param dateExpression date expression without a weekday prefix
+     * @param today current date used for resolving incomplete dates
+     * @param prefix relative-date prefix
+     * @return resolved date
+     * @throws LuckyNoInputException if the expression is invalid
+     */
+    private static LocalDate parseDateExpression(
+            String dateExpression, LocalDate today, Prefix prefix)
+            throws LuckyNoInputException {
+        if (dateExpression.equals("month")) {
             return resolveMonth(today, prefix);
         }
-        if (remainingDateText.equals("year")) {
+        if (dateExpression.equals("year")) {
             return resolveYear(today, prefix);
         }
 
-        Matcher yearMatcher = YEAR_ONLY_PATTERN.matcher(remainingDateText);
+        Matcher yearMatcher = YEAR_ONLY_PATTERN.matcher(dateExpression);
         if (yearMatcher.matches()) {
             return LocalDate.of(Integer.parseInt(yearMatcher.group(1)), 1, 1);
         }
 
-        LocalDate formattedDate = parseWithKnownFormat(remainingDateText);
+        LocalDate formattedDate = parseWithKnownFormat(dateExpression);
         if (formattedDate != null) {
             return formattedDate;
         }
 
-        Matcher monthDayMatcher = MONTH_DAY_PATTERN.matcher(remainingDateText);
+        Matcher monthDayMatcher = MONTH_DAY_PATTERN.matcher(dateExpression);
         if (monthDayMatcher.matches()) {
             return resolveMonthDay(
                     monthDayMatcher.group(1),
@@ -401,7 +421,7 @@ public final class DateTimeParser {
                     prefix);
         }
 
-        Matcher dayMonthMatcher = DAY_MONTH_PATTERN.matcher(remainingDateText);
+        Matcher dayMonthMatcher = DAY_MONTH_PATTERN.matcher(dateExpression);
         if (dayMonthMatcher.matches()) {
             return resolveMonthDay(
                     dayMonthMatcher.group(2),
@@ -411,18 +431,31 @@ public final class DateTimeParser {
                     prefix);
         }
 
-        Matcher dayMatcher = DAY_ONLY_PATTERN.matcher(remainingDateText);
+        Matcher dayMatcher = DAY_ONLY_PATTERN.matcher(dateExpression);
         if (dayMatcher.matches()) {
             return resolveDayOfMonth(
                     Integer.parseInt(dayMatcher.group(1)), today, prefix);
         }
 
-        int monthNumber = parseMonthNumber(remainingDateText);
+        int monthNumber = parseMonthNumber(dateExpression);
         if (monthNumber > 0) {
             return resolveMonth(monthNumber, today, prefix);
         }
 
         throw invalidDateTime();
+    }
+
+    /**
+     * Removes an optional weekday prefix from a date expression.
+     *
+     * @param dateExpression date expression that may begin with a weekday
+     * @return expression without the weekday prefix
+     */
+    private static String removeWeekdayPrefix(String dateExpression) {
+        return dateExpression.replaceFirst(
+                "^(monday|tuesday|wednesday|thursday|friday|saturday|sunday"
+                        + "|mon|tue|wed|thu|fri|sat|sun)\\s+",
+                "");
     }
 
     /**
