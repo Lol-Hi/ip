@@ -65,6 +65,7 @@ def configureJavaFxTest = { Test testTask ->
 
 test {
     configureJavaFxTest(it)
+    enableAssertions = true
 
     testLogging {
         events 'passed', 'skipped', 'failed'
@@ -84,6 +85,7 @@ tasks.register('guiTest', Test) {
     classpath = sourceSets.test.runtimeClasspath
     failFast = true
     configureJavaFxTest(it)
+    enableAssertions = true
     testLogging {
         events 'passed', 'skipped', 'failed'
         showExceptions = true
@@ -108,15 +110,34 @@ jar {
 }
 
 shadowJar {
-    archiveFileName = 'luckyNoSlacky.jar'
+    archiveFileName = 'luckyNoSlacky-CLI.jar'
 
     manifest {
         attributes 'Main-Class': application.mainClass.get()
     }
 }
 
+tasks.register('shadowJarGui',
+        com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    archiveFileName = 'luckyNoSlacky-GUI.jar'
+    from sourceSets.main.output
+    configurations = [project.configurations.runtimeClasspath]
+    mergeServiceFiles()
+
+    manifest {
+        attributes 'Main-Class': 'luckynoslacky.luckyui.gui.Launcher'
+    }
+}
+
+tasks.register('releaseJars') {
+    group = 'build'
+    description = 'Builds the CLI and JavaFX GUI release JARs.'
+    dependsOn shadowJar, shadowJarGui
+}
+
 run {
     standardInput = System.in
+    enableAssertions = true
 }
 
 tasks.register('runGui', JavaExec) {

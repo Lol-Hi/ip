@@ -79,7 +79,12 @@ public class TaskMaster {
             throw new IllegalArgumentException("Task cannot be null.");
         }
 
+        int previousTaskCount = tasks.size();
         tasks.add(task);
+        assert tasks.size() == previousTaskCount + 1
+                : "Task count did not increase after adding a task";
+        assert tasks.size() <= maxTasks
+                : "Task list exceeded its maximum capacity";
         try {
             saveChanges();
         } catch (LuckyNoStorageException exception) {
@@ -206,7 +211,10 @@ public class TaskMaster {
      */
     public String deleteTask(int taskNumber) {
         int taskIndex = getTaskIndex(taskNumber);
+        int previousTaskCount = tasks.size();
         Task deletedTask = tasks.remove(taskIndex);
+        assert tasks.size() == previousTaskCount - 1
+                : "Task count did not decrease after deleting a task";
         try {
             saveChanges();
         } catch (LuckyNoStorageException exception) {
