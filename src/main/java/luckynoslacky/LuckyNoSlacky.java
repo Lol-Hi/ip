@@ -91,12 +91,12 @@ public class LuckyNoSlacky {
     /**
      * Processes one command from a graphical user interface.
      *
-     * @param input command entered by the user
+     * @param userInput command entered by the user
      * @return chatbot response and exit status
      */
-    public ChatResponse getResponse(String input) {
+    public ChatResponse getResponse(String userInput) {
         try {
-            LuckyNoCommand command = parser.parseCommand(input);
+            LuckyNoCommand command = parser.parseCommand(userInput);
             return new ChatResponse(
                     command.execute(),
                     command.shouldExit());
@@ -124,16 +124,16 @@ public class LuckyNoSlacky {
      * @param args command-line arguments, which are not currently used
      */
     public static void main(String[] args) {
-        LuckyNoSlacky lucky = new LuckyNoSlacky(createDateTimeParser());
+        LuckyNoSlacky chatbot = new LuckyNoSlacky(createDateTimeParser());
         LuckyNoCli commandLineInterface = new LuckyNoCli();
         commandLineInterface.showGreeting();
 
-        if (lucky.loadError) {
+        if (chatbot.loadError) {
             commandLineInterface.showLoadingError();
             return;
         }
 
-        if (!lucky.chatLoop(commandLineInterface)) {
+        if (!chatbot.chatLoop(commandLineInterface)) {
             commandLineInterface.showGoodbye();
         }
     }

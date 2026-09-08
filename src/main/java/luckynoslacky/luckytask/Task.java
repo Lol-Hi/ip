@@ -57,22 +57,22 @@ public abstract class Task {
         /**
          * Converts a CSV completion value into its corresponding task status.
          *
-         * @param value CSV completion value
-         * @return status represented by the value
-         * @throws IllegalArgumentException if the value is not {@code 0} or
+         * @param storageValue CSV completion value
+         * @return status represented by the storage value
+         * @throws IllegalArgumentException if the storage value is not {@code 0} or
          *                                  {@code 1}
          */
-        public static TaskStatus fromStorageValue(String value) {
-            if (value == null) {
+        public static TaskStatus fromStorageValue(String storageValue) {
+            if (storageValue == null) {
                 throw new IllegalArgumentException(
                         "Completion status cannot be null.");
             }
 
-            return switch (value) {
+            return switch (storageValue) {
                 case "0" -> NOT_DONE;
                 case "1" -> DONE;
                 default -> throw new IllegalArgumentException(
-                        "Invalid completion status: " + value);
+                        "Invalid completion status: " + storageValue);
             };
         }
     }
@@ -178,11 +178,11 @@ public abstract class Task {
     /**
      * Formats a date and time using the chatbot's human-readable format.
      *
-     * @param value date and time to format
+     * @param dateTime date and time to format
      * @return formatted date and time
      */
-    protected static String formatDateTime(LocalDateTime value) {
-        return DISPLAY_FORMATTER.format(value)
+    protected static String formatDateTime(LocalDateTime dateTime) {
+        return DISPLAY_FORMATTER.format(dateTime)
                 .replace("AM", "am")
                 .replace("PM", "pm");
     }

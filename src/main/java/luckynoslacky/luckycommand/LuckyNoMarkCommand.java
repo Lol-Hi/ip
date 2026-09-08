@@ -8,21 +8,22 @@ import luckynoslacky.luckyui.LuckyNoMessages;
  */
 public class LuckyNoMarkCommand extends LuckyNoCommand {
     private final int taskNumber;
-    private final boolean markDone;
+    private final boolean shouldMarkDone;
     private final TaskMaster taskMaster;
 
     /**
      * Creates a task-status command bound to a task master.
      *
      * @param taskNumber one-based task number
-     * @param markDone whether the task should be marked done
+     * @param shouldMarkDone whether the task should be marked done
      * @param taskMaster task master containing the task
      * @throws IllegalArgumentException if {@code taskMaster} is null
      */
-    public LuckyNoMarkCommand(int taskNumber, boolean markDone, TaskMaster taskMaster) {
+    public LuckyNoMarkCommand(
+            int taskNumber, boolean shouldMarkDone, TaskMaster taskMaster) {
         this.taskMaster = requireTaskMaster(taskMaster);
         this.taskNumber = taskNumber;
-        this.markDone = markDone;
+        this.shouldMarkDone = shouldMarkDone;
     }
 
     /**
@@ -32,11 +33,11 @@ public class LuckyNoMarkCommand extends LuckyNoCommand {
      */
     @Override
     public String execute() {
-        String formattedTask = markDone
+        String formattedTask = shouldMarkDone
                 ? this.taskMaster.markTaskDone(taskNumber)
                 : this.taskMaster.unmarkTaskUndone(taskNumber);
 
-        return markDone
+        return shouldMarkDone
                 ? LuckyNoMessages.markedTaskMessage(formattedTask)
                 : LuckyNoMessages.unmarkedTaskMessage(formattedTask);
     }

@@ -53,7 +53,7 @@ public class TaskList {
     }
 
     /**
-     * Returns whether this result contains no matching tasks.
+     * Returns whether this task list contains no matching tasks.
      *
      * @return true if no indexed tasks are stored
      */

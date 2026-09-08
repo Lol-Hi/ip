@@ -107,11 +107,11 @@ public class TaskMaster {
      * @return indexed task list
      */
     public TaskList listTasks() {
-        TaskList result = new TaskList();
+        TaskList taskList = new TaskList();
         for (int i = 0; i < tasks.size(); i++) {
-            result.addTask(i + 1, tasks.get(i));
+            taskList.addTask(i + 1, tasks.get(i));
         }
-        return result;
+        return taskList;
     }
 
     /**
@@ -178,16 +178,7 @@ public class TaskMaster {
      * @return description of the task that was marked
      */
     public String markTaskDone(int taskNumber) {
-        Task task = getTask(taskNumber);
-        boolean wasDone = task.isDone();
-        task.markAsDone();
-        try {
-            saveChanges();
-        } catch (LuckyNoStorageException exception) {
-            restoreTaskStatus(task, wasDone);
-            throw exception;
-        }
-        return task.toString();
+        return updateTaskStatus(taskNumber, true);
     }
 
     /**
@@ -197,9 +188,27 @@ public class TaskMaster {
      * @return description of the task that was unmarked
      */
     public String unmarkTaskUndone(int taskNumber) {
+        return updateTaskStatus(taskNumber, false);
+    }
+
+    /**
+     * Updates a task's completion status and persists the change.
+     *
+     * @param taskNumber one-based number of the task to update
+     * @param shouldBeDone whether the task should be marked as done
+     * @return description of the updated task
+     * @throws LuckyNoStorageException if the updated list cannot be saved
+     */
+    private String updateTaskStatus(int taskNumber, boolean shouldBeDone) {
         Task task = getTask(taskNumber);
         boolean wasDone = task.isDone();
-        task.unmarkAsUndone();
+
+        if (shouldBeDone) {
+            task.markAsDone();
+        } else {
+            task.unmarkAsUndone();
+        }
+
         try {
             saveChanges();
         } catch (LuckyNoStorageException exception) {
@@ -245,25 +254,25 @@ public class TaskMaster {
      * Replaces the in-memory task list with tasks loaded from CSV storage.
      * This method does not save the list again.
      *
-     * @param tasks tasks loaded from CSV storage
+     * @param loadedTasks tasks loaded from CSV storage
      */
-    public void loadTasksFromCsvStorageRecord(List<Task> tasks) {
-        if (tasks == null) {
+    public void loadTasksFromCsvStorageRecord(List<Task> loadedTasks) {
+        if (loadedTasks == null) {
             throw new LuckyNoStorageException("Tasks cannot be null.");
         }
 
-        if (tasks.size() > maxTasks) {
+        if (loadedTasks.size() > maxTasks) {
             throw new LuckyNoStorageException(
                     "Saved task list exceeds the maximum capacity.");
         }
 
-        if (tasks.stream().anyMatch(task -> task == null)) {
+        if (loadedTasks.stream().anyMatch(task -> task == null)) {
             throw new LuckyNoStorageException(
                     "Saved task list contains a null task.");
         }
 
         this.tasks.clear();
-        this.tasks.addAll(tasks);
+        this.tasks.addAll(loadedTasks);
     }
 
     /** Persists the current task list through the configured saver. */

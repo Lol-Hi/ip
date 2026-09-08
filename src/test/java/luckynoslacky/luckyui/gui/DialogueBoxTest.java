@@ -41,17 +41,17 @@ class DialogueBoxTest {
             stage.setScene(new Scene(dialogue));
             stage.show();
 
-            VBox text = (VBox) dialogue.getChildren().get(0);
-            Label speaker = (Label) text.getChildren().get(0);
-            Label content = (Label) text.getChildren().get(1);
+            VBox messageContainer = (VBox) dialogue.getChildren().get(0);
+            Label speakerLabel = (Label) messageContainer.getChildren().get(0);
+            Label messageLabel = (Label) messageContainer.getChildren().get(1);
 
             assertEquals(Pos.CENTER_RIGHT, dialogue.getAlignment());
-            assertEquals("You said:", speaker.getText());
-            assertEquals("todo read book", content.getText());
+            assertEquals("You said:", speakerLabel.getText());
+            assertEquals("todo read book", messageLabel.getText());
             assertTrue(dialogue.getStyleClass().contains(
                     DialogueBox.USER_DIALOGUE_STYLE));
-            assertTrue(speaker.getStyleClass().contains("speaker-label"));
-            assertTrue(content.getStyleClass().contains("message-content"));
+            assertTrue(speakerLabel.getStyleClass().contains("speaker-label"));
+            assertTrue(messageLabel.getStyleClass().contains("message-content"));
         });
     }
 
@@ -69,17 +69,17 @@ class DialogueBoxTest {
             stage.setScene(new Scene(dialogue));
             stage.show();
 
-            VBox text = (VBox) dialogue.getChildren().get(1);
-            Label speaker = (Label) text.getChildren().get(0);
-            Label content = (Label) text.getChildren().get(1);
+            VBox messageContainer = (VBox) dialogue.getChildren().get(1);
+            Label speakerLabel = (Label) messageContainer.getChildren().get(0);
+            Label messageLabel = (Label) messageContainer.getChildren().get(1);
 
             assertEquals(Pos.CENTER_LEFT, dialogue.getAlignment());
-            assertEquals("LuckyNoSlacky said:", speaker.getText());
-            assertEquals("Got it.", content.getText());
+            assertEquals("LuckyNoSlacky said:", speakerLabel.getText());
+            assertEquals("Got it.", messageLabel.getText());
             assertTrue(dialogue.getStyleClass().contains(
                     DialogueBox.CHATBOT_DIALOGUE_STYLE));
-            assertTrue(speaker.getStyleClass().contains("speaker-label"));
-            assertTrue(content.getStyleClass().contains("message-content"));
+            assertTrue(speakerLabel.getStyleClass().contains("speaker-label"));
+            assertTrue(messageLabel.getStyleClass().contains("message-content"));
         });
     }
 }

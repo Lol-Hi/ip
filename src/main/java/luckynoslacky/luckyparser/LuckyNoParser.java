@@ -105,12 +105,12 @@ public class LuckyNoParser {
         /**
          * Finds the command represented by a user-provided token.
          *
-         * @param input command token
+         * @param commandToken command token
          * @return matching command, or an empty Optional if there is no match
          */
-        public static Optional<CommandName> fromInput(String input) {
+        public static Optional<CommandName> fromCommandToken(String commandToken) {
             for (CommandName commandName : values()) {
-                if (commandName.inputName.equalsIgnoreCase(input)) {
+                if (commandName.inputName.equalsIgnoreCase(commandToken)) {
                     return Optional.of(commandName);
                 }
             }
@@ -121,82 +121,131 @@ public class LuckyNoParser {
     /**
      * Parses one line of chatbot input.
      *
-     * @param input raw user input
+     * @param userInput raw user input
      * @param taskCount number of tasks currently stored
      * @return parsed command
      * @throws LuckyNoInputException if the input is invalid
      */
-    public LuckyNoCommand parseCommand(String input, int taskCount)
+    public LuckyNoCommand parseCommand(String userInput, int taskCount)
             throws LuckyNoInputException {
-        return parseCommand(input, taskCount, taskMaster);
+        return parseCommand(userInput, taskCount, taskMaster);
     }
 
     /**
      * Parses input using the task master's current task count.
      *
-     * @param input raw user input
+     * @param userInput raw user input
      * @return parsed command
      * @throws LuckyNoInputException if the input is invalid
      */
-    public LuckyNoCommand parseCommand(String input)
+    public LuckyNoCommand parseCommand(String userInput)
             throws LuckyNoInputException {
-        return parseCommand(input, taskMaster.getTaskCount(), taskMaster);
+        return parseCommand(userInput, taskMaster.getTaskCount(), taskMaster);
     }
 
     /**
      * Parses a command with an explicit task count and command dependency.
      *
-     * @param input raw user input
+     * @param userInput raw user input
      * @param taskCount current number of tasks
      * @param commandTaskMaster task master attached to parsed commands
      * @return parsed command
      * @throws LuckyNoInputException if the input is invalid
      */
     private LuckyNoCommand parseCommand(
-            String input,
+            String userInput,
             int taskCount,
             TaskMaster commandTaskMaster)
             throws LuckyNoInputException {
-        if (input == null || input.trim().isEmpty()) {
+        ParsedInput parsedInput = parseInput(userInput);
+        CommandName commandName = parseCommandName(parsedInput.commandToken());
+        return createCommand(
+                commandName,
+                parsedInput.arguments(),
+                taskCount,
+                commandTaskMaster);
+    }
+
+    /**
+     * Splits raw input into a command token and its remaining arguments.
+     *
+     * @param userInput raw user input
+     * @return normalized command token and arguments
+     * @throws LuckyNoInputException if the input is blank
+     */
+    private ParsedInput parseInput(String userInput) throws LuckyNoInputException {
+        if (userInput == null || userInput.trim().isEmpty()) {
             throw new LuckyNoInputException(LuckyNoMessages.missingCommandMessage());
         }
 
-        String trimmedInput = input.trim();
-        String[] commandParts = trimmedInput.split("\\s+", 2);
+        String[] commandParts = userInput.trim().split("\\s+", 2);
         String commandToken = commandParts[0].toLowerCase(Locale.ROOT);
         String arguments = commandParts.length == 2
                 ? commandParts[1].trim()
                 : "";
+        return new ParsedInput(commandToken, arguments);
+    }
 
-        CommandName commandName = CommandName.fromInput(commandToken)
+    /**
+     * Converts a command token into a supported command name.
+     *
+     * @param commandToken normalized command token
+     * @return matching command name
+     * @throws LuckyNoInputException if the token is not recognized
+     */
+    private static CommandName parseCommandName(String commandToken)
+            throws LuckyNoInputException {
+        return CommandName.fromCommandToken(commandToken)
                 .orElseThrow(() -> new LuckyNoInputException(
                         LuckyNoMessages.unknownCommandMessage()));
+    }
+
+    /**
+     * Builds the executable command represented by parsed input.
+     *
+     * @param commandName recognized command name
+     * @param commandArguments command arguments
+     * @param taskCount current number of tasks
+     * @param commandTaskMaster task master attached to the command
+     * @return executable command
+     * @throws LuckyNoInputException if the command arguments are invalid
+     */
+    private LuckyNoCommand createCommand(
+            CommandName commandName,
+            String commandArguments,
+            int taskCount,
+            TaskMaster commandTaskMaster)
+            throws LuckyNoInputException {
 
         switch (commandName) {
             case BYE:
-                checkNoArguments(arguments, CommandName.BYE.getInputName());
+                checkNoArguments(commandArguments, CommandName.BYE.getInputName());
                 return new LuckyNoByeCommand();
             case LIST:
-                checkNoArguments(arguments, CommandName.LIST.getInputName());
+                checkNoArguments(commandArguments, CommandName.LIST.getInputName());
                 return new LuckyNoListCommand(commandTaskMaster);
             case TODO:
-                return new LuckyNoTaskCommand(parseTodo(arguments), commandTaskMaster);
+                return new LuckyNoTaskCommand(
+                        parseTodo(commandArguments), commandTaskMaster);
             case DEADLINE:
                 return new LuckyNoTaskCommand(
-                        parseDeadline(arguments), commandTaskMaster);
+                        parseDeadline(commandArguments), commandTaskMaster);
             case EVENT:
-                return new LuckyNoTaskCommand(parseEvent(arguments), commandTaskMaster);
+                return new LuckyNoTaskCommand(
+                        parseEvent(commandArguments), commandTaskMaster);
             case MARK:
                 return new LuckyNoMarkCommand(
-                        parseTaskNumber(arguments, taskCount), true, commandTaskMaster);
+                        parseTaskNumber(commandArguments, taskCount),
+                        true, commandTaskMaster);
             case UNMARK:
                 return new LuckyNoMarkCommand(
-                        parseTaskNumber(arguments, taskCount), false, commandTaskMaster);
+                        parseTaskNumber(commandArguments, taskCount),
+                        false, commandTaskMaster);
             case DELETE:
                 return new LuckyNoDeleteCommand(
-                        parseTaskNumber(arguments, taskCount), commandTaskMaster);
+                        parseTaskNumber(commandArguments, taskCount), commandTaskMaster);
             case FIND:
-                return parseFind(arguments, commandTaskMaster);
+                return parseFind(commandArguments, commandTaskMaster);
             default:
                 assert false : "Unhandled command name: " + commandName;
                 throw new IllegalStateException("Unhandled command name.");
@@ -206,13 +255,13 @@ public class LuckyNoParser {
     /**
      * Rejects arguments for commands that must stand alone.
      *
-     * @param arguments command arguments
+     * @param commandArguments command arguments
      * @param commandName command name used in the error message
      * @throws LuckyNoInputException if arguments are present
      */
-    private void checkNoArguments(String arguments, String commandName)
+    private void checkNoArguments(String commandArguments, String commandName)
             throws LuckyNoInputException {
-        if (!arguments.isEmpty()) {
+        if (!commandArguments.isEmpty()) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.extraArgumentsMessage(commandName));
         }
@@ -221,20 +270,20 @@ public class LuckyNoParser {
     /**
      * Validates and converts a one-based task number.
      *
-     * @param arguments task-number text
+     * @param taskNumberText task-number text
      * @param taskCount number of tasks currently available
      * @return validated one-based task number
      * @throws LuckyNoInputException if the number is missing or out of range
      */
-    private int parseTaskNumber(String arguments, int taskCount)
+    private int parseTaskNumber(String taskNumberText, int taskCount)
             throws LuckyNoInputException {
-        if (arguments.isEmpty() || arguments.matches(".*\\s+.*")) {
+        if (taskNumberText.isEmpty() || taskNumberText.matches(".*\\s+.*")) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.missingTaskNumberMessage());
         }
 
         try {
-            int taskNumber = Integer.parseInt(arguments);
+            int taskNumber = Integer.parseInt(taskNumberText);
             if (taskNumber < 1 || taskNumber > taskCount) {
                 throw new NumberFormatException();
             }
@@ -248,41 +297,42 @@ public class LuckyNoParser {
     /**
      * Parses the description of a ToDo command.
      *
-     * @param arguments command arguments
+     * @param commandArguments command arguments
      * @return constructed ToDo task
      * @throws LuckyNoInputException if the description is missing
      */
-    private TodoTask parseTodo(String arguments) throws LuckyNoInputException {
-        if (arguments.isEmpty()) {
+    private TodoTask parseTodo(String commandArguments) throws LuckyNoInputException {
+        if (commandArguments.isEmpty()) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.missingTaskDescriptionMessage());
         }
-        return new TodoTask(arguments);
+        return new TodoTask(commandArguments);
     }
 
     /**
      * Parses a deadline description and its {@code /by} date/time.
      *
-     * @param arguments command arguments
+     * @param commandArguments command arguments
      * @return constructed deadline task
      * @throws LuckyNoInputException if the format or date/time is invalid
      */
-    private DeadlineTask parseDeadline(String arguments) throws LuckyNoInputException {
-        int byIndex = arguments.indexOf("/by");
+    private DeadlineTask parseDeadline(String commandArguments)
+            throws LuckyNoInputException {
+        int byIndex = commandArguments.indexOf("/by");
         if (byIndex <= 0) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
                             CommandName.DEADLINE));
         }
 
-        String description = arguments.substring(0, byIndex).trim();
-        String byTimeText = arguments.substring(byIndex + 3).trim();
+        String description = commandArguments.substring(0, byIndex).trim();
+        String byTimeText = commandArguments.substring(byIndex + 3).trim();
         if (description.isEmpty() || byTimeText.isEmpty()) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
                             CommandName.DEADLINE));
         }
-        LocalDateTime byTime = dateTimeParser.parseEndDateTime(byTimeText).value();
+        LocalDateTime byTime = dateTimeParser.parseEndDateTime(byTimeText).dateTime();
         if (byTime.isBefore(dateTimeParser.now())) {
             throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
         }
@@ -293,30 +343,32 @@ public class LuckyNoParser {
      * Parses a find command with an optional description and date filter.
      * Text before the {@code /on} tag is treated as the description query.
      *
-     * @param arguments command arguments
+     * @param commandArguments command arguments
      * @param taskMaster task master attached to the parsed command
      * @return parsed find command
      * @throws LuckyNoInputException if the search format or date is invalid
      */
-    private LuckyNoFindCommand parseFind(String arguments, TaskMaster taskMaster)
+    private LuckyNoFindCommand parseFind(
+            String commandArguments, TaskMaster taskMaster)
             throws LuckyNoInputException {
-        if (arguments.isBlank()) {
+        if (commandArguments.isBlank()) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(CommandName.FIND));
         }
 
-        int onIndex = arguments.indexOf("/on");
+        int onIndex = commandArguments.indexOf("/on");
         if (onIndex < 0) {
-            return new LuckyNoFindCommand(arguments.trim(), null, taskMaster);
+            return new LuckyNoFindCommand(
+                    commandArguments.trim(), null, taskMaster);
         }
 
-        if (arguments.indexOf("/on", onIndex + 3) >= 0) {
+        if (commandArguments.indexOf("/on", onIndex + 3) >= 0) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(CommandName.FIND));
         }
 
-        String descriptionQuery = arguments.substring(0, onIndex).trim();
-        String dateText = arguments.substring(onIndex + 3).trim();
+        String descriptionQuery = commandArguments.substring(0, onIndex).trim();
+        String dateText = commandArguments.substring(onIndex + 3).trim();
         if (dateText.isEmpty()) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
@@ -324,7 +376,7 @@ public class LuckyNoParser {
         }
 
         LocalDateTime searchDateTime =
-                dateTimeParser.parseStartDateTime(dateText).value();
+                dateTimeParser.parseStartDateTime(dateText).dateTime();
         if (descriptionQuery.isEmpty()) {
             descriptionQuery = null;
         }
@@ -337,22 +389,24 @@ public class LuckyNoParser {
     /**
      * Parses an event description and its {@code /from} and {@code /to} times.
      *
-     * @param arguments command arguments
+     * @param commandArguments command arguments
      * @return constructed event task
      * @throws LuckyNoInputException if the format or date/time is invalid
      */
-    private EventTask parseEvent(String arguments) throws LuckyNoInputException {
-        int fromIndex = arguments.indexOf("/from");
-        int toIndex = arguments.indexOf("/to");
+    private EventTask parseEvent(String commandArguments)
+            throws LuckyNoInputException {
+        int fromIndex = commandArguments.indexOf("/from");
+        int toIndex = commandArguments.indexOf("/to");
         if (fromIndex <= 0 || toIndex <= fromIndex) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
                             CommandName.EVENT));
         }
 
-        String description = arguments.substring(0, fromIndex).trim();
-        String startTimeText = arguments.substring(fromIndex + 5, toIndex).trim();
-        String endTimeText = arguments.substring(toIndex + 3).trim();
+        String description = commandArguments.substring(0, fromIndex).trim();
+        String startTimeText = commandArguments
+                .substring(fromIndex + 5, toIndex).trim();
+        String endTimeText = commandArguments.substring(toIndex + 3).trim();
         if (description.isEmpty() || startTimeText.isEmpty() || endTimeText.isEmpty()) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
@@ -361,10 +415,13 @@ public class LuckyNoParser {
         DateTimeParser.ParsedDateTime startTime =
                 dateTimeParser.parseStartDateTime(startTimeText);
         DateTimeParser.ParsedDateTime endTime =
-                dateTimeParser.parseEndDateTime(endTimeText, startTime.value());
-        if (endTime.value().isBefore(startTime.value())) {
+                dateTimeParser.parseEndDateTime(endTimeText, startTime.dateTime());
+        if (endTime.dateTime().isBefore(startTime.dateTime())) {
             throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
         }
-        return new EventTask(description, startTime.value(), endTime.value());
+        return new EventTask(description, startTime.dateTime(), endTime.dateTime());
+    }
+
+    private record ParsedInput(String commandToken, String arguments) {
     }
 }
