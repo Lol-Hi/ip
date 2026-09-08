@@ -108,11 +108,29 @@ jar {
 }
 
 shadowJar {
-    archiveFileName = 'luckyNoSlacky.jar'
+    archiveFileName = 'luckyNoSlacky-CLI.jar'
 
     manifest {
         attributes 'Main-Class': application.mainClass.get()
     }
+}
+
+tasks.register('shadowJarGui',
+        com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    archiveFileName = 'luckyNoSlacky-GUI.jar'
+    from sourceSets.main.output
+    configurations = [project.configurations.runtimeClasspath]
+    mergeServiceFiles()
+
+    manifest {
+        attributes 'Main-Class': 'luckynoslacky.luckyui.gui.Launcher'
+    }
+}
+
+tasks.register('releaseJars') {
+    group = 'build'
+    description = 'Builds the CLI and JavaFX GUI release JARs.'
+    dependsOn shadowJar, shadowJarGui
 }
 
 run {
