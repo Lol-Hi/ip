@@ -660,18 +660,14 @@ public final class DateTimeParser {
     private static LocalDate firstValidDay(
             LocalDate monthStart, int dayOfMonth)
             throws LuckyNoInputException {
-        if (dayOfMonth > monthStart.lengthOfMonth()) {
-            LocalDate nextMonth = monthStart.plusMonths(1);
-            if (dayOfMonth > nextMonth.lengthOfMonth()) {
-                LocalDate followingMonth = nextMonth.plusMonths(1);
-                if (dayOfMonth > followingMonth.lengthOfMonth()) {
-                    throw invalidDateTime();
-                }
-                return followingMonth.withDayOfMonth(dayOfMonth);
+        for (int monthOffset = 0; monthOffset < 3; monthOffset++) {
+            LocalDate candidateMonth = monthStart.plusMonths(monthOffset);
+            if (dayOfMonth <= candidateMonth.lengthOfMonth()) {
+                return candidateMonth.withDayOfMonth(dayOfMonth);
             }
-            return nextMonth.withDayOfMonth(dayOfMonth);
         }
-        return monthStart.withDayOfMonth(dayOfMonth);
+
+        throw invalidDateTime();
     }
 
     /**
