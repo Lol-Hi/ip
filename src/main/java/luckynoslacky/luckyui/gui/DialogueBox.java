@@ -33,15 +33,15 @@ public class DialogueBox extends HBox {
             Image avatar,
             Pos alignment,
             String dialogueStyle) {
-        Label speaker = new Label(speakerLabel);
-        speaker.getStyleClass().add("speaker-label");
+        Label speakerNameLabel = new Label(speakerLabel);
+        speakerNameLabel.getStyleClass().add("speaker-label");
 
-        Label content = new Label(message);
-        content.getStyleClass().add("message-content");
-        content.setWrapText(true);
-        content.setMaxWidth(280.0);
+        Label messageLabel = new Label(message);
+        messageLabel.getStyleClass().add("message-content");
+        messageLabel.setWrapText(true);
+        messageLabel.setMaxWidth(280.0);
 
-        VBox text = new VBox(2.0, speaker, content);
+        VBox messageContainer = new VBox(2.0, speakerNameLabel, messageLabel);
 
         ImageView imageView = new ImageView(avatar);
         imageView.setFitWidth(45.0);
@@ -55,9 +55,9 @@ public class DialogueBox extends HBox {
         getStyleClass().addAll("dialogue-box", dialogueStyle);
 
         if (alignment == Pos.CENTER_RIGHT) {
-            getChildren().addAll(text, imageView);
+            getChildren().addAll(messageContainer, imageView);
         } else {
-            getChildren().addAll(imageView, text);
+            getChildren().addAll(imageView, messageContainer);
         }
     }
 }

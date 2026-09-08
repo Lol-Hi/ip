@@ -27,7 +27,7 @@ class DateTimeParserTest {
     void parseStartDateTime_supportedDateFormats_returnsExpectedDateTime() throws Exception {
         LocalDateTime expected = LocalDateTime.of(2030, 10, 15, 0, 0);
 
-        for (String input : new String[] {
+        for (String dateTimeText : new String[] {
             "2030-10-15",
             "2030/10/15",
             "15/10/2030",
@@ -38,23 +38,25 @@ class DateTimeParserTest {
             "October 15 2030",
             "Tue Oct 15 2030",
             "Tuesday, October 15 2030"}) {
-            assertEquals(expected, parser.parseStartDateTime(input).value(), input);
+            assertEquals(expected,
+                    parser.parseStartDateTime(dateTimeText).dateTime(), dateTimeText);
         }
     }
 
     /** Verifies that supported time formats resolve to the expected time. */
     @Test
     void parseStartDateTime_supportedTimeFormats_returnsExpectedDateTime() throws Exception {
-        for (String input : new String[] {
+        for (String dateTimeText : new String[] {
             "14:15", "14:15:30", "2pm", "2 pm", "2:15pm",
             "2:15 pm", "2.15pm", "2.15 pm"}) {
-            LocalDateTime expected = input.contains("30")
+            LocalDateTime expected = dateTimeText.contains("30")
                     ? LocalDateTime.of(2026, 8, 25, 14, 15, 30)
-                    : input.contains(":15") || input.contains(".15")
+                    : dateTimeText.contains(":15") || dateTimeText.contains(".15")
                     ? LocalDateTime.of(2026, 8, 25, 14, 15)
                     : LocalDateTime.of(2026, 8, 25, 14, 0);
-            assertEquals(expected, parser.parseStartDateTime(input).value(), input);
-            assertTrue(parser.parseStartDateTime(input).timeOnly(), input);
+            assertEquals(expected,
+                    parser.parseStartDateTime(dateTimeText).dateTime(), dateTimeText);
+            assertTrue(parser.parseStartDateTime(dateTimeText).timeOnly(), dateTimeText);
         }
     }
 
@@ -62,9 +64,9 @@ class DateTimeParserTest {
     @Test
     void parseStartDateTime_dateAndTime_returnsExpectedDateTime() throws Exception {
         assertEquals(LocalDateTime.of(2030, 10, 15, 14, 15),
-                parser.parseStartDateTime("2030-10-15 14:15").value());
+                parser.parseStartDateTime("2030-10-15 14:15").dateTime());
         assertEquals(LocalDateTime.of(2030, 10, 15, 14, 15),
-                parser.parseStartDateTime("2030-10-15T2.15pm").value());
+                parser.parseStartDateTime("2030-10-15T2.15pm").dateTime());
         assertFalse(parser.parseStartDateTime("2030-10-15 14:15").timeOnly());
     }
 
@@ -72,29 +74,29 @@ class DateTimeParserTest {
     @Test
     void parseStartDateTime_yearZeroDate_reinterpretsAsCompactMidnight() throws Exception {
         assertEquals(LocalDateTime.of(2026, 8, 25, 0, 0),
-                parser.parseStartDateTime("25 Aug 0000").value());
+                parser.parseStartDateTime("25 Aug 0000").dateTime());
         assertEquals(LocalDateTime.of(2026, 8, 25, 0, 0),
-                parser.parseEndDateTime("25 Aug 0000").value());
+                parser.parseEndDateTime("25 Aug 0000").dateTime());
     }
 
     /** Verifies the distinction between four-digit years and date components. */
     @Test
     void parseStartDateTime_fourDigitValues_returnsYears() throws Exception {
         assertEquals(LocalDateTime.of(2030, 8, 25, 0, 0),
-                parser.parseStartDateTime("25 Aug 2030").value());
+                parser.parseStartDateTime("25 Aug 2030").dateTime());
         assertEquals(LocalDateTime.of(2025, 8, 25, 0, 0),
-                parser.parseStartDateTime("25 Aug 2025").value());
+                parser.parseStartDateTime("25 Aug 2025").dateTime());
         assertEquals(LocalDateTime.of(2030, 1, 1, 0, 0),
-                parser.parseStartDateTime("2030").value());
+                parser.parseStartDateTime("2030").dateTime());
     }
 
     /** Verifies the different default times for start and end date-only input. */
     @Test
     void parseDateTime_dateOnlyValues_useStartAndEndDefaults() throws Exception {
         assertEquals(LocalDateTime.of(2026, 8, 25, 0, 0),
-                parser.parseStartDateTime("2026-08-25").value());
+                parser.parseStartDateTime("2026-08-25").dateTime());
         assertEquals(LocalDateTime.of(2026, 8, 25, 23, 59),
-                parser.parseEndDateTime("2026-08-25").value());
+                parser.parseEndDateTime("2026-08-25").dateTime());
     }
 
     /** Verifies that a later end time uses the event start date. */
@@ -105,7 +107,7 @@ class DateTimeParserTest {
         DateTimeParser.ParsedDateTime end =
                 parser.parseEndDateTime("4pm", start);
 
-        assertEquals(LocalDateTime.of(2026, 8, 25, 16, 0), end.value());
+        assertEquals(LocalDateTime.of(2026, 8, 25, 16, 0), end.dateTime());
         assertTrue(end.timeOnly());
     }
 
@@ -117,7 +119,7 @@ class DateTimeParserTest {
         DateTimeParser.ParsedDateTime end =
                 parser.parseEndDateTime("1am", start);
 
-        assertEquals(LocalDateTime.of(2026, 8, 26, 1, 0), end.value());
+        assertEquals(LocalDateTime.of(2026, 8, 26, 1, 0), end.dateTime());
         assertTrue(end.timeOnly());
     }
 
@@ -129,7 +131,7 @@ class DateTimeParserTest {
         DateTimeParser.ParsedDateTime end =
                 parser.parseEndDateTime("26 Aug 2030 1am", start);
 
-        assertEquals(LocalDateTime.of(2030, 8, 26, 1, 0), end.value());
+        assertEquals(LocalDateTime.of(2030, 8, 26, 1, 0), end.dateTime());
         assertFalse(end.timeOnly());
     }
 
@@ -138,89 +140,89 @@ class DateTimeParserTest {
     void parseStartDateTime_timeOnlyValueBeforeOrAfterNow_resolvesToTodayOrTomorrow()
             throws Exception {
         assertEquals(LocalDateTime.of(2026, 8, 25, 14, 0),
-                parser.parseStartDateTime("2pm").value());
+                parser.parseStartDateTime("2pm").dateTime());
         assertEquals(LocalDateTime.of(2026, 8, 26, 9, 0),
-                parser.parseStartDateTime("9am").value());
+                parser.parseStartDateTime("9am").dateTime());
     }
 
     /** Verifies named relative dates and their aliases. */
     @Test
     void parseStartDateTime_namedRelativeDates_returnsExpectedDates() throws Exception {
         assertEquals(LocalDateTime.of(2026, 8, 25, 0, 0),
-                parser.parseStartDateTime("today").value());
+                parser.parseStartDateTime("today").dateTime());
         assertEquals(LocalDateTime.of(2026, 8, 26, 0, 0),
-                parser.parseStartDateTime("tomorrow").value());
+                parser.parseStartDateTime("tomorrow").dateTime());
         assertEquals(LocalDateTime.of(2026, 8, 26, 0, 0),
-                parser.parseStartDateTime("tmr").value());
+                parser.parseStartDateTime("tmr").dateTime());
         assertEquals(LocalDateTime.of(2026, 8, 24, 0, 0),
-                parser.parseStartDateTime("yesterday").value());
+                parser.parseStartDateTime("yesterday").dateTime());
         assertEquals(LocalDateTime.of(2026, 8, 24, 0, 0),
-                parser.parseStartDateTime("ytd").value());
+                parser.parseStartDateTime("ytd").dateTime());
         assertEquals(LocalDateTime.of(2026, 8, 25, 23, 59),
-                parser.parseEndDateTime("today").value());
+                parser.parseEndDateTime("today").dateTime());
         assertEquals(LocalDateTime.of(2026, 8, 26, 14, 0),
-                parser.parseStartDateTime("tomorrow 2pm").value());
+                parser.parseStartDateTime("tomorrow 2pm").dateTime());
     }
 
     /** Verifies relative day-of-month expressions. */
     @Test
     void parseStartDateTime_relativeDayOfMonthForms_returnsExpectedDates() throws Exception {
         assertEquals(LocalDateTime.of(2026, 8, 30, 0, 0),
-                parser.parseStartDateTime("30th").value());
+                parser.parseStartDateTime("30th").dateTime());
         assertEquals(LocalDateTime.of(2026, 9, 15, 0, 0),
-                parser.parseStartDateTime("the 15th").value());
+                parser.parseStartDateTime("the 15th").dateTime());
         assertEquals(LocalDateTime.of(2026, 9, 15, 0, 0),
-                parser.parseStartDateTime("next 15th").value());
+                parser.parseStartDateTime("next 15th").dateTime());
         assertEquals(LocalDateTime.of(2026, 10, 15, 0, 0),
-                parser.parseStartDateTime("next next 15th").value());
+                parser.parseStartDateTime("next next 15th").dateTime());
         assertEquals(LocalDateTime.of(2026, 10, 15, 0, 0),
-                parser.parseStartDateTime("the following 15th").value());
+                parser.parseStartDateTime("the following 15th").dateTime());
     }
 
     /** Verifies relative weekday expressions and prefixes. */
     @Test
     void parseStartDateTime_relativeWeekdayForms_returnsExpectedDates() throws Exception {
         assertEquals(LocalDateTime.of(2026, 8, 31, 0, 0),
-                parser.parseStartDateTime("Monday").value());
+                parser.parseStartDateTime("Monday").dateTime());
         assertEquals(LocalDateTime.of(2026, 8, 24, 0, 0),
-                parser.parseStartDateTime("this Monday").value());
+                parser.parseStartDateTime("this Monday").dateTime());
         assertEquals(LocalDateTime.of(2026, 8, 25, 0, 0),
-                parser.parseStartDateTime("this Tuesday").value());
+                parser.parseStartDateTime("this Tuesday").dateTime());
         assertEquals(LocalDateTime.of(2026, 8, 30, 0, 0),
-                parser.parseStartDateTime("this Sunday").value());
+                parser.parseStartDateTime("this Sunday").dateTime());
         assertEquals(LocalDateTime.of(2026, 9, 2, 0, 0),
-                parser.parseStartDateTime("next Wednesday").value());
+                parser.parseStartDateTime("next Wednesday").dateTime());
         assertEquals(LocalDateTime.of(2026, 9, 7, 0, 0),
-                parser.parseStartDateTime("next next Monday").value());
+                parser.parseStartDateTime("next next Monday").dateTime());
         assertEquals(LocalDateTime.of(2026, 9, 9, 0, 0),
-                parser.parseStartDateTime("the following Wednesday").value());
+                parser.parseStartDateTime("the following Wednesday").dateTime());
         assertEquals(LocalDateTime.of(2026, 8, 26, 0, 0),
-                parser.parseStartDateTime("this coming Wednesday").value());
+                parser.parseStartDateTime("this coming Wednesday").dateTime());
         assertEquals(LocalDateTime.of(2026, 9, 1, 0, 0),
-                parser.parseStartDateTime("the coming Tuesday").value());
+                parser.parseStartDateTime("the coming Tuesday").dateTime());
     }
 
     /** Verifies relative month and year expressions. */
     @Test
     void parseStartDateTime_relativeMonthAndYearForms_returnsExpectedDates() throws Exception {
         assertEquals(LocalDateTime.of(2027, 6, 6, 0, 0),
-                parser.parseStartDateTime("June 6th").value());
+                parser.parseStartDateTime("June 6th").dateTime());
         assertEquals(LocalDateTime.of(2026, 9, 1, 0, 0),
-                parser.parseStartDateTime("next month").value());
+                parser.parseStartDateTime("next month").dateTime());
         assertEquals(LocalDateTime.of(2026, 10, 1, 0, 0),
-                parser.parseStartDateTime("next next month").value());
+                parser.parseStartDateTime("next next month").dateTime());
         assertEquals(LocalDateTime.of(2026, 10, 1, 0, 0),
-                parser.parseStartDateTime("the following month").value());
+                parser.parseStartDateTime("the following month").dateTime());
         assertEquals(LocalDateTime.of(2026, 8, 1, 0, 0),
-                parser.parseStartDateTime("this month").value());
+                parser.parseStartDateTime("this month").dateTime());
         assertEquals(LocalDateTime.of(2027, 1, 1, 0, 0),
-                parser.parseStartDateTime("next year").value());
+                parser.parseStartDateTime("next year").dateTime());
         assertEquals(LocalDateTime.of(2028, 1, 1, 0, 0),
-                parser.parseStartDateTime("next next year").value());
+                parser.parseStartDateTime("next next year").dateTime());
         assertEquals(LocalDateTime.of(2028, 1, 1, 0, 0),
-                parser.parseStartDateTime("the following year").value());
+                parser.parseStartDateTime("the following year").dateTime());
         assertEquals(LocalDateTime.of(2026, 1, 1, 0, 0),
-                parser.parseStartDateTime("this year").value());
+                parser.parseStartDateTime("this year").dateTime());
     }
 
     /** Verifies invalid calendar dates are rejected. */
@@ -257,11 +259,11 @@ class DateTimeParserTest {
     /** Verifies storage formatting round-trips through the CSV parser. */
     @Test
     void formatForStorage_validDateTime_roundTripsThroughStorageParser() {
-        LocalDateTime value = LocalDateTime.of(2030, 10, 15, 14, 15);
-        String stored = DateTimeParser.formatForStorage(value);
+        LocalDateTime dateTime = LocalDateTime.of(2030, 10, 15, 14, 15);
+        String stored = DateTimeParser.formatForStorage(dateTime);
 
         assertEquals("2030-10-15 14:15", stored);
-        assertEquals(value, DateTimeParser.parseFromStorage(stored));
+        assertEquals(dateTime, DateTimeParser.parseFromStorage(stored));
         assertEquals("", DateTimeParser.formatForStorage(null));
         assertEquals(null, DateTimeParser.parseFromStorage(""));
     }
@@ -282,9 +284,9 @@ class DateTimeParserTest {
     }
 
     /** Asserts that an input produces the standard date/time error. */
-    private void assertInvalid(String input) {
+    private void assertInvalid(String dateTimeText) {
         LuckyNoInputException exception = assertThrows(
-                LuckyNoInputException.class, () -> parser.parseStartDateTime(input));
+                LuckyNoInputException.class, () -> parser.parseStartDateTime(dateTimeText));
         assertEquals(LuckyNoMessages.invalidDateTimeMessage(), exception.getMessage());
     }
 }

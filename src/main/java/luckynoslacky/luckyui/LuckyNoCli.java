@@ -69,9 +69,9 @@ public class LuckyNoCli {
     /**
      * Echoes input using the normal chatbot reply formatting.
      *
-     * @param input input to echo
+     * @param userInput input to echo
      */
-    public void echo(String input) {
-        showReply(input);
+    public void echo(String userInput) {
+        showReply(userInput);
     }
 }

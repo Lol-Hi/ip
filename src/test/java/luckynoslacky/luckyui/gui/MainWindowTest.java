@@ -42,8 +42,8 @@ class MainWindowTest {
     /** Verifies that the window displays a user input and chatbot reply. */
     @Test
     void mainWindow_unknownCommand_displaysBothSpeakerMessages(FxRobot robot) {
-        TextField input = robot.lookup("#userInput").query();
-        robot.clickOn(input).write("unknown").push(KeyCode.ENTER);
+        TextField inputField = robot.lookup("#userInput").query();
+        robot.clickOn(inputField).write("unknown").push(KeyCode.ENTER);
 
         VBox dialogueContainer = robot.lookup("#dialogContainer").query();
         assertEquals(3, dialogueContainer.getChildren().size());
@@ -58,11 +58,11 @@ class MainWindowTest {
     /** Verifies that the input control remains enabled after a non-exit command. */
     @Test
     void mainWindow_unknownCommand_keepsInputEnabled(FxRobot robot) {
-        TextField input = robot.lookup("#userInput").query();
-        robot.clickOn(input).write("unknown").push(KeyCode.ENTER);
+        TextField inputField = robot.lookup("#userInput").query();
+        robot.clickOn(inputField).write("unknown").push(KeyCode.ENTER);
 
-        assertFalse(input.isDisabled());
-        assertTrue(input.getText().isEmpty());
+        assertFalse(inputField.isDisabled());
+        assertTrue(inputField.getText().isEmpty());
     }
 
     /** Verifies that clicking Send submits the command like pressing Enter. */
@@ -96,8 +96,8 @@ class MainWindowTest {
     }
 
     /** Returns the speaker label from a dialogue row's text container. */
-    private String getSpeakerLabel(DialogueBox dialogue, int textIndex) {
-        VBox text = (VBox) dialogue.getChildren().get(textIndex);
-        return ((Label) text.getChildren().get(0)).getText();
+    private String getSpeakerLabel(DialogueBox dialogue, int dialogueIndex) {
+        VBox messageContainer = (VBox) dialogue.getChildren().get(dialogueIndex);
+        return ((Label) messageContainer.getChildren().get(0)).getText();
     }
 }

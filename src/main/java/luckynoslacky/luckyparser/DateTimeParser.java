@@ -126,36 +126,36 @@ public final class DateTimeParser {
     }
 
     /**
-     * Represents a parsed value together with whether its date was omitted.
+     * Represents a parsed date/time together with whether its date was omitted.
      *
-     * @param value parsed date and time
+     * @param dateTime parsed date and time
      * @param timeOnly true when the input contained no date
      */
-    public record ParsedDateTime(LocalDateTime value, boolean timeOnly) {
+    public record ParsedDateTime(LocalDateTime dateTime, boolean timeOnly) {
     }
 
     /**
-     * Parses a value used as an event start.
+     * Parses date/time text used as an event start.
      *
-     * @param input date and time text to parse
+     * @param dateTimeText date and time text to parse
      * @return parsed date and time
      * @throws LuckyNoInputException if the input is not a supported date/time
      */
-    public ParsedDateTime parseStartDateTime(String input)
+    public ParsedDateTime parseStartDateTime(String dateTimeText)
             throws LuckyNoInputException {
-        return parse(input, LocalTime.MIN);
+        return parse(dateTimeText, LocalTime.MIN);
     }
 
     /**
-     * Parses a value used as an event end or deadline.
+     * Parses date/time text used as an event end or deadline.
      *
-     * @param input date and time text to parse
+     * @param dateTimeText date and time text to parse
      * @return parsed date and time
      * @throws LuckyNoInputException if the input is not a supported date/time
      */
-    public ParsedDateTime parseEndDateTime(String input)
+    public ParsedDateTime parseEndDateTime(String dateTimeText)
             throws LuckyNoInputException {
-        return parse(input, LocalTime.of(23, 59));
+        return parse(dateTimeText, LocalTime.of(23, 59));
     }
 
     /**
@@ -165,13 +165,13 @@ public final class DateTimeParser {
      * contains only a time, the reference date is used unless that time has
      * already passed, in which case the next date is used.</p>
      *
-     * @param input event end date/time text
+     * @param dateTimeText event end date/time text
      * @param referenceDateTime event start date and time
      * @return parsed event end date and time
      * @throws LuckyNoInputException if the input is invalid
      */
     public ParsedDateTime parseEndDateTime(
-            String input,
+            String dateTimeText,
             LocalDateTime referenceDateTime)
             throws LuckyNoInputException {
         if (referenceDateTime == null) {
@@ -179,12 +179,12 @@ public final class DateTimeParser {
                     "Reference date and time cannot be null.");
         }
 
-        ParsedDateTime parsed = parse(input, LocalTime.of(23, 59));
+        ParsedDateTime parsed = parse(dateTimeText, LocalTime.of(23, 59));
         if (!parsed.timeOnly()) {
             return parsed;
         }
 
-        LocalTime endTime = parsed.value().toLocalTime();
+        LocalTime endTime = parsed.dateTime().toLocalTime();
         LocalDate endDate = referenceDateTime.toLocalDate();
         if (endTime.isBefore(referenceDateTime.toLocalTime())) {
             endDate = endDate.plusDays(1);
@@ -205,90 +205,177 @@ public final class DateTimeParser {
     }
 
     /**
-     * Formats a value for the CSV storage format.
+     * Formats a date/time for the CSV storage format.
      *
-     * @param value date and time to format, or null for an empty field
-     * @return formatted storage value
+     * @param dateTime date and time to format, or null for an empty field
+     * @return formatted storage text
      */
-    public static String formatForStorage(LocalDateTime value) {
-        return value == null ? "" : CSV_FORMATTER.format(value);
+    public static String formatForStorage(LocalDateTime dateTime) {
+        return dateTime == null ? "" : CSV_FORMATTER.format(dateTime);
     }
 
     /**
-     * Parses a value from the CSV storage format.
+     * Parses stored date/time text from the CSV storage format.
      *
-     * @param value stored date and time, or blank for no date and time
-     * @return parsed date and time, or null for a blank value
+     * @param storedDateTimeText stored date and time, or blank for no date
+     *                           and time
+     * @return parsed date and time, or null for blank stored text
      */
-    public static LocalDateTime parseFromStorage(String value) {
-        return value == null || value.isBlank()
+    public static LocalDateTime parseFromStorage(String storedDateTimeText) {
+        return storedDateTimeText == null || storedDateTimeText.isBlank()
                 ? null
-                : LocalDateTime.parse(value, CSV_FORMATTER);
+                : LocalDateTime.parse(storedDateTimeText, CSV_FORMATTER);
     }
 
     /**
-     * Parses input and applies the default time used when only a date is given.
+     * Parses date/time text and applies the default time used when only a date
+     * is given.
      *
-     * @param input date/time text to parse
+     * @param dateTimeText date/time text to parse
      * @param dateOnlyDefault time to use for date-only input
      * @return parsed date and time
      * @throws LuckyNoInputException if the input is invalid
      */
-    private ParsedDateTime parse(String input, LocalTime dateOnlyDefault)
+    private ParsedDateTime parse(String dateTimeText, LocalTime dateOnlyDefault)
             throws LuckyNoInputException {
-        String normalized = normalize(input);
-        if (normalized.isEmpty()) {
+        String normalizedDateTimeText = normalize(dateTimeText);
+        if (normalizedDateTimeText.isEmpty()) {
             throw invalidDateTime();
         }
 
-        LocalDateTime current = now();
-        LocalDate today = current.toLocalDate();
+        LocalDateTime currentDateTime = now();
+        LocalDate today = currentDateTime.toLocalDate();
 
-        // A bare four-digit value is treated as a year first. Users can write
-        // an unambiguous compact time with a separator, such as 20:30.
-        if (YEAR_ONLY_PATTERN.matcher(normalized).matches()) {
-            LocalDate date = parseDate(normalized, today);
-            return new ParsedDateTime(LocalDateTime.of(date, dateOnlyDefault), false);
+        ParsedDateTime yearOnly = parseYearOnly(
+                normalizedDateTimeText, today, dateOnlyDefault);
+        if (yearOnly != null) {
+            return yearOnly;
         }
 
-        LocalTime time = parseTime(normalized);
-        if (time != null) {
-            LocalDate resolvedDate = time.isBefore(current.toLocalTime())
-                    ? today.plusDays(1)
-                    : today;
-            return new ParsedDateTime(LocalDateTime.of(resolvedDate, time), true);
+        ParsedDateTime timeOnly = parseTimeOnly(
+                normalizedDateTimeText, currentDateTime, today);
+        if (timeOnly != null) {
+            return timeOnly;
         }
 
-        int dateTimeSplitIndex = findDateTimeSplit(normalized);
-        if (dateTimeSplitIndex > 0) {
-            String dateText = normalized.substring(0, dateTimeSplitIndex).trim();
-            String timeText = normalized.substring(dateTimeSplitIndex).trim();
-            LocalTime dateTime = parseTime(timeText);
-            if (dateTime != null) {
-                LocalDate date = parseDate(dateText, today);
-                return new ParsedDateTime(LocalDateTime.of(date, dateTime), false);
-            }
+        ParsedDateTime dateAndTime = parseDateAndTime(
+                normalizedDateTimeText, today);
+        if (dateAndTime != null) {
+            return dateAndTime;
         }
 
-        LocalDate date = parseDate(normalized, today);
+        return parseDateOnly(normalizedDateTimeText, today, dateOnlyDefault);
+    }
+
+    /**
+     * Parses an input containing only a four-digit year.
+     *
+     * @param normalizedDateTimeText normalized input text
+     * @param today current date used for resolving relative expressions
+     * @param dateOnlyDefault default time for date-only input
+     * @return parsed year-only input, or null when the input is not year-only
+     * @throws LuckyNoInputException if the year cannot be resolved
+     */
+    private ParsedDateTime parseYearOnly(
+            String normalizedDateTimeText,
+            LocalDate today,
+            LocalTime dateOnlyDefault)
+            throws LuckyNoInputException {
+        if (!YEAR_ONLY_PATTERN.matcher(normalizedDateTimeText).matches()) {
+            return null;
+        }
+
+        LocalDate date = parseDate(normalizedDateTimeText, today);
+        return new ParsedDateTime(LocalDateTime.of(date, dateOnlyDefault), false);
+    }
+
+    /**
+     * Parses an input containing only a time and resolves it to today or tomorrow.
+     *
+     * @param normalizedDateTimeText normalized input text
+     * @param currentDateTime current date and time
+     * @param today current date
+     * @return parsed time-only input, or null when the input is not time-only
+     */
+    private ParsedDateTime parseTimeOnly(
+            String normalizedDateTimeText,
+            LocalDateTime currentDateTime,
+            LocalDate today) {
+        LocalTime parsedTime = parseTime(normalizedDateTimeText);
+        if (parsedTime == null) {
+            return null;
+        }
+
+        LocalDate resolvedDate = parsedTime.isBefore(currentDateTime.toLocalTime())
+                ? today.plusDays(1)
+                : today;
+        return new ParsedDateTime(LocalDateTime.of(resolvedDate, parsedTime), true);
+    }
+
+    /**
+     * Parses an input containing both a date and a time.
+     *
+     * @param normalizedDateTimeText normalized input text
+     * @param today current date used for resolving incomplete dates
+     * @return parsed date/time input, or null when no date/time split is found
+     * @throws LuckyNoInputException if the date portion is invalid
+     */
+    private ParsedDateTime parseDateAndTime(
+            String normalizedDateTimeText, LocalDate today)
+            throws LuckyNoInputException {
+        int dateTimeSplitIndex = findDateTimeSplit(normalizedDateTimeText);
+        if (dateTimeSplitIndex <= 0) {
+            return null;
+        }
+
+        String dateText = normalizedDateTimeText
+                .substring(0, dateTimeSplitIndex).trim();
+        String timeText = normalizedDateTimeText
+                .substring(dateTimeSplitIndex).trim();
+        LocalTime parsedTime = parseTime(timeText);
+        if (parsedTime == null) {
+            return null;
+        }
+
+        LocalDate date = parseDate(dateText, today);
+        return new ParsedDateTime(LocalDateTime.of(date, parsedTime), false);
+    }
+
+    /**
+     * Parses an input containing a date without an explicit time.
+     *
+     * @param normalizedDateTimeText normalized input text
+     * @param today current date used for resolving incomplete dates
+     * @param dateOnlyDefault default time for the parsed date
+     * @return parsed date-only input
+     * @throws LuckyNoInputException if the date is invalid
+     */
+    private ParsedDateTime parseDateOnly(
+            String normalizedDateTimeText,
+            LocalDate today,
+            LocalTime dateOnlyDefault)
+            throws LuckyNoInputException {
+        LocalDate date = parseDate(normalizedDateTimeText, today);
         return new ParsedDateTime(LocalDateTime.of(date, dateOnlyDefault), false);
     }
 
     /**
      * Finds the boundary between a date expression and its time expression.
      *
-     * @param value normalized date/time expression
+     * @param normalizedDateTimeText normalized date/time expression
      * @return index at which the time expression starts, or -1 if not found
      */
-    private static int findDateTimeSplit(String value) {
-        for (int split = value.length() - 1; split > 0; split--) {
-            if (Character.isWhitespace(value.charAt(split - 1))) {
-                String suffix = value.substring(split).trim();
-                if (parseTime(suffix) != null) {
-                    if (isValidDateWithYear(value.substring(0, split), suffix)) {
+    private static int findDateTimeSplit(String normalizedDateTimeText) {
+        for (int splitIndex = normalizedDateTimeText.length() - 1;
+                splitIndex > 0; splitIndex--) {
+            if (Character.isWhitespace(normalizedDateTimeText.charAt(splitIndex - 1))) {
+                String timeText = normalizedDateTimeText.substring(splitIndex).trim();
+                if (parseTime(timeText) != null) {
+                    if (isValidDateWithYear(
+                            normalizedDateTimeText.substring(0, splitIndex), timeText)) {
                         continue;
                     }
-                    return split;
+                    return splitIndex;
                 }
             }
         }
@@ -298,16 +385,16 @@ public final class DateTimeParser {
     /**
      * Parses a time in separated, meridiem, or compact HHMM notation.
      *
-     * @param value time text to parse
+     * @param timeText time text to parse
      * @return parsed time, or null if the text is not a valid time
      */
-    private static LocalTime parseTime(String value) {
-        String normalized = value.trim()
+    private static LocalTime parseTime(String timeText) {
+        String normalizedTimeText = timeText.trim()
                 .replaceAll("(?i)a\\.m\\.", "am")
                 .replaceAll("(?i)p\\.m\\.", "pm");
-        Matcher matcher = TIME_PATTERN.matcher(normalized);
+        Matcher matcher = TIME_PATTERN.matcher(normalizedTimeText);
         if (!matcher.matches()) {
-            return parseCompactTime(normalized);
+            return parseCompactTime(normalizedTimeText);
         }
 
         int hour = Integer.parseInt(matcher.group(1));
@@ -344,16 +431,16 @@ public final class DateTimeParser {
     /**
      * Parses a four-digit time in HHMM notation.
      *
-     * @param value compact time text
+     * @param compactTimeText compact time text
      * @return parsed time, or null if the text is not a valid HHMM value
      */
-    private static LocalTime parseCompactTime(String value) {
-        if (!value.matches("\\d{4}")) {
+    private static LocalTime parseCompactTime(String compactTimeText) {
+        if (!compactTimeText.matches("\\d{4}")) {
             return null;
         }
 
-        int hour = Integer.parseInt(value.substring(0, 2));
-        int minute = Integer.parseInt(value.substring(2, 4));
+        int hour = Integer.parseInt(compactTimeText.substring(0, 2));
+        int minute = Integer.parseInt(compactTimeText.substring(2, 4));
         if (hour > 23 || minute > 59) {
             return null;
         }
@@ -369,71 +456,91 @@ public final class DateTimeParser {
      * @return true if the candidate can be parsed as a date
      */
     private static boolean isValidDateWithYear(String dateText, String yearText) {
-        String normalizedDate = normalizeDate(dateText).replaceFirst(
-                "^(monday|tuesday|wednesday|thursday|friday|saturday|sunday"
-                        + "|mon|tue|wed|thu|fri|sat|sun)\\s+",
-                "");
-        String candidate = normalizedDate + " " + yearText;
-        return parseWithKnownFormat(candidate) != null;
+        String normalizedDateText = removeWeekdayPrefix(normalizeDate(dateText));
+        String candidateDateText = normalizedDateText + " " + yearText;
+        return parseWithKnownFormat(candidateDateText) != null;
     }
 
     /**
      * Parses a date expression and resolves relative terms against today.
      *
-     * @param input date text to parse
+     * @param dateText date text to parse
      * @param today current date used for relative resolution
      * @return resolved date
      * @throws LuckyNoInputException if the date is invalid
      */
-    private LocalDate parseDate(String input, LocalDate today)
+    private LocalDate parseDate(String dateText, LocalDate today)
             throws LuckyNoInputException {
-        String value = normalizeDate(input);
-        Prefix prefix = extractPrefix(value);
-        value = prefix.remainder();
+        String normalizedDateText = normalizeDate(dateText);
+        Prefix prefix = extractPrefix(normalizedDateText);
+        String dateExpression = prefix.remainder();
 
-        DayOfWeek weekday = parseWeekday(value);
+        LocalDate relativeDate = parseRelativeDate(dateExpression, today, prefix);
+        if (relativeDate != null) {
+            return relativeDate;
+        }
+
+        String dateWithoutWeekday = removeWeekdayPrefix(dateExpression);
+        return parseDateExpression(dateWithoutWeekday, today, prefix);
+    }
+
+    /**
+     * Resolves a date expression that uses a relative keyword.
+     *
+     * @param dateExpression date expression after prefix extraction
+     * @param today current date used for relative resolution
+     * @param prefix relative-date prefix
+     * @return resolved relative date, or null when the expression is absolute
+     */
+    private static LocalDate parseRelativeDate(
+            String dateExpression, LocalDate today, Prefix prefix) {
+        DayOfWeek weekday = parseWeekday(dateExpression);
         if (weekday != null) {
             return resolveWeekday(weekday, today, prefix);
         }
 
-        if (prefix.modifier().equals("none")) {
-            switch (value) {
-                case "today":
-                    return today;
-                case "tomorrow": // Fallthrough
-                case "tmr":
-                    return today.plusDays(1);
-                case "yesterday": // Fallthrough
-                case "ytd":
-                    return today.minusDays(1);
-                default:
-                    break;
-            }
+        if (!prefix.modifier().equals("none")) {
+            return null;
         }
 
-        value = value.replaceFirst(
-                "^(monday|tuesday|wednesday|thursday|friday|saturday|sunday"
-                        + "|mon|tue|wed|thu|fri|sat|sun)\\s+",
-                "");
+        return switch (dateExpression) {
+            case "today" -> today;
+            case "tomorrow", "tmr" -> today.plusDays(1);
+            case "yesterday", "ytd" -> today.minusDays(1);
+            default -> null;
+        };
+    }
 
-        if (value.equals("month")) {
+    /**
+     * Parses an absolute or relative date expression that is not a weekday.
+     *
+     * @param dateExpression date expression without a weekday prefix
+     * @param today current date used for resolving incomplete dates
+     * @param prefix relative-date prefix
+     * @return resolved date
+     * @throws LuckyNoInputException if the expression is invalid
+     */
+    private static LocalDate parseDateExpression(
+            String dateExpression, LocalDate today, Prefix prefix)
+            throws LuckyNoInputException {
+        if (dateExpression.equals("month")) {
             return resolveMonth(today, prefix);
         }
-        if (value.equals("year")) {
+        if (dateExpression.equals("year")) {
             return resolveYear(today, prefix);
         }
 
-        Matcher yearMatcher = YEAR_ONLY_PATTERN.matcher(value);
+        Matcher yearMatcher = YEAR_ONLY_PATTERN.matcher(dateExpression);
         if (yearMatcher.matches()) {
             return LocalDate.of(Integer.parseInt(yearMatcher.group(1)), 1, 1);
         }
 
-        LocalDate formattedDate = parseWithKnownFormat(value);
+        LocalDate formattedDate = parseWithKnownFormat(dateExpression);
         if (formattedDate != null) {
             return formattedDate;
         }
 
-        Matcher monthDayMatcher = MONTH_DAY_PATTERN.matcher(value);
+        Matcher monthDayMatcher = MONTH_DAY_PATTERN.matcher(dateExpression);
         if (monthDayMatcher.matches()) {
             return resolveMonthDay(
                     monthDayMatcher.group(1),
@@ -443,7 +550,7 @@ public final class DateTimeParser {
                     prefix);
         }
 
-        Matcher dayMonthMatcher = DAY_MONTH_PATTERN.matcher(value);
+        Matcher dayMonthMatcher = DAY_MONTH_PATTERN.matcher(dateExpression);
         if (dayMonthMatcher.matches()) {
             return resolveMonthDay(
                     dayMonthMatcher.group(2),
@@ -453,25 +560,38 @@ public final class DateTimeParser {
                     prefix);
         }
 
-        Matcher dayMatcher = DAY_ONLY_PATTERN.matcher(value);
+        Matcher dayMatcher = DAY_ONLY_PATTERN.matcher(dateExpression);
         if (dayMatcher.matches()) {
             return resolveDayOfMonth(
                     Integer.parseInt(dayMatcher.group(1)), today, prefix);
         }
 
-        int month = parseMonthNumber(value);
-        if (month > 0) {
-            return resolveMonth(month, today, prefix);
+        int monthNumber = parseMonthNumber(dateExpression);
+        if (monthNumber > 0) {
+            return resolveMonth(monthNumber, today, prefix);
         }
 
         throw invalidDateTime();
     }
 
     /**
+     * Removes an optional weekday prefix from a date expression.
+     *
+     * @param dateExpression date expression that may begin with a weekday
+     * @return expression without the weekday prefix
+     */
+    private static String removeWeekdayPrefix(String dateExpression) {
+        return dateExpression.replaceFirst(
+                "^(monday|tuesday|wednesday|thursday|friday|saturday|sunday"
+                        + "|mon|tue|wed|thu|fri|sat|sun)\\s+",
+                "");
+    }
+
+    /**
      * Attempts each explicitly supported absolute date formatter.
      *
      * @param normalizedDateText normalized date text
-     * @return parsed date, or null if no formatter accepts the value
+     * @return parsed date, or null if no formatter accepts the text
      */
     private static LocalDate parseWithKnownFormat(String normalizedDateText) {
         return DATE_FORMATTERS.stream()
@@ -551,24 +671,24 @@ public final class DateTimeParser {
     /**
      * Resolves a named month to its next applicable year.
      *
-     * @param month month number
+     * @param monthNumber month number
      * @param today current date
      * @param prefix relative-date prefix
      * @return first day of the resolved month
      */
     private static LocalDate resolveMonth(
-            int month, LocalDate today, Prefix prefix) {
+            int monthNumber, LocalDate today, Prefix prefix) {
         int yearOffset = switch (prefix.modifier()) {
             case "next", "following" -> prefix.count();
             case "coming" -> 1;
             default -> 0;
         };
-        LocalDate candidate = LocalDate.of(today.getYear(), month, 1)
+        LocalDate candidateDate = LocalDate.of(today.getYear(), monthNumber, 1)
                 .plusYears(yearOffset);
-        if (prefix.modifier().equals("none") && candidate.isBefore(today)) {
-            candidate = candidate.plusYears(1);
+        if (prefix.modifier().equals("none") && candidateDate.isBefore(today)) {
+            candidateDate = candidateDate.plusYears(1);
         }
-        return candidate;
+        return candidateDate;
     }
 
     /**
@@ -591,7 +711,7 @@ public final class DateTimeParser {
      * Resolves a month/day expression with an optional year and prefix.
      *
      * @param monthText month name or abbreviation
-     * @param day day of month
+     * @param dayOfMonth day of month
      * @param yearText explicit year, or null when omitted
      * @param today current date
      * @param prefix relative-date prefix
@@ -600,105 +720,107 @@ public final class DateTimeParser {
      */
     private static LocalDate resolveMonthDay(
             String monthText,
-            int day,
+            int dayOfMonth,
             String yearText,
             LocalDate today,
             Prefix prefix) throws LuckyNoInputException {
-        int month = parseMonthNumber(monthText);
-        if (month < 1 || day < 1 || day > 31) {
+        int monthNumber = parseMonthNumber(monthText);
+        if (monthNumber < 1 || dayOfMonth < 1 || dayOfMonth > 31) {
             throw invalidDateTime();
         }
 
         if (yearText != null) {
             try {
-                return LocalDate.of(Integer.parseInt(yearText), month, day);
+                return LocalDate.of(
+                        Integer.parseInt(yearText), monthNumber, dayOfMonth);
             } catch (DateTimeException exception) {
                 throw invalidDateTime();
             }
         }
 
-        LocalDate candidate;
+        LocalDate candidateDate;
         try {
-            candidate = LocalDate.of(today.getYear(), month, day);
+            candidateDate = LocalDate.of(today.getYear(), monthNumber, dayOfMonth);
         } catch (DateTimeException exception) {
             throw invalidDateTime();
         }
 
         int prefixCount = prefix.count();
         boolean strictNext = prefixCount > 0;
-        if ((strictNext && !candidate.isAfter(today))
-                || (!strictNext && candidate.isBefore(today))) {
-            candidate = candidate.plusYears(1);
+        if ((strictNext && !candidateDate.isAfter(today))
+                || (!strictNext && candidateDate.isBefore(today))) {
+            candidateDate = candidateDate.plusYears(1);
         }
         if (prefixCount > 1) {
-            candidate = candidate.plusYears(prefixCount - 1L);
+            candidateDate = candidateDate.plusYears(prefixCount - 1L);
         }
-        return candidate;
+        return candidateDate;
     }
 
     /**
      * Resolves a day-of-month expression to its next applicable month.
      *
-     * @param day day of month
+     * @param dayOfMonth day of month
      * @param today current date
      * @param prefix relative-date prefix
      * @return resolved date
      * @throws LuckyNoInputException if the day cannot occur in nearby months
      */
     private static LocalDate resolveDayOfMonth(
-            int day, LocalDate today, Prefix prefix) throws LuckyNoInputException {
-        if (day < 1 || day > 31) {
+            int dayOfMonth, LocalDate today, Prefix prefix)
+            throws LuckyNoInputException {
+        if (dayOfMonth < 1 || dayOfMonth > 31) {
             throw invalidDateTime();
         }
 
-        LocalDate candidate = firstValidDay(today.withDayOfMonth(1), day);
+        LocalDate candidateDate = firstValidDay(
+                today.withDayOfMonth(1), dayOfMonth);
         int prefixCount = prefix.count();
         boolean strictNext = prefixCount > 0;
-        if ((strictNext && !candidate.isAfter(today))
-                || (!strictNext && candidate.isBefore(today))) {
-            candidate = firstValidDay(candidate.plusMonths(1), day);
+        if ((strictNext && !candidateDate.isAfter(today))
+                || (!strictNext && candidateDate.isBefore(today))) {
+            candidateDate = firstValidDay(
+                    candidateDate.plusMonths(1), dayOfMonth);
         }
         for (int i = 1; i < prefixCount; i++) {
-            candidate = firstValidDay(candidate.plusMonths(1), day);
+            candidateDate = firstValidDay(
+                    candidateDate.plusMonths(1), dayOfMonth);
         }
-        return candidate;
+        return candidateDate;
     }
 
     /**
      * Finds the first nearby month that contains the requested day.
      *
      * @param monthStart first day of the month to try
-     * @param day day of month
-     * @return date using the requested day
+     * @param dayOfMonth day of month
+     * @return date using the requested day of the month
      * @throws LuckyNoInputException if the day is absent from the next three months
      */
-    private static LocalDate firstValidDay(LocalDate monthStart, int day)
+    private static LocalDate firstValidDay(
+            LocalDate monthStart, int dayOfMonth)
             throws LuckyNoInputException {
-        if (day > monthStart.lengthOfMonth()) {
-            LocalDate nextMonth = monthStart.plusMonths(1);
-            if (day > nextMonth.lengthOfMonth()) {
-                LocalDate followingMonth = nextMonth.plusMonths(1);
-                if (day > followingMonth.lengthOfMonth()) {
-                    throw invalidDateTime();
-                }
-                return followingMonth.withDayOfMonth(day);
+        for (int monthOffset = 0; monthOffset < 3; monthOffset++) {
+            LocalDate candidateMonth = monthStart.plusMonths(monthOffset);
+            if (dayOfMonth <= candidateMonth.lengthOfMonth()) {
+                return candidateMonth.withDayOfMonth(dayOfMonth);
             }
-            return nextMonth.withDayOfMonth(day);
         }
-        return monthStart.withDayOfMonth(day);
+
+        throw invalidDateTime();
     }
 
     /**
      * Normalizes general date/time input before parsing.
      *
-     * @param input raw date/time text
+     * @param rawDateTimeText raw date/time text
      * @return trimmed text with equivalent separators and spacing normalized
      */
-    private static String normalize(String input) {
-        if (input == null) {
+    private static String normalize(String rawDateTimeText) {
+        if (rawDateTimeText == null) {
             return "";
         }
-        return input.trim()
+        return rawDateTimeText.trim()
                 .replaceAll("(?<=\\d)T(?=\\d)", " ")
                 .replaceAll("(?i)a\\.m\\.", "am")
                 .replaceAll("(?i)p\\.m\\.", "pm")
@@ -710,11 +832,11 @@ public final class DateTimeParser {
     /**
      * Normalizes date text, including ordinal suffixes and the word "the".
      *
-     * @param input raw date text
+     * @param rawDateText raw date text
      * @return normalized lower-case date text
      */
-    private static String normalizeDate(String input) {
-        return input.toLowerCase(Locale.ENGLISH)
+    private static String normalizeDate(String rawDateText) {
+        return rawDateText.toLowerCase(Locale.ENGLISH)
                 .replaceAll("(?i)\\b(\\d{1,2})(st|nd|rd|th)\\b", "$1")
                 .replaceAll("(?i)\\bthe\\b", " ")
                 .replaceAll("\\s+", " ")
@@ -758,12 +880,12 @@ public final class DateTimeParser {
     /**
      * Converts a weekday name or three-letter abbreviation to a day value.
      *
-     * @param value weekday text
-     * @return matching day, or null if the value is not a weekday
+     * @param weekdayText weekday text
+     * @return matching day, or null if the text is not a weekday
      */
-    private static DayOfWeek parseWeekday(String value) {
+    private static DayOfWeek parseWeekday(String weekdayText) {
         return Arrays.stream(Weekday.values())
-                .filter(weekday -> weekday.matches(value))
+                .filter(weekday -> weekday.matches(weekdayText))
                 .map(weekday -> weekday.dayOfWeek)
                 .findFirst()
                 .orElse(null);
@@ -772,11 +894,11 @@ public final class DateTimeParser {
     /**
      * Converts a month name or three-letter abbreviation to a month number.
      *
-     * @param value month text
+     * @param monthText month text
      * @return month number from 1 to 12, or -1 if not a month
      */
-    private static int parseMonthNumber(String value) {
-        String normalized = value.toLowerCase(Locale.ENGLISH);
+    private static int parseMonthNumber(String monthText) {
+        String normalized = monthText.toLowerCase(Locale.ENGLISH);
         return Arrays.stream(Month.values())
                 .filter(month -> month.matches(normalized))
                 .mapToInt(month -> month.number)
