@@ -173,16 +173,7 @@ public class TaskMaster {
      * @return description of the task that was marked
      */
     public String markTaskDone(int taskNumber) {
-        Task task = getTask(taskNumber);
-        boolean wasDone = task.isDone();
-        task.markAsDone();
-        try {
-            saveChanges();
-        } catch (LuckyNoStorageException exception) {
-            restoreTaskStatus(task, wasDone);
-            throw exception;
-        }
-        return task.toString();
+        return updateTaskStatus(taskNumber, true);
     }
 
     /**
@@ -192,9 +183,27 @@ public class TaskMaster {
      * @return description of the task that was unmarked
      */
     public String unmarkTaskUndone(int taskNumber) {
+        return updateTaskStatus(taskNumber, false);
+    }
+
+    /**
+     * Updates a task's completion status and persists the change.
+     *
+     * @param taskNumber one-based number of the task to update
+     * @param shouldBeDone whether the task should be marked as done
+     * @return description of the updated task
+     * @throws LuckyNoStorageException if the updated list cannot be saved
+     */
+    private String updateTaskStatus(int taskNumber, boolean shouldBeDone) {
         Task task = getTask(taskNumber);
         boolean wasDone = task.isDone();
-        task.unmarkAsUndone();
+
+        if (shouldBeDone) {
+            task.markAsDone();
+        } else {
+            task.unmarkAsUndone();
+        }
+
         try {
             saveChanges();
         } catch (LuckyNoStorageException exception) {
