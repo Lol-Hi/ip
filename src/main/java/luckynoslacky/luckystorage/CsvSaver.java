@@ -9,8 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -197,12 +197,9 @@ public class CsvSaver {
 
             validateHeader(records.get(0));
 
-            List<Task> tasks = new ArrayList<>();
-            for (int i = 1; i < records.size(); i++) {
-                tasks.add(createTaskFromCsvStorageRecord(records.get(i)));
-            }
-
-            return List.copyOf(tasks);
+            return IntStream.range(1, records.size())
+                    .mapToObj(index -> createTaskFromCsvStorageRecord(records.get(index)))
+                    .toList();
         } catch (IOException exception) {
             throw new LuckyNoStorageException(
                     "Unable to load tasks.", exception);

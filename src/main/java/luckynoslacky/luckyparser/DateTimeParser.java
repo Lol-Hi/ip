@@ -12,8 +12,10 @@ import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 import luckynoslacky.luckyexception.LuckyNoInputException;
 import luckynoslacky.luckyui.LuckyNoMessages;
@@ -425,18 +427,29 @@ public final class DateTimeParser {
      * @param normalizedDateText normalized date text
      * @return parsed date, or null if no formatter accepts the value
      */
-    private static LocalDate parseWithKnownFormat(String value) {
-        for (DateTimeFormatter formatter : DATE_FORMATTERS) {
-            try {
-                LocalDate parsed = LocalDate.parse(value, formatter);
-                // Year zero is supported by java.time, but is not accepted by
-                // the chatbot and can therefore be reinterpreted as HHMM.
-                return parsed.getYear() > 0 ? parsed : null;
-            } catch (DateTimeParseException exception) {
-                // Try the next explicitly supported format.
-            }
+    private static LocalDate parseWithKnownFormat(String normalizedDateText) {
+        return DATE_FORMATTERS.stream()
+                .map(formatter -> tryParseDateFormat(normalizedDateText, formatter))
+                .flatMap(Optional::stream)
+                .filter(date -> date.getYear() > 0)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Attempts to parse a date using one formatter.
+     *
+     * @param normalizedDateText normalized date text to parse
+     * @param formatter formatter to apply
+     * @return parsed date, or an empty Optional if parsing fails
+     */
+    private static Optional<LocalDate> tryParseDateFormat(
+            String normalizedDateText, DateTimeFormatter formatter) {
+        try {
+            return Optional.of(LocalDate.parse(normalizedDateText, formatter));
+        } catch (DateTimeParseException exception) {
+            return Optional.empty();
         }
-        return null;
     }
 
     /**
@@ -665,7 +678,7 @@ public final class DateTimeParser {
     /**
      * Extracts a relative-date modifier and its repetition count.
      *
-     * @param value normalized date text
+     * @param normalizedDateText normalized date text
      * @return parsed prefix and remaining date expression
      */
     private static Prefix extractPrefix(String normalizedDateText) {
@@ -703,13 +716,15 @@ public final class DateTimeParser {
      * @return matching day, or null if the value is not a weekday
      */
     private static DayOfWeek parseWeekday(String value) {
-        for (int i = 0; i < WEEKDAY_NAMES.size(); i++) {
-            String fullName = WEEKDAY_NAMES.get(i);
-            if (value.equals(fullName) || value.equals(fullName.substring(0, 3))) {
-                return DayOfWeek.of(i + 1);
-            }
-        }
-        return null;
+        return IntStream.range(0, WEEKDAY_NAMES.size())
+                .filter(index -> {
+                    String fullName = WEEKDAY_NAMES.get(index);
+                    return value.equals(fullName)
+                            || value.equals(fullName.substring(0, 3));
+                })
+                .mapToObj(index -> DayOfWeek.of(index + 1))
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -720,14 +735,15 @@ public final class DateTimeParser {
      */
     private static int monthNumber(String value) {
         String normalized = value.toLowerCase(Locale.ENGLISH);
-        for (int i = 0; i < MONTH_NAMES.size(); i++) {
-            String fullName = MONTH_NAMES.get(i);
-            if (normalized.equals(fullName)
-                    || normalized.equals(fullName.substring(0, 3))) {
-                return i + 1;
-            }
-        }
-        return -1;
+        return IntStream.range(0, MONTH_NAMES.size())
+                .filter(index -> {
+                    String fullName = MONTH_NAMES.get(index);
+                    return normalized.equals(fullName)
+                            || normalized.equals(fullName.substring(0, 3));
+                })
+                .map(index -> index + 1)
+                .findFirst()
+                .orElse(-1);
     }
 
     /**

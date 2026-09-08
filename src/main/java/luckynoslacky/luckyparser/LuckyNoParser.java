@@ -1,6 +1,7 @@
 package luckynoslacky.luckyparser;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -109,12 +110,9 @@ public class LuckyNoParser {
          * @return matching command, or an empty Optional if there is no match
          */
         public static Optional<CommandName> fromInput(String input) {
-            for (CommandName commandName : values()) {
-                if (commandName.inputName.equalsIgnoreCase(input)) {
-                    return Optional.of(commandName);
-                }
-            }
-            return Optional.empty();
+            return Arrays.stream(values())
+                    .filter(commandName -> commandName.inputName.equalsIgnoreCase(input))
+                    .findFirst();
         }
     }
 
