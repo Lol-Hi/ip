@@ -198,6 +198,7 @@ public class LuckyNoParser {
             case FIND:
                 return parseFind(arguments, commandTaskMaster);
             default:
+                assert false : "Unhandled command name: " + commandName;
                 throw new IllegalStateException("Unhandled command name.");
         }
     }

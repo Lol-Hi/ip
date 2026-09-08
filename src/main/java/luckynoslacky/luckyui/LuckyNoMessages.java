@@ -70,8 +70,11 @@ public final class LuckyNoMessages {
             case DEADLINE -> DEADLINE_FORMAT;
             case EVENT -> EVENT_FORMAT;
             case FIND -> FIND_FORMAT;
-            default -> throw new IllegalArgumentException(
-                    "No format is defined for this command.");
+            default -> {
+                assert false : "No format is defined for command: " + commandName;
+                throw new IllegalArgumentException(
+                        "No format is defined for this command.");
+            }
         };
     }
 
