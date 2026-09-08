@@ -157,20 +157,65 @@ public class LuckyNoParser {
             int taskCount,
             TaskMaster commandTaskMaster)
             throws LuckyNoInputException {
+        ParsedInput parsedInput = parseInput(userInput);
+        CommandName commandName = parseCommandName(parsedInput.commandToken());
+        return createCommand(
+                commandName,
+                parsedInput.arguments(),
+                taskCount,
+                commandTaskMaster);
+    }
+
+    /**
+     * Splits raw input into a command token and its remaining arguments.
+     *
+     * @param userInput raw user input
+     * @return normalized command token and arguments
+     * @throws LuckyNoInputException if the input is blank
+     */
+    private ParsedInput parseInput(String userInput) throws LuckyNoInputException {
         if (userInput == null || userInput.trim().isEmpty()) {
             throw new LuckyNoInputException(LuckyNoMessages.missingCommandMessage());
         }
 
-        String trimmedInput = userInput.trim();
-        String[] commandParts = trimmedInput.split("\\s+", 2);
+        String[] commandParts = userInput.trim().split("\\s+", 2);
         String commandToken = commandParts[0].toLowerCase(Locale.ROOT);
-        String commandArguments = commandParts.length == 2
+        String arguments = commandParts.length == 2
                 ? commandParts[1].trim()
                 : "";
+        return new ParsedInput(commandToken, arguments);
+    }
 
-        CommandName commandName = CommandName.fromCommandToken(commandToken)
+    /**
+     * Converts a command token into a supported command name.
+     *
+     * @param commandToken normalized command token
+     * @return matching command name
+     * @throws LuckyNoInputException if the token is not recognized
+     */
+    private static CommandName parseCommandName(String commandToken)
+            throws LuckyNoInputException {
+        return CommandName.fromCommandToken(commandToken)
                 .orElseThrow(() -> new LuckyNoInputException(
                         LuckyNoMessages.unknownCommandMessage()));
+    }
+
+    /**
+     * Builds the executable command represented by parsed input.
+     *
+     * @param commandName recognized command name
+     * @param commandArguments command arguments
+     * @param taskCount current number of tasks
+     * @param commandTaskMaster task master attached to the command
+     * @return executable command
+     * @throws LuckyNoInputException if the command arguments are invalid
+     */
+    private LuckyNoCommand createCommand(
+            CommandName commandName,
+            String commandArguments,
+            int taskCount,
+            TaskMaster commandTaskMaster)
+            throws LuckyNoInputException {
 
         switch (commandName) {
             case BYE:
@@ -374,5 +419,8 @@ public class LuckyNoParser {
             throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
         }
         return new EventTask(description, startTime.dateTime(), endTime.dateTime());
+    }
+
+    private record ParsedInput(String commandToken, String arguments) {
     }
 }
