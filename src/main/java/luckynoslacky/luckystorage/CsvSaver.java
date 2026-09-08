@@ -128,6 +128,8 @@ public class CsvSaver {
             printer.printRecord(CSV_HEADER);
 
             for (List<String> record : taskMaster.getCsvStorageRecords()) {
+                assert record.size() == EXPECTED_FIELD_COUNT
+                        : "Unexpected CSV field count: " + record.size();
                 printer.printRecord(record);
             }
         }
