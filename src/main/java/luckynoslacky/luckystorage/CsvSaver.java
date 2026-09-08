@@ -9,8 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -189,8 +189,19 @@ public class CsvSaver {
         }
 
         try (BufferedReader reader = Files.newBufferedReader(
-                dataFile, StandardCharsets.UTF_8)) {
-            return createTasks(readCsvRecords(reader));
+                dataFile, StandardCharsets.UTF_8);
+             CSVParser parser = CSVFormat.DEFAULT.parse(reader)) {
+            List<CSVRecord> records = parser.getRecords();
+
+            if (records.isEmpty()) {
+                return List.of();
+            }
+
+            validateHeader(records.get(0));
+
+            return IntStream.range(1, records.size())
+                    .mapToObj(index -> createTaskFromCsvStorageRecord(records.get(index)))
+                    .toList();
         } catch (IOException exception) {
             throw new LuckyNoStorageException(
                 "Unable to load tasks.", exception);

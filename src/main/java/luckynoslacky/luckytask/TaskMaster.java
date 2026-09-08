@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import luckynoslacky.luckyexception.LuckyNoStorageException;
@@ -107,11 +108,7 @@ public class TaskMaster {
      * @return indexed task list
      */
     public TaskList listTasks() {
-        TaskList taskList = new TaskList();
-        for (int i = 0; i < tasks.size(); i++) {
-            taskList.addTask(i + 1, tasks.get(i));
-        }
-        return taskList;
+        return TaskList.fromTasks(tasks, null, task -> true);
     }
 
     /**
@@ -156,19 +153,16 @@ public class TaskMaster {
         LocalDate searchDate = dateTimeQuery == null
                 ? null
                 : dateTimeQuery.toLocalDate();
-        TaskList matchingTasks = new TaskList(searchDate);
-        for (int i = 0; i < tasks.size(); i++) {
-            Task task = tasks.get(i);
+
+        Predicate<Task> matcher = task -> {
             boolean matchesDescription = descriptionQuery == null
                     || task.matchesDescription(descriptionQuery);
             boolean matchesDate = searchDate == null
                     || task.occursOn(searchDate);
-            if (matchesDescription && matchesDate) {
-                matchingTasks.addTask(i + 1, task);
-            }
-        }
+            return matchesDescription && matchesDate;
+        };
 
-        return matchingTasks;
+        return TaskList.fromTasks(tasks, searchDate, matcher);
     }
 
     /**

@@ -10,8 +10,10 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,13 +40,6 @@ public final class DateTimeParser {
     private static final Pattern DAY_MONTH_PATTERN = Pattern.compile(
             "^(\\d{1,2})\\s+([A-Za-z]+)(?:\\s+(\\d{4}))?$");
 
-    private static final List<String> WEEKDAY_NAMES = List.of(
-            "monday", "tuesday", "wednesday", "thursday",
-            "friday", "saturday", "sunday");
-    private static final List<String> MONTH_NAMES = List.of(
-            "january", "february", "march", "april", "may", "june",
-            "july", "august", "september", "october", "november",
-            "december");
     private static final List<DateTimeFormatter> DATE_FORMATTERS = List.of(
             formatter("uuuu-MM-dd"),
             formatter("uuuu/MM/dd"),
@@ -56,6 +51,59 @@ public final class DateTimeParser {
             formatter("MMMM d uuuu"));
     private static final DateTimeFormatter CSV_FORMATTER =
             formatter("uuuu-MM-dd HH:mm");
+
+    /** Associates accepted weekday names with their java.time values. */
+    private enum Weekday {
+        MONDAY("monday", DayOfWeek.MONDAY),
+        TUESDAY("tuesday", DayOfWeek.TUESDAY),
+        WEDNESDAY("wednesday", DayOfWeek.WEDNESDAY),
+        THURSDAY("thursday", DayOfWeek.THURSDAY),
+        FRIDAY("friday", DayOfWeek.FRIDAY),
+        SATURDAY("saturday", DayOfWeek.SATURDAY),
+        SUNDAY("sunday", DayOfWeek.SUNDAY);
+
+        private final String fullName;
+        private final DayOfWeek dayOfWeek;
+
+        Weekday(String fullName, DayOfWeek dayOfWeek) {
+            this.fullName = fullName;
+            this.dayOfWeek = dayOfWeek;
+        }
+
+        private boolean matches(String value) {
+            return value.equals(fullName)
+                    || value.equals(fullName.substring(0, 3));
+        }
+    }
+
+    /** Associates accepted month names with their one-based month numbers. */
+    private enum Month {
+        JANUARY("january", 1),
+        FEBRUARY("february", 2),
+        MARCH("march", 3),
+        APRIL("april", 4),
+        MAY("may", 5),
+        JUNE("june", 6),
+        JULY("july", 7),
+        AUGUST("august", 8),
+        SEPTEMBER("september", 9),
+        OCTOBER("october", 10),
+        NOVEMBER("november", 11),
+        DECEMBER("december", 12);
+
+        private final String fullName;
+        private final int number;
+
+        Month(String fullName, int number) {
+            this.fullName = fullName;
+            this.number = number;
+        }
+
+        private boolean matches(String value) {
+            return value.equals(fullName)
+                    || value.equals(fullName.substring(0, 3));
+        }
+    }
 
     private final Clock clock;
 
@@ -546,17 +594,28 @@ public final class DateTimeParser {
      * @return parsed date, or null if no formatter accepts the text
      */
     private static LocalDate parseWithKnownFormat(String normalizedDateText) {
-        for (DateTimeFormatter formatter : DATE_FORMATTERS) {
-            try {
-                LocalDate parsed = LocalDate.parse(normalizedDateText, formatter);
-                // Year zero is supported by java.time, but is not accepted by
-                // the chatbot and can therefore be reinterpreted as HHMM.
-                return parsed.getYear() > 0 ? parsed : null;
-            } catch (DateTimeParseException exception) {
-                // Try the next explicitly supported format.
-            }
+        return DATE_FORMATTERS.stream()
+                .map(formatter -> tryParseDateFormat(normalizedDateText, formatter))
+                .flatMap(Optional::stream)
+                .filter(date -> date.getYear() > 0)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Attempts to parse a date using one formatter.
+     *
+     * @param normalizedDateText normalized date text to parse
+     * @param formatter formatter to apply
+     * @return parsed date, or an empty Optional if parsing fails
+     */
+    private static Optional<LocalDate> tryParseDateFormat(
+            String normalizedDateText, DateTimeFormatter formatter) {
+        try {
+            return Optional.of(LocalDate.parse(normalizedDateText, formatter));
+        } catch (DateTimeParseException exception) {
+            return Optional.empty();
         }
-        return null;
     }
 
     /**
@@ -825,14 +884,11 @@ public final class DateTimeParser {
      * @return matching day, or null if the text is not a weekday
      */
     private static DayOfWeek parseWeekday(String weekdayText) {
-        for (int i = 0; i < WEEKDAY_NAMES.size(); i++) {
-            String fullName = WEEKDAY_NAMES.get(i);
-            if (weekdayText.equals(fullName)
-                    || weekdayText.equals(fullName.substring(0, 3))) {
-                return DayOfWeek.of(i + 1);
-            }
-        }
-        return null;
+        return Arrays.stream(Weekday.values())
+                .filter(weekday -> weekday.matches(weekdayText))
+                .map(weekday -> weekday.dayOfWeek)
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -842,15 +898,12 @@ public final class DateTimeParser {
      * @return month number from 1 to 12, or -1 if not a month
      */
     private static int parseMonthNumber(String monthText) {
-        String normalizedMonthText = monthText.toLowerCase(Locale.ENGLISH);
-        for (int i = 0; i < MONTH_NAMES.size(); i++) {
-            String fullName = MONTH_NAMES.get(i);
-            if (normalizedMonthText.equals(fullName)
-                    || normalizedMonthText.equals(fullName.substring(0, 3))) {
-                return i + 1;
-            }
-        }
-        return -1;
+        String normalized = monthText.toLowerCase(Locale.ENGLISH);
+        return Arrays.stream(Month.values())
+                .filter(month -> month.matches(normalized))
+                .mapToInt(month -> month.number)
+                .findFirst()
+                .orElse(-1);
     }
 
     /**
