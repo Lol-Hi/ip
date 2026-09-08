@@ -78,18 +78,30 @@ configured before launching the application.
 
 ### Run using the released JAR
 
-LuckyNoSlacky is also distributed as a fat JAR containing the application and
-its runtime dependencies. Save the JAR under
-at:
-
-```text
-build/libs/luckyNoSlacky.jar
-```
-
-To run the JAR, use Java 25 from the project root:
+LuckyNoSlacky is also distributed as separate fat JARs containing the
+application and its runtime dependencies. Build both release JARs with:
 
 ```bash
-java -jar build/libs/luckyNoSlacky.jar
+./gradlew releaseJars
+```
+
+The generated files are located under `build/libs/`:
+
+```text
+build/libs/luckyNoSlacky-CLI.jar
+build/libs/luckyNoSlacky-GUI.jar
+```
+
+To run the CLI JAR, use Java 25 from the project root:
+
+```bash
+java -jar build/libs/luckyNoSlacky-CLI.jar
+```
+
+To run the JavaFX GUI JAR:
+
+```bash
+java -jar build/libs/luckyNoSlacky-GUI.jar
 ```
 
 No additional dependency or classpath setup is needed.

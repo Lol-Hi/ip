@@ -85,10 +85,10 @@ class LuckyNoMessagesTest {
                 LuckyNoMessages.listTasksMessage(new TaskList()));
     }
 
-    /** Verifies unsupported command formats are rejected internally. */
+    /** Verifies unsupported command formats trigger the internal assertion. */
     @Test
-    void invalidFormatMessage_commandWithoutFormat_throwsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () ->
+    void invalidFormatMessage_unsupportedOrNullCommand_throwsExpectedExceptions() {
+        assertThrows(AssertionError.class, () ->
                 LuckyNoMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.LIST));
         assertThrows(IllegalArgumentException.class, () ->
