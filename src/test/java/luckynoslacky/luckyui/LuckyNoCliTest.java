@@ -108,9 +108,9 @@ class LuckyNoCliTest {
     }
 
     /** Creates a CLI connected to the supplied in-memory input. */
-    private LuckyNoCli createCliWithInput(String input) {
+    private LuckyNoCli createCliWithInput(String userInput) {
         System.setIn(new ByteArrayInputStream(
-                input.getBytes(StandardCharsets.UTF_8)));
+                userInput.getBytes(StandardCharsets.UTF_8)));
         return new LuckyNoCli();
     }
 

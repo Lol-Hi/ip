@@ -102,11 +102,11 @@ public class TaskMaster {
      * @return indexed task list
      */
     public TaskList listTasks() {
-        TaskList result = new TaskList();
+        TaskList taskList = new TaskList();
         for (int i = 0; i < tasks.size(); i++) {
-            result.addTask(i + 1, tasks.get(i));
+            taskList.addTask(i + 1, tasks.get(i));
         }
-        return result;
+        return taskList;
     }
 
     /**
@@ -237,25 +237,25 @@ public class TaskMaster {
      * Replaces the in-memory task list with tasks loaded from CSV storage.
      * This method does not save the list again.
      *
-     * @param tasks tasks loaded from CSV storage
+     * @param loadedTasks tasks loaded from CSV storage
      */
-    public void loadTasksFromCsvStorageRecord(List<Task> tasks) {
-        if (tasks == null) {
+    public void loadTasksFromCsvStorageRecord(List<Task> loadedTasks) {
+        if (loadedTasks == null) {
             throw new LuckyNoStorageException("Tasks cannot be null.");
         }
 
-        if (tasks.size() > maxTasks) {
+        if (loadedTasks.size() > maxTasks) {
             throw new LuckyNoStorageException(
                     "Saved task list exceeds the maximum capacity.");
         }
 
-        if (tasks.stream().anyMatch(task -> task == null)) {
+        if (loadedTasks.stream().anyMatch(task -> task == null)) {
             throw new LuckyNoStorageException(
                     "Saved task list contains a null task.");
         }
 
         this.tasks.clear();
-        this.tasks.addAll(tasks);
+        this.tasks.addAll(loadedTasks);
     }
 
     /** Persists the current task list through the configured saver. */

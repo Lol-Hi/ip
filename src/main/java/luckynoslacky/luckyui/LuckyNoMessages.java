@@ -123,12 +123,12 @@ public final class LuckyNoMessages {
     /**
      * Returns the message for extra arguments after a command.
      *
-     * @param command command that received extra arguments
+     * @param commandName command that received extra arguments
      * @return extra-arguments message
      */
-    public static String extraArgumentsMessage(String command) {
+    public static String extraArgumentsMessage(String commandName) {
         return "Why you so losor! Leave the "
-                + command + " command to do its own thing lah";
+                + commandName + " command to do its own thing lah";
     }
 
     /**
@@ -251,39 +251,39 @@ public final class LuckyNoMessages {
     /**
      * Formats the response after marking a task done.
      *
-     * @param task formatted task that was marked
+     * @param formattedTask formatted task that was marked
      * @return mark response
      */
-    public static String markedTaskMessage(String task) {
+    public static String markedTaskMessage(String formattedTask) {
         return joinMessageLines(
                 "Swee lah you're done with this task:",
-                "  " + task);
+                "  " + formattedTask);
     }
 
     /**
      * Formats the response after marking a task not done.
      *
-     * @param task formatted task that was unmarked
+     * @param formattedTask formatted task that was unmarked
      * @return unmark response
      */
-    public static String unmarkedTaskMessage(String task) {
+    public static String unmarkedTaskMessage(String formattedTask) {
         return joinMessageLines(
                 "Eh salah you're not done with this task ah, "
                         + "must remember to do ah!",
-                "  " + task);
+                "  " + formattedTask);
     }
 
     /**
      * Formats the response after deleting a task.
      *
-     * @param task formatted task that was deleted
+     * @param formattedTask formatted task that was deleted
      * @param taskCount number of remaining tasks
      * @return deletion response
      */
-    public static String deletedTaskMessage(String task, int taskCount) {
+    public static String deletedTaskMessage(String formattedTask, int taskCount) {
         return joinMessageLines(
                 "Solid man can don't care about this one already:",
-                "  " + task,
+                "  " + formattedTask,
                 "But you still got " + taskCount + " tasks to settle.");
     }
 

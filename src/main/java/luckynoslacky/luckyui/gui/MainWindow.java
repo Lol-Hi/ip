@@ -74,13 +74,13 @@ public class MainWindow {
      */
     @FXML
     private void handleUserInput() {
-        String input = userInput.getText().trim();
-        if (input.isEmpty()) {
+        String userInputText = userInput.getText().trim();
+        if (userInputText.isEmpty()) {
             return;
         }
 
-        addUserMessage(input);
-        LuckyNoSlacky.ChatResponse response = chatbot.getResponse(input);
+        addUserMessage(userInputText);
+        LuckyNoSlacky.ChatResponse response = chatbot.getResponse(userInputText);
         addChatbotMessage(response.message());
         userInput.clear();
 
