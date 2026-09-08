@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -54,5 +55,36 @@ class TaskListTest {
     void addTask_nullTask_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () ->
                 new TaskList().addTask(1, null));
+    }
+
+    /** Verifies that non-positive task numbers are rejected by IndexedTask. */
+    @Test
+    void addTask_nonPositiveNumber_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new TaskList().addTask(0, new TodoTask("read book")));
+    }
+
+    /** Verifies that a task list factory preserves original task numbers. */
+    @Test
+    void fromTasks_matchingPredicate_preservesOriginalTaskNumbers() {
+        List<Task> tasks = List.of(
+                new TodoTask("read book"),
+                new TodoTask("buy bread"),
+                new TodoTask("return book"));
+
+        TaskList result = TaskList.fromTasks(
+                tasks,
+                null,
+                task -> task.matchesDescription("book"));
+
+        assertEquals("1.[T][ ] read book\n3.[T][ ] return book",
+                result.toDisplayString());
+    }
+
+    /** Verifies that a null factory matcher is rejected. */
+    @Test
+    void fromTasks_nullMatcher_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                TaskList.fromTasks(List.of(new TodoTask("read book")), null, null));
     }
 }
