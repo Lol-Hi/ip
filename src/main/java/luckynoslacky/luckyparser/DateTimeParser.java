@@ -198,34 +198,115 @@ public final class DateTimeParser {
         LocalDateTime currentDateTime = now();
         LocalDate today = currentDateTime.toLocalDate();
 
-        // A bare four-digit value is treated as a year first. Users can write
-        // an unambiguous compact time with a separator, such as 20:30.
-        if (YEAR_ONLY_PATTERN.matcher(normalizedDateTimeText).matches()) {
-            LocalDate date = parseDate(normalizedDateTimeText, today);
-            return new ParsedDateTime(LocalDateTime.of(date, dateOnlyDefault), false);
+        ParsedDateTime yearOnly = parseYearOnly(
+                normalizedDateTimeText, today, dateOnlyDefault);
+        if (yearOnly != null) {
+            return yearOnly;
         }
 
+        ParsedDateTime timeOnly = parseTimeOnly(
+                normalizedDateTimeText, currentDateTime, today);
+        if (timeOnly != null) {
+            return timeOnly;
+        }
+
+        ParsedDateTime dateAndTime = parseDateAndTime(
+                normalizedDateTimeText, today);
+        if (dateAndTime != null) {
+            return dateAndTime;
+        }
+
+        return parseDateOnly(normalizedDateTimeText, today, dateOnlyDefault);
+    }
+
+    /**
+     * Parses an input containing only a four-digit year.
+     *
+     * @param normalizedDateTimeText normalized input text
+     * @param today current date used for resolving relative expressions
+     * @param dateOnlyDefault default time for date-only input
+     * @return parsed year-only input, or null when the input is not year-only
+     * @throws LuckyNoInputException if the year cannot be resolved
+     */
+    private ParsedDateTime parseYearOnly(
+            String normalizedDateTimeText,
+            LocalDate today,
+            LocalTime dateOnlyDefault)
+            throws LuckyNoInputException {
+        if (!YEAR_ONLY_PATTERN.matcher(normalizedDateTimeText).matches()) {
+            return null;
+        }
+
+        LocalDate date = parseDate(normalizedDateTimeText, today);
+        return new ParsedDateTime(LocalDateTime.of(date, dateOnlyDefault), false);
+    }
+
+    /**
+     * Parses an input containing only a time and resolves it to today or tomorrow.
+     *
+     * @param normalizedDateTimeText normalized input text
+     * @param currentDateTime current date and time
+     * @param today current date
+     * @return parsed time-only input, or null when the input is not time-only
+     */
+    private ParsedDateTime parseTimeOnly(
+            String normalizedDateTimeText,
+            LocalDateTime currentDateTime,
+            LocalDate today) {
         LocalTime parsedTime = parseTime(normalizedDateTimeText);
-        if (parsedTime != null) {
-            LocalDate resolvedDate = parsedTime.isBefore(currentDateTime.toLocalTime())
-                    ? today.plusDays(1)
-                    : today;
-            return new ParsedDateTime(LocalDateTime.of(resolvedDate, parsedTime), true);
+        if (parsedTime == null) {
+            return null;
         }
 
+        LocalDate resolvedDate = parsedTime.isBefore(currentDateTime.toLocalTime())
+                ? today.plusDays(1)
+                : today;
+        return new ParsedDateTime(LocalDateTime.of(resolvedDate, parsedTime), true);
+    }
+
+    /**
+     * Parses an input containing both a date and a time.
+     *
+     * @param normalizedDateTimeText normalized input text
+     * @param today current date used for resolving incomplete dates
+     * @return parsed date/time input, or null when no date/time split is found
+     * @throws LuckyNoInputException if the date portion is invalid
+     */
+    private ParsedDateTime parseDateAndTime(
+            String normalizedDateTimeText, LocalDate today)
+            throws LuckyNoInputException {
         int dateTimeSplitIndex = findDateTimeSplit(normalizedDateTimeText);
-        if (dateTimeSplitIndex > 0) {
-            String dateText = normalizedDateTimeText
-                    .substring(0, dateTimeSplitIndex).trim();
-            String timeText = normalizedDateTimeText.substring(dateTimeSplitIndex).trim();
-            LocalTime parsedTimeWithDate = parseTime(timeText);
-            if (parsedTimeWithDate != null) {
-                LocalDate date = parseDate(dateText, today);
-                return new ParsedDateTime(
-                        LocalDateTime.of(date, parsedTimeWithDate), false);
-            }
+        if (dateTimeSplitIndex <= 0) {
+            return null;
         }
 
+        String dateText = normalizedDateTimeText
+                .substring(0, dateTimeSplitIndex).trim();
+        String timeText = normalizedDateTimeText
+                .substring(dateTimeSplitIndex).trim();
+        LocalTime parsedTime = parseTime(timeText);
+        if (parsedTime == null) {
+            return null;
+        }
+
+        LocalDate date = parseDate(dateText, today);
+        return new ParsedDateTime(LocalDateTime.of(date, parsedTime), false);
+    }
+
+    /**
+     * Parses an input containing a date without an explicit time.
+     *
+     * @param normalizedDateTimeText normalized input text
+     * @param today current date used for resolving incomplete dates
+     * @param dateOnlyDefault default time for the parsed date
+     * @return parsed date-only input
+     * @throws LuckyNoInputException if the date is invalid
+     */
+    private ParsedDateTime parseDateOnly(
+            String normalizedDateTimeText,
+            LocalDate today,
+            LocalTime dateOnlyDefault)
+            throws LuckyNoInputException {
         LocalDate date = parseDate(normalizedDateTimeText, today);
         return new ParsedDateTime(LocalDateTime.of(date, dateOnlyDefault), false);
     }
