@@ -214,41 +214,6 @@ public class CsvSaver {
     }
 
     /**
-     * Reads all CSV records from an opened data-file reader.
-     *
-     * @param reader reader for the task data file
-     * @return records read from the file
-     * @throws IOException if the CSV parser cannot read the file
-     */
-    private List<CSVRecord> readCsvRecords(BufferedReader reader)
-            throws IOException {
-        try (CSVParser parser = CSVFormat.DEFAULT.parse(reader)) {
-            return parser.getRecords();
-        }
-    }
-
-    /**
-     * Validates CSV records and converts them into task objects.
-     *
-     * @param records CSV records including the header
-     * @return tasks represented by the records
-     */
-    private List<Task> createTasks(List<CSVRecord> records) {
-        if (records.isEmpty()) {
-            return List.of();
-        }
-
-        validateHeader(records.get(0));
-
-        List<Task> tasks = new ArrayList<>();
-        for (int i = 1; i < records.size(); i++) {
-            tasks.add(createTaskFromCsvStorageRecord(records.get(i)));
-        }
-
-        return List.copyOf(tasks);
-    }
-
-    /**
      * Validates that a CSV header has the expected columns.
      *
      * @param header first CSV record in the data file

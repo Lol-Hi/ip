@@ -64,8 +64,10 @@ cover.
 4. Make the smallest coherent fixes that preserve application behavior.
 5. Check line lengths, wildcard imports, package declarations, public fields,
    braces, and missing or stale Javadocs.
-6. Run `./gradlew javadoc` with Java 25 and resolve all Javadoc warnings.
-7. Run the project's Java tests after the review. For user-visible changes,
+6. Run `./gradlew checkstyleMain checkstyleTest` with Java 25 and resolve all
+   Checkstyle violations.
+7. Run `./gradlew javadoc` with Java 25 and resolve all Javadoc warnings.
+8. Run the project's Java tests after the review. For user-visible changes,
    also review and run the documented UI tests.
 
 Do not change application behavior merely to satisfy a stylistic preference,

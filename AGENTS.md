@@ -31,6 +31,12 @@ Use the skill when reviewing or changing Java code, including its naming,
 layout, import, encapsulation, and Javadoc requirements. Do not leave Java
 style violations in code changed during a task.
 
+Use the project-specific `$seedu-code-quality` skill after every production or
+test-code modification to review readability, maintainability, and design
+quality against the project's SE-EDU code-quality guidelines. The Java
+standard skill must also run the project's Checkstyle tasks after Java code
+changes.
+
 # Project-specific requirements
 
 ## Code update verification
@@ -52,6 +58,11 @@ After every code update:
 5. Invoke the project-specific `$test-ui` skill to run the documented UI tests.
 6. Report the console input and output record and stop at the first failed UI
    test case.
+7. Invoke `$seedu-java-coding-standard` to review the changed Java code,
+   Javadocs, and Checkstyle results.
+8. Invoke `$seedu-code-quality` to identify the highest-priority remaining
+   readability or maintainability issue. Do not apply additional refactorings
+   from that review without the user's approval.
 
 For changes to JavaFX GUI code, also review `test/gui-test-plan.md` and invoke
 the project-specific `$test-gui` skill after the JUnit suite. GUI tests should
