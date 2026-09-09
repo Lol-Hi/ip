@@ -2,6 +2,7 @@ package luckynoslacky.luckytask;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -186,6 +187,192 @@ public class TaskMaster {
     }
 
     /**
+     * Extends the ending time of a deadline or event by the supplied amount.
+     *
+     * @param taskNumber one-based number of the task to snooze
+     * @param amount amount by which to extend the ending time
+     * @return the updated task
+     * @throws IllegalArgumentException if the task is a ToDo or the amount is
+     *                                  invalid
+     * @throws LuckyNoStorageException if the updated list cannot be saved
+     */
+    public Task snoozeTaskBy(int taskNumber, TemporalAmount amount) {
+        Task task = getTask(taskNumber);
+        if (task.getTaskType() == Task.TaskType.TODO) {
+            throw new IllegalArgumentException("ToDos cannot be snoozed.");
+        }
+
+        LocalDateTime previousByTime = task instanceof DeadlineTask
+                ? ((DeadlineTask) task).getByTime()
+                : null;
+        LocalDateTime previousEndTime = task instanceof EventTask
+                ? ((EventTask) task).getEndTime()
+                : null;
+        LocalDateTime previousStartTime = task instanceof EventTask
+                ? ((EventTask) task).getStartTime()
+                : null;
+
+        if (task instanceof DeadlineTask deadlineTask) {
+            deadlineTask.snoozeBy(amount);
+        } else if (task instanceof EventTask eventTask) {
+            eventTask.snoozeBy(amount);
+        }
+
+        try {
+            saveChanges();
+        } catch (LuckyNoStorageException exception) {
+            restoreTaskTimes(
+                    task, previousByTime, previousStartTime, previousEndTime);
+            throw exception;
+        }
+        return task;
+    }
+
+    /**
+     * Replaces the ending time of a deadline or event.
+     *
+     * @param taskNumber one-based number of the task to snooze
+     * @param newEndTime replacement ending time
+     * @return the updated task
+     * @throws IllegalArgumentException if the task is a ToDo or the time is
+     *                                  invalid
+     * @throws LuckyNoStorageException if the updated list cannot be saved
+     */
+    public Task snoozeTaskTo(int taskNumber, LocalDateTime newEndTime) {
+        Task task = getTask(taskNumber);
+        if (task.getTaskType() == Task.TaskType.TODO) {
+            throw new IllegalArgumentException("ToDos cannot be snoozed.");
+        }
+
+        LocalDateTime previousByTime = task instanceof DeadlineTask
+                ? ((DeadlineTask) task).getByTime()
+                : null;
+        LocalDateTime previousEndTime = task instanceof EventTask
+                ? ((EventTask) task).getEndTime()
+                : null;
+        LocalDateTime previousStartTime = task instanceof EventTask
+                ? ((EventTask) task).getStartTime()
+                : null;
+
+        if (task instanceof DeadlineTask deadlineTask) {
+            deadlineTask.rescheduleTo(newEndTime);
+        } else if (task instanceof EventTask eventTask) {
+            eventTask.reschedule(eventTask.getStartTime(), newEndTime);
+        }
+
+        try {
+            saveChanges();
+        } catch (LuckyNoStorageException exception) {
+            restoreTaskTimes(
+                    task, previousByTime, previousStartTime, previousEndTime);
+            throw exception;
+        }
+        return task;
+    }
+
+    /**
+     * Replaces the deadline of a deadline task.
+     *
+     * @param taskNumber one-based number of the task to reschedule
+     * @param newByTime replacement deadline
+     * @return the updated deadline task
+     * @throws IllegalArgumentException if the task is not a deadline
+     * @throws LuckyNoStorageException if the updated list cannot be saved
+     */
+    public Task rescheduleDeadline(int taskNumber, LocalDateTime newByTime) {
+        Task task = getTask(taskNumber);
+        if (!(task instanceof DeadlineTask deadlineTask)) {
+            throw new IllegalArgumentException("Task is not a deadline.");
+        }
+
+        LocalDateTime previousByTime = deadlineTask.getByTime();
+        deadlineTask.rescheduleTo(newByTime);
+        try {
+            saveChanges();
+        } catch (LuckyNoStorageException exception) {
+            deadlineTask.rescheduleTo(previousByTime);
+            throw exception;
+        }
+        return task;
+    }
+
+    /**
+     * Replaces both times of an event task.
+     *
+     * @param taskNumber one-based number of the task to reschedule
+     * @param newStartTime replacement start time
+     * @param newEndTime replacement end time
+     * @return the updated event task
+     * @throws IllegalArgumentException if the task is not an event or the new
+     *                                  times are invalid
+     * @throws LuckyNoStorageException if the updated list cannot be saved
+     */
+    public Task rescheduleEvent(
+            int taskNumber,
+            LocalDateTime newStartTime,
+            LocalDateTime newEndTime) {
+        Task task = getTask(taskNumber);
+        if (!(task instanceof EventTask eventTask)) {
+            throw new IllegalArgumentException("Task is not an event.");
+        }
+
+        LocalDateTime previousStartTime = eventTask.getStartTime();
+        LocalDateTime previousEndTime = eventTask.getEndTime();
+        eventTask.reschedule(newStartTime, newEndTime);
+        try {
+            saveChanges();
+        } catch (LuckyNoStorageException exception) {
+            restoreTaskTimes(
+                    task, null, previousStartTime, previousEndTime);
+            throw exception;
+        }
+        return task;
+    }
+
+    /**
+     * Returns the type of a task identified by its one-based task number.
+     *
+     * @param taskNumber one-based number of the task
+     * @return task type
+     */
+    public Task.TaskType getTaskType(int taskNumber) {
+        return getTask(taskNumber).getTaskType();
+    }
+
+    /**
+     * Returns the start time of an event task.
+     *
+     * @param taskNumber one-based number of the task
+     * @return event start time
+     * @throws IllegalArgumentException if the task is not an event
+     */
+    public LocalDateTime getTaskStartTime(int taskNumber) {
+        Task task = getTask(taskNumber);
+        if (task instanceof EventTask eventTask) {
+            return eventTask.getStartTime();
+        }
+        throw new IllegalArgumentException("Task is not an event.");
+    }
+
+    /**
+     * Returns the ending time of a deadline or event task.
+     *
+     * @param taskNumber one-based number of the task
+     * @return deadline or event ending time
+     * @throws IllegalArgumentException if the task is a ToDo
+     */
+    public LocalDateTime getTaskEndTime(int taskNumber) {
+        Task task = getTask(taskNumber);
+        if (task instanceof DeadlineTask deadlineTask) {
+            return deadlineTask.getByTime();
+        }
+        if (task instanceof EventTask eventTask) {
+            return eventTask.getEndTime();
+        }
+        throw new IllegalArgumentException("Task has no ending time.");
+    }
+
+    /**
      * Updates a task's completion status and persists the change.
      *
      * @param taskNumber one-based number of the task to update
@@ -285,6 +472,26 @@ public class TaskMaster {
             task.markAsDone();
         } else {
             task.unmarkAsUndone();
+        }
+    }
+
+    /**
+     * Restores the datetime fields captured before a failed save.
+     *
+     * @param task task whose times should be restored
+     * @param byTime previous deadline, or null for an event
+     * @param startTime previous event start, or null for a deadline
+     * @param endTime previous event end, or null for a deadline
+     */
+    private void restoreTaskTimes(
+            Task task,
+            LocalDateTime byTime,
+            LocalDateTime startTime,
+            LocalDateTime endTime) {
+        if (task instanceof DeadlineTask deadlineTask) {
+            deadlineTask.rescheduleTo(byTime);
+        } else if (task instanceof EventTask eventTask) {
+            eventTask.reschedule(startTime, endTime);
         }
     }
 

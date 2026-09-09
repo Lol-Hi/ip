@@ -12,6 +12,16 @@ import luckynoslacky.luckyparser.DateTimeParser;
  * Represents the common state and behavior shared by all task types.
  */
 public abstract class Task {
+    /** Identifies the concrete task category used by command validation. */
+    public enum TaskType {
+        /** A task without a date or time. */
+        TODO,
+        /** A task with a single completion time. */
+        DEADLINE,
+        /** A task with a start and end time. */
+        EVENT
+    }
+
     /**
      * Represents the completion state of a task and its external
      * representations.
@@ -146,6 +156,13 @@ public abstract class Task {
      * @return task fields in CSV column order
      */
     public abstract List<String> getCsvStorageFields();
+
+    /**
+     * Returns the concrete category of this task.
+     *
+     * @return task category
+     */
+    public abstract TaskType getTaskType();
 
     /**
      * Checks whether this task occurs on a date.

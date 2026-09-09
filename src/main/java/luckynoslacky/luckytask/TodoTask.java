@@ -18,6 +18,16 @@ public class TodoTask extends Task {
     }
 
     /**
+     * Returns the category of this task.
+     *
+     * @return ToDo task category
+     */
+    @Override
+    public TaskType getTaskType() {
+        return TaskType.TODO;
+    }
+
+    /**
      * Returns the CSV fields for this ToDo.
      *
      * @return ToDo fields in CSV column order

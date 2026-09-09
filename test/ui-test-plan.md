@@ -44,6 +44,206 @@ bye
   ____________________________________________________________
 ```
 
+## Test Case: Snooze timed tasks
+
+- Aim: Verify default, duration-based, and explicit-ending-time snoozes, while
+  rejecting a ToDo and preserving the event start time.
+
+### Input
+
+```text
+deadline report /by 26 Aug 2026 12pm
+event meeting /from 26 Aug 2026 2pm /to 3pm
+snooze 1
+snooze 2 /by 2 hours
+snooze 2 /to 28 Aug 2026 5pm
+list
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
+  Now you got 2 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your snooze you lazy bum, don't slack too much hor!
+    [D][ ] report (by: Wed Aug 26 2026, 1.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your snooze you lazy bum, don't slack too much hor!
+    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 5.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your snooze you lazy bum, don't slack too much hor!
+    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Fri Aug 28 2026, 5.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these things you need to do:
+  1.[D][ ] report (by: Wed Aug 26 2026, 1.00pm)
+  2.[E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Fri Aug 28 2026, 5.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Reschedule timed tasks
+
+- Aim: Verify deadline rescheduling, event rescheduling of both times, and the
+  final task list after the changes.
+
+### Input
+
+```text
+deadline report /by 26 Aug 2026 12pm
+event meeting /from 26 Aug 2026 2pm /to 3pm
+resched 1 /to 27 Aug 2026 5pm
+resched 2 /from 28 Aug 2026 10am /to 11am
+list
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
+  Now you got 2 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your resched you lazy bum, don't slack too much hor!
+    [D][ ] report (by: Thu Aug 27 2026, 5.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your resched you lazy bum, don't slack too much hor!
+    [E][ ] meeting (from: Fri Aug 28 2026, 10.00am to: Fri Aug 28 2026, 11.00am)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these things you need to do:
+  1.[D][ ] report (by: Thu Aug 27 2026, 5.00pm)
+  2.[E][ ] meeting (from: Fri Aug 28 2026, 10.00am to: Fri Aug 28 2026, 11.00am)
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Invalid snooze and reschedule inputs
+
+- Aim: Verify dedicated ToDo rejection, negative and unsupported durations,
+  task-type-specific formats, and additional slash rejection.
+
+### Input
+
+```text
+todo read book
+deadline return book /by 26 Aug 2026 12pm
+event project meeting /from 26 Aug 2026 2pm /to 3pm
+snooze 1
+snooze 2 /by -1 hour
+snooze 2 /by 1.5 hours
+resched 2 /from tomorrow /to tomorrow
+resched 3 /to tomorrow
+snooze 2 /by 1 hour /to tomorrow
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [T][ ] read book
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [D][ ] return book (by: Wed Aug 26 2026, 12.00pm)
+  Now you got 2 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] project meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
+  Now you got 3 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh mr blur sotong this task don't even have time for you to snooze la
+  ____________________________________________________________
+  ____________________________________________________________
+  Siao ah time where got negative one
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: resched <taskNumber> /to <date/time>
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: resched <taskNumber> /from <start date/time> /to <end date/time>
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
 ## Test Case: Standardized relative-date terminology
 
 - Aim: Verify current-week, following-week, next-next, coming-weekday, and
@@ -636,7 +836,7 @@ bye
   Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
   ____________________________________________________________
   ____________________________________________________________
-  What talking you? I only understand todo, deadline, event, list, mark, unmark, delete, find, or bye, ok?
+  What talking you? I only understand todo, deadline, event, list, mark, unmark, delete, find, snooze, resched, or bye, ok?
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 

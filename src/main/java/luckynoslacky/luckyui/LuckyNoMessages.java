@@ -16,6 +16,14 @@ public final class LuckyNoMessages {
     private static final String EVENT_FORMAT =
             "<description> /from <start date/time> /to <end date/time>.";
     private static final String FIND_FORMAT = "[<description>] [/on <date>]";
+    private static final String SNOOZE_BY_FORMAT =
+            "<taskNumber> [/by <duration>]";
+    private static final String SNOOZE_TO_FORMAT =
+            "<taskNumber> [/to <end date/time>]";
+    private static final String RESCHED_DEADLINE_FORMAT =
+            "<taskNumber> /to <date/time>";
+    private static final String RESCHED_EVENT_FORMAT =
+            "<taskNumber> /from <start date/time> /to <end date/time>";
     private static final DateTimeFormatter FIND_DATE_FORMAT =
             DateTimeFormatter.ofPattern("MMM dd uuuu", Locale.ENGLISH);
 
@@ -70,6 +78,8 @@ public final class LuckyNoMessages {
             case DEADLINE -> DEADLINE_FORMAT;
             case EVENT -> EVENT_FORMAT;
             case FIND -> FIND_FORMAT;
+            case SNOOZE -> SNOOZE_BY_FORMAT + " or " + SNOOZE_TO_FORMAT;
+            case RESCHED -> RESCHED_EVENT_FORMAT;
             default -> {
                 assert false : "No format is defined for command: " + commandName;
                 throw new IllegalArgumentException(
@@ -103,6 +113,42 @@ public final class LuckyNoMessages {
      */
     public static String findFormat() {
         return FIND_FORMAT;
+    }
+
+    /**
+     * Returns the duration-based snooze format.
+     *
+     * @return duration-based snooze format
+     */
+    public static String snoozeByFormat() {
+        return SNOOZE_BY_FORMAT;
+    }
+
+    /**
+     * Returns the explicit-ending-time snooze format.
+     *
+     * @return explicit-ending-time snooze format
+     */
+    public static String snoozeToFormat() {
+        return SNOOZE_TO_FORMAT;
+    }
+
+    /**
+     * Returns the deadline rescheduling format.
+     *
+     * @return deadline rescheduling format
+     */
+    public static String reschedDeadlineFormat() {
+        return RESCHED_DEADLINE_FORMAT;
+    }
+
+    /**
+     * Returns the event rescheduling format.
+     *
+     * @return event rescheduling format
+     */
+    public static String reschedEventFormat() {
+        return RESCHED_EVENT_FORMAT;
     }
 
     /**
@@ -160,7 +206,7 @@ public final class LuckyNoMessages {
     public static String unknownCommandMessage() {
         return "What talking you? "
                 + "I only understand todo, deadline, event, list, mark, unmark, "
-                + "delete, find, or bye, ok?";
+                + "delete, find, snooze, resched, or bye, ok?";
     }
 
     /**
@@ -199,6 +245,51 @@ public final class LuckyNoMessages {
      */
     public static String timeTravelMessage() {
         return "you think you time travelling issit? check your date and time properly hor!";
+    }
+
+    /**
+     * Returns the message shown when a ToDo is used with a timed-task command.
+     *
+     * @param commandName snooze or reschedule command
+     * @return ToDo rejection message
+     */
+    public static String cannotSnoozeOrRescheduleTodoMessage(
+            LuckyNoParser.CommandName commandName) {
+        if (commandName == null) {
+            throw new IllegalArgumentException("Command name cannot be null.");
+        }
+        return "Eh mr blur sotong this task don't even have time for you to "
+                + commandName.getInputName() + " la";
+    }
+
+    /**
+     * Returns the response shown after snoozing a task.
+     *
+     * @param task updated task
+     * @return snooze response
+     */
+    public static String snoozedTaskMessage(Task task) {
+        if (task == null) {
+            throw new IllegalArgumentException("Task cannot be null.");
+        }
+        return joinMessageLines(
+                "Nah here's your snooze you lazy bum, don't slack too much hor!",
+                "  " + task);
+    }
+
+    /**
+     * Returns the response shown after rescheduling a task.
+     *
+     * @param task updated task
+     * @return rescheduling response
+     */
+    public static String rescheduledTaskMessage(Task task) {
+        if (task == null) {
+            throw new IllegalArgumentException("Task cannot be null.");
+        }
+        return joinMessageLines(
+                "Nah here's your resched you lazy bum, don't slack too much hor!",
+                "  " + task);
     }
 
     /**

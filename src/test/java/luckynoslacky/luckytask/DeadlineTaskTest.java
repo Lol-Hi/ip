@@ -2,6 +2,7 @@ package luckynoslacky.luckytask;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,6 +23,29 @@ class DeadlineTaskTest {
                 task.toString());
         assertEquals(List.of("D", "0", "return book", "", "2019-10-15 14:15"),
                 task.getCsvStorageFields());
+    }
+
+    /** Verifies that snoozing extends the deadline by the requested amount. */
+    @Test
+    void snoozeBy_duration_updatesDeadline() {
+        DeadlineTask task = new DeadlineTask(
+                "return book", LocalDateTime.of(2026, 8, 26, 14, 0));
+
+        task.snoozeBy(Duration.ofHours(2));
+
+        assertEquals(LocalDateTime.of(2026, 8, 26, 16, 0), task.getByTime());
+    }
+
+    /** Verifies that rescheduling replaces the deadline. */
+    @Test
+    void rescheduleTo_newTime_replacesDeadline() {
+        DeadlineTask task = new DeadlineTask(
+                "return book", LocalDateTime.of(2026, 8, 26, 14, 0));
+        LocalDateTime newDeadline = LocalDateTime.of(2026, 8, 27, 10, 0);
+
+        task.rescheduleTo(newDeadline);
+
+        assertEquals(newDeadline, task.getByTime());
     }
 
 }

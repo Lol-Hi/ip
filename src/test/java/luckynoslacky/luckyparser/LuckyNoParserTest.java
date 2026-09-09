@@ -20,6 +20,8 @@ import luckynoslacky.luckycommand.LuckyNoCommand;
 import luckynoslacky.luckycommand.LuckyNoDeleteCommand;
 import luckynoslacky.luckycommand.LuckyNoFindCommand;
 import luckynoslacky.luckycommand.LuckyNoMarkCommand;
+import luckynoslacky.luckycommand.LuckyNoReschedCommand;
+import luckynoslacky.luckycommand.LuckyNoSnoozeCommand;
 import luckynoslacky.luckycommand.LuckyNoTaskCommand;
 import luckynoslacky.luckyexception.LuckyNoInputException;
 import luckynoslacky.luckystorage.CsvSaver;
@@ -208,8 +210,7 @@ class LuckyNoParserTest {
     void parseCommand_emptyOrUnknownInput_throwsInputException() {
         assertInputError("Eh you mute issit?? Just say what you want lah!", "   ", 0);
         assertInputError(
-                "What talking you? I only understand todo, deadline, event, list, mark, "
-                        + "unmark, delete, find, or bye, ok?",
+                LuckyNoMessages.unknownCommandMessage(),
                 "dance", 0);
     }
 
@@ -420,6 +421,127 @@ class LuckyNoParserTest {
                                 LocalDateTime.of(2026, 8, 26, 1, 0)),
                         2),
                 overnight.execute());
+    }
+
+    /** Verifies that the default snooze extends a deadline by one hour. */
+    @Test
+    void parseCommand_defaultSnooze_extendsDeadlineByOneHour() throws Exception {
+        DeadlineTask task = new DeadlineTask(
+                "return book", LocalDateTime.of(2026, 8, 26, 12, 0));
+        taskMaster.loadTasksFromCsvStorageRecord(java.util.List.of(task));
+
+        LuckyNoSnoozeCommand command = assertInstanceOf(LuckyNoSnoozeCommand.class,
+                scanner.parseCommand("snooze 1", 1));
+
+        command.execute();
+
+        assertEquals(LocalDateTime.of(2026, 8, 26, 13, 0), task.getByTime());
+    }
+
+    /** Verifies that a duration snooze extends only an event's end time. */
+    @Test
+    void parseCommand_durationSnooze_updatesOnlyEventEnd() throws Exception {
+        LocalDateTime start = LocalDateTime.of(2026, 8, 26, 12, 0);
+        LocalDateTime end = LocalDateTime.of(2026, 8, 26, 13, 0);
+        EventTask task = new EventTask("project meeting", start, end);
+        taskMaster.loadTasksFromCsvStorageRecord(java.util.List.of(task));
+
+        LuckyNoSnoozeCommand command = assertInstanceOf(LuckyNoSnoozeCommand.class,
+                scanner.parseCommand("snooze 1 /by 2 hours please", 1));
+
+        command.execute();
+
+        assertEquals(start, task.getStartTime());
+        assertEquals(end.plusHours(2), task.getEndTime());
+    }
+
+    /** Verifies that an explicit snooze time replaces a deadline. */
+    @Test
+    void parseCommand_explicitSnoozeTime_replacesDeadline() throws Exception {
+        DeadlineTask task = new DeadlineTask(
+                "return book", LocalDateTime.of(2026, 8, 26, 12, 0));
+        taskMaster.loadTasksFromCsvStorageRecord(java.util.List.of(task));
+
+        LuckyNoSnoozeCommand command = assertInstanceOf(LuckyNoSnoozeCommand.class,
+                scanner.parseCommand("snooze 1 /to 27 Aug 2026 5pm", 1));
+
+        command.execute();
+
+        assertEquals(LocalDateTime.of(2026, 8, 27, 17, 0), task.getByTime());
+    }
+
+    /** Verifies that an event reschedule uses the new start as the end reference. */
+    @Test
+    void parseCommand_eventRescheduleOvernight_usesNextEndDate() throws Exception {
+        EventTask task = new EventTask(
+                "project meeting",
+                LocalDateTime.of(2026, 8, 26, 12, 0),
+                LocalDateTime.of(2026, 8, 26, 13, 0));
+        taskMaster.loadTasksFromCsvStorageRecord(java.util.List.of(task));
+
+        LuckyNoReschedCommand command = assertInstanceOf(LuckyNoReschedCommand.class,
+                scanner.parseCommand(
+                        "resched 1 /from 26 Aug 2026 11pm /to 1am", 1));
+
+        command.execute();
+
+        assertEquals(LocalDateTime.of(2026, 8, 26, 23, 0), task.getStartTime());
+        assertEquals(LocalDateTime.of(2026, 8, 27, 1, 0), task.getEndTime());
+    }
+
+    /** Verifies that ToDos receive dedicated snooze and reschedule errors. */
+    @Test
+    void parseCommand_timedCommandOnTodo_throwsDedicatedInputErrors() {
+        taskMaster.loadTasksFromCsvStorageRecord(
+                java.util.List.of(new TodoTask("read book")));
+
+        assertInputError(
+                LuckyNoMessages.cannotSnoozeOrRescheduleTodoMessage(
+                        LuckyNoParser.CommandName.SNOOZE),
+                "snooze 1", 1);
+        assertInputError(
+                LuckyNoMessages.cannotSnoozeOrRescheduleTodoMessage(
+                        LuckyNoParser.CommandName.RESCHED),
+                "resched 1 /to tomorrow", 1);
+    }
+
+    /** Verifies negative durations and malformed slash syntax are rejected. */
+    @Test
+    void parseCommand_invalidSnoozeArguments_throwsInputException() {
+        taskMaster.loadTasksFromCsvStorageRecord(java.util.List.of(
+                new DeadlineTask("return book", LocalDateTime.of(2026, 8, 26, 12, 0))));
+
+        assertInputError(
+                "Siao ah time where got negative one",
+                "snooze 1 /by -2 hours", 1);
+        assertInputError(
+                LuckyNoMessages.invalidFormatMessage(
+                        LuckyNoParser.CommandName.SNOOZE,
+                        LuckyNoMessages.snoozeByFormat(),
+                        LuckyNoMessages.snoozeToFormat()),
+                "snooze 1 /by 2 hours /to tomorrow", 1);
+    }
+
+    /** Verifies rescheduling formats depend on the selected task type. */
+    @Test
+    void parseCommand_rescheduleWrongFormat_usesTaskTypeFormat() {
+        taskMaster.loadTasksFromCsvStorageRecord(java.util.List.of(
+                new DeadlineTask("return book", LocalDateTime.of(2026, 8, 26, 12, 0)),
+                new EventTask(
+                        "project meeting",
+                        LocalDateTime.of(2026, 8, 26, 12, 0),
+                        LocalDateTime.of(2026, 8, 26, 13, 0))));
+
+        assertInputError(
+                LuckyNoMessages.invalidFormatMessage(
+                        LuckyNoParser.CommandName.RESCHED,
+                        LuckyNoMessages.reschedDeadlineFormat()),
+                "resched 1 /from tomorrow /to tomorrow", 2);
+        assertInputError(
+                LuckyNoMessages.invalidFormatMessage(
+                        LuckyNoParser.CommandName.RESCHED,
+                        LuckyNoMessages.reschedEventFormat()),
+                "resched 2 /to tomorrow", 2);
     }
 
     /** Verifies invalid, zero, and out-of-range task numbers are rejected. */
