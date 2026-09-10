@@ -44,6 +44,141 @@ bye
   ____________________________________________________________
 ```
 
+## Test Case: Decimal and combined snooze durations
+
+- Aim: Verify decimal fixed-length durations and combined calendar and clock
+  durations update the correct task ending times.
+
+### Input
+
+```text
+deadline report /by 26 Aug 2026 12pm
+event meeting /from 26 Aug 2026 2pm /to 3pm
+snooze 1 /by 1.5 hours
+snooze 2 /by 1 hour 30 minutes
+snooze 2 /by 1 month 2 days 3 hours
+list
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
+  Now you got 2 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your snooze you lazy bum, don't slack too much hor!
+    [D][ ] report (by: Wed Aug 26 2026, 1.30pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your snooze you lazy bum, don't slack too much hor!
+    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 4.30pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your snooze you lazy bum, don't slack too much hor!
+    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Mon Sep 28 2026, 7.30pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these things you need to do:
+  1.[D][ ] report (by: Wed Aug 26 2026, 1.30pm)
+  2.[E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Mon Sep 28 2026, 7.30pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Invalid decimal and combined snooze durations
+
+- Aim: Verify decimal calendar units, duplicate units, non-canonical order,
+  abbreviations, extra markers, and negative components are rejected.
+
+### Input
+
+```text
+deadline report /by 26 Aug 2026 12pm
+snooze 1 /by 1.5 months
+snooze 1 /by 1 hour 2 hours
+snooze 1 /by 2 days 1 month
+snooze 1 /by 1.5h
+snooze 1 /by 1 hour /to tomorrow
+snooze 1 /by -30 minutes
+list
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]
+  ____________________________________________________________
+  ____________________________________________________________
+  Siao ah time where got negative one
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these things you need to do:
+  1.[D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
 ## Test Case: Snooze timed tasks
 
 - Aim: Verify default, duration-based, and explicit-ending-time snoozes, while
@@ -180,7 +315,7 @@ deadline return book /by 26 Aug 2026 12pm
 event project meeting /from 26 Aug 2026 2pm /to 3pm
 snooze 1
 snooze 2 /by -1 hour
-snooze 2 /by 1.5 hours
+snooze 2 /by 1.5 months
 resched 2 /from tomorrow /to tomorrow
 resched 3 /to tomorrow
 snooze 2 /by 1 hour /to tomorrow

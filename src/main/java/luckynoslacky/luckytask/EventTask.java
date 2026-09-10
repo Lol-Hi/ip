@@ -2,8 +2,9 @@ package luckynoslacky.luckytask;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.TemporalAmount;
 import java.util.List;
+
+import luckynoslacky.luckyparser.DurationPeriod;
 
 /**
  * Represents a task with a specified start and end time.
@@ -67,11 +68,11 @@ public class EventTask extends Task {
      * @param amount amount by which to extend the event
      * @throws IllegalArgumentException if {@code amount} is null
      */
-    public void snoozeBy(TemporalAmount amount) {
+    public void snoozeBy(DurationPeriod amount) {
         if (amount == null) {
             throw new IllegalArgumentException("Snooze amount cannot be null.");
         }
-        reschedule(startTime, endTime.plus(amount));
+        reschedule(startTime, amount.addTo(endTime));
     }
 
     /**

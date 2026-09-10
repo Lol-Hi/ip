@@ -37,19 +37,25 @@ snooze <task number> /to <end date/time>
 ```
 
 The command without an option adds one hour. Supported duration forms are
-non-negative integer values followed by `minute(s)`, `hour(s)`, `day(s)`,
-`month(s)`, or `year(s)`:
+non-negative values followed by `minute(s)`, `hour(s)`, `day(s)`, `month(s)`,
+or `year(s)`. Components must be written in the order years, months, days,
+hours, then minutes, with each unit used at most once:
 
 ```text
 snooze 2
 snooze 2 /by 3 hours
 snooze 2 /by 1 month
+snooze 2 /by 1.5 hours
+snooze 2 /by 1 hour 30 minutes
+snooze 2 /by 1 month 2 days
 snooze 2 /to tomorrow 5pm
 ```
 
 For deadlines, snoozing changes `byTime`. For events, it changes only
 `endTime`; the event's start time is preserved. A zero duration is accepted as
-a no-op. Negative and unsupported durations are rejected.
+a no-op. Decimal minutes, hours, and days are accepted, while decimal months
+and years, abbreviations, repeated units, and non-canonical unit ordering are
+rejected. Negative and unsupported durations are rejected.
 
 ## Rescheduling tasks
 
@@ -84,7 +90,7 @@ The parser accepts the date and time formats documented in the main
 relative to its event start and moves to the next day when necessary.
 
 Trailing commentary after a valid snooze or rescheduling value is ignored, but
-an additional `/` is treated as malformed syntax. Decimal durations,
+an additional `/` is treated as malformed syntax. Natural-language durations,
 abbreviations, reversed `/from` and `/to` order, and partial event
 rescheduling are reserved for later increments.
 

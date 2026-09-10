@@ -3,11 +3,12 @@ package luckynoslacky.luckytask;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+
+import luckynoslacky.luckyparser.DurationPeriod;
 
 /**
  * Tests the event task subclass.
@@ -46,7 +47,8 @@ class EventTaskTest {
         LocalDateTime end = LocalDateTime.of(2026, 8, 6, 16, 0);
         EventTask task = new EventTask("project meeting", start, end);
 
-        task.snoozeBy(Duration.ofHours(2));
+        task.snoozeBy(new DurationPeriod(
+                java.time.Period.ZERO, java.time.Duration.ofHours(2)));
 
         assertEquals(start, task.getStartTime());
         assertEquals(LocalDateTime.of(2026, 8, 6, 18, 0), task.getEndTime());

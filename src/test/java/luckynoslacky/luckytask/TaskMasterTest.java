@@ -3,9 +3,9 @@ package luckynoslacky.luckytask;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import luckynoslacky.luckyexception.LuckyNoStorageException;
+import luckynoslacky.luckyparser.DurationPeriod;
 import luckynoslacky.luckystorage.CsvSaver;
 import luckynoslacky.luckyui.LuckyNoMessages;
 
@@ -210,7 +211,8 @@ class TaskMasterTest {
         DeadlineTask task = new DeadlineTask("return book", DEADLINE);
         taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
 
-        taskMaster.snoozeTaskBy(1, Duration.ofHours(2));
+        taskMaster.snoozeTaskBy(1, new DurationPeriod(
+                java.time.Period.ZERO, java.time.Duration.ofHours(2)));
 
         assertEquals(DEADLINE.plusHours(2), task.getByTime());
     }
@@ -222,10 +224,37 @@ class TaskMasterTest {
         EventTask task = new EventTask("project meeting", EVENT_START, EVENT_END);
         taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
 
-        taskMaster.snoozeTaskBy(1, Duration.ofHours(2));
+        taskMaster.snoozeTaskBy(1, new DurationPeriod(
+                java.time.Period.ZERO, java.time.Duration.ofHours(2)));
 
         assertEquals(EVENT_START, task.getStartTime());
         assertEquals(EVENT_END.plusHours(2), task.getEndTime());
+    }
+
+    /** Verifies that a combined snooze is persisted with task status. */
+    @Test
+    void snoozeTaskBy_combinedDuration_persistsUpdatedTimeAndStatus() {
+        Path dataFile = temporaryDirectory.resolve("combined-snooze.csv");
+        CsvSaver saver = new CsvSaver(dataFile);
+        TaskMaster taskMaster = new TaskMaster(100, saver);
+        EventTask task = new EventTask(
+                "project meeting",
+                LocalDateTime.of(2028, 1, 31, 14, 0),
+                LocalDateTime.of(2028, 1, 31, 16, 0));
+        task.markAsDone();
+        taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
+
+        taskMaster.snoozeTaskBy(1, new DurationPeriod(
+                java.time.Period.ofMonths(1), java.time.Duration.ofHours(12)));
+
+        EventTask reloadedTask = (EventTask) new CsvSaver(dataFile).load().get(0);
+        assertEquals(
+                LocalDateTime.of(2028, 1, 31, 14, 0),
+                reloadedTask.getStartTime());
+        assertEquals(
+                LocalDateTime.of(2028, 3, 1, 4, 0),
+                reloadedTask.getEndTime());
+        assertTrue(reloadedTask.isDone());
     }
 
     /** Verifies that explicit rescheduling replaces a deadline. */
@@ -263,7 +292,8 @@ class TaskMasterTest {
         taskMaster.loadTasksFromCsvStorageRecord(List.of(new TodoTask("read book")));
 
         assertThrows(IllegalArgumentException.class, () ->
-                taskMaster.snoozeTaskBy(1, Duration.ofHours(1)));
+                taskMaster.snoozeTaskBy(1, new DurationPeriod(
+                        java.time.Period.ZERO, java.time.Duration.ofHours(1))));
         assertThrows(IllegalArgumentException.class, () ->
                 taskMaster.rescheduleDeadline(1, DEADLINE));
     }
@@ -276,7 +306,8 @@ class TaskMasterTest {
         taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
 
         assertThrows(LuckyNoStorageException.class, () ->
-                taskMaster.snoozeTaskBy(1, Duration.ofHours(2)));
+                taskMaster.snoozeTaskBy(1, new DurationPeriod(
+                        java.time.Period.ZERO, java.time.Duration.ofHours(2))));
 
         assertEquals(EVENT_START, task.getStartTime());
         assertEquals(EVENT_END, task.getEndTime());

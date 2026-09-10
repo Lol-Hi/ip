@@ -1,8 +1,10 @@
 package luckynoslacky.luckycommand;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.temporal.TemporalAmount;
+import java.time.Period;
 
+import luckynoslacky.luckyparser.DurationPeriod;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
 import luckynoslacky.luckyui.LuckyNoMessages;
@@ -12,7 +14,7 @@ import luckynoslacky.luckyui.LuckyNoMessages;
  */
 public class LuckyNoSnoozeCommand extends LuckyNoCommand {
     private final int taskNumber;
-    private final TemporalAmount amount;
+    private final DurationPeriod delayAmount;
     private final LocalDateTime targetEndTime;
     private final TaskMaster taskMaster;
 
@@ -23,24 +25,26 @@ public class LuckyNoSnoozeCommand extends LuckyNoCommand {
      * @param taskMaster task master containing the task
      */
     public LuckyNoSnoozeCommand(int taskNumber, TaskMaster taskMaster) {
-        this(taskNumber, java.time.Duration.ofHours(1), taskMaster);
+        this(taskNumber,
+                new DurationPeriod(Period.ZERO, Duration.ofHours(1)),
+                taskMaster);
     }
 
     /**
      * Creates a duration-based snooze command.
      *
      * @param taskNumber one-based task number
-     * @param amount duration by which to extend the ending time
+     * @param delayAmount duration by which to extend the ending time
      * @param taskMaster task master containing the task
      * @throws IllegalArgumentException if an argument is null
      */
     public LuckyNoSnoozeCommand(
-            int taskNumber, TemporalAmount amount, TaskMaster taskMaster) {
-        if (amount == null) {
+            int taskNumber, DurationPeriod delayAmount, TaskMaster taskMaster) {
+        if (delayAmount == null) {
             throw new IllegalArgumentException("Snooze amount cannot be null.");
         }
         this.taskNumber = taskNumber;
-        this.amount = amount;
+        this.delayAmount = delayAmount;
         this.targetEndTime = null;
         this.taskMaster = requireTaskMaster(taskMaster);
     }
@@ -59,7 +63,7 @@ public class LuckyNoSnoozeCommand extends LuckyNoCommand {
             throw new IllegalArgumentException("Snooze end time cannot be null.");
         }
         this.taskNumber = taskNumber;
-        this.amount = null;
+        this.delayAmount = null;
         this.targetEndTime = targetEndTime;
         this.taskMaster = requireTaskMaster(taskMaster);
     }
@@ -72,7 +76,7 @@ public class LuckyNoSnoozeCommand extends LuckyNoCommand {
     @Override
     public String execute() {
         Task updatedTask = targetEndTime == null
-                ? taskMaster.snoozeTaskBy(taskNumber, amount)
+                ? taskMaster.snoozeTaskBy(taskNumber, delayAmount)
                 : taskMaster.snoozeTaskTo(taskNumber, targetEndTime);
         return LuckyNoMessages.snoozedTaskMessage(updatedTask);
     }

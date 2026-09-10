@@ -2,8 +2,9 @@ package luckynoslacky.luckytask;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.TemporalAmount;
 import java.util.List;
+
+import luckynoslacky.luckyparser.DurationPeriod;
 
 /**
  * Represents a task that must be completed by a specified time.
@@ -52,11 +53,11 @@ public class DeadlineTask extends Task {
      * @param amount amount by which to extend the deadline
      * @throws IllegalArgumentException if {@code amount} is null
      */
-    public void snoozeBy(TemporalAmount amount) {
+    public void snoozeBy(DurationPeriod amount) {
         if (amount == null) {
             throw new IllegalArgumentException("Snooze amount cannot be null.");
         }
-        byTime = byTime.plus(amount);
+        byTime = amount.addTo(byTime);
     }
 
     /**

@@ -6,12 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import luckynoslacky.luckyparser.DurationPeriod;
 import luckynoslacky.luckystorage.CsvSaver;
 import luckynoslacky.luckytask.DeadlineTask;
 import luckynoslacky.luckytask.EventTask;
@@ -117,7 +117,8 @@ class LuckyNoCommandTest {
                 "return book", LocalDateTime.of(2026, 8, 26, 12, 0));
         taskMaster.loadTasksFromCsvStorageRecord(java.util.List.of(task));
         LuckyNoSnoozeCommand command = new LuckyNoSnoozeCommand(
-                1, Duration.ofHours(2), taskMaster);
+                1, new DurationPeriod(java.time.Period.ZERO,
+                java.time.Duration.ofHours(2)), taskMaster);
 
         String reply = command.execute();
 

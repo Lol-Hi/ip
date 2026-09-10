@@ -2,13 +2,13 @@ package luckynoslacky.luckytask;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import luckynoslacky.luckyexception.LuckyNoStorageException;
+import luckynoslacky.luckyparser.DurationPeriod;
 import luckynoslacky.luckystorage.CsvSaver;
 
 /**
@@ -196,7 +196,7 @@ public class TaskMaster {
      *                                  invalid
      * @throws LuckyNoStorageException if the updated list cannot be saved
      */
-    public Task snoozeTaskBy(int taskNumber, TemporalAmount amount) {
+    public Task snoozeTaskBy(int taskNumber, DurationPeriod amount) {
         Task task = getTask(taskNumber);
         if (task.getTaskType() == Task.TaskType.TODO) {
             throw new IllegalArgumentException("ToDos cannot be snoozed.");

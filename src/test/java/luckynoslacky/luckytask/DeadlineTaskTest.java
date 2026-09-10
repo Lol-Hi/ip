@@ -2,11 +2,12 @@ package luckynoslacky.luckytask;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+
+import luckynoslacky.luckyparser.DurationPeriod;
 
 /**
  * Tests the deadline task subclass.
@@ -31,7 +32,8 @@ class DeadlineTaskTest {
         DeadlineTask task = new DeadlineTask(
                 "return book", LocalDateTime.of(2026, 8, 26, 14, 0));
 
-        task.snoozeBy(Duration.ofHours(2));
+        task.snoozeBy(new DurationPeriod(
+                java.time.Period.ZERO, java.time.Duration.ofHours(2)));
 
         assertEquals(LocalDateTime.of(2026, 8, 26, 16, 0), task.getByTime());
     }

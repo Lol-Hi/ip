@@ -2,7 +2,6 @@ package luckynoslacky.luckyparser;
 
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
-import java.time.temporal.TemporalAmount;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
@@ -422,7 +421,7 @@ public class LuckyNoParser {
             String durationText = markerValue(
                     parts[1], "/by", CommandName.SNOOZE,
                     LuckyNoMessages.snoozeByFormat(), LuckyNoMessages.snoozeToFormat());
-            TemporalAmount amount = DurationParser.parse(durationText);
+            DurationPeriod amount = DurationParser.parse(durationText);
             validateSnoozeAmount(taskNumber, amount, taskMaster);
             return new LuckyNoSnoozeCommand(
                     taskNumber, amount, taskMaster);
@@ -604,11 +603,11 @@ public class LuckyNoParser {
      * @throws LuckyNoInputException if a deadline would remain in the past
      */
     private void validateSnoozeAmount(
-            int taskNumber, TemporalAmount amount, TaskMaster taskMaster)
+            int taskNumber, DurationPeriod amount, TaskMaster taskMaster)
             throws LuckyNoInputException {
         if (taskMaster.getTaskType(taskNumber) == Task.TaskType.DEADLINE) {
             try {
-                if (taskMaster.getTaskEndTime(taskNumber).plus(amount)
+                if (amount.addTo(taskMaster.getTaskEndTime(taskNumber))
                         .isBefore(dateTimeParser.now())) {
                     throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
                 }
