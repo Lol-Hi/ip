@@ -89,16 +89,29 @@ Events replace both times:
 resched <task number> /from <start date/time> /to <end date/time>
 ```
 
+Events may also be rescheduled partially, and the markers may appear in
+either order:
+
+```text
+resched <task number> /from <start date/time>
+resched <task number> /to <end date/time>
+resched <task number> /to <end date/time> /from <start date/time>
+```
+
 Examples:
 
 ```text
 resched 2 /to Friday 6pm
 resched 3 /from next Monday 2pm /to 4pm
+resched 3 /from next Monday 2pm
+resched 3 /to Friday 6pm /from next Monday 2pm
 ```
 
 The event end time must not be before its new start time. Past event start
 times remain allowed, while deadline times must not be in the past. Both event
-times are validated before either one is changed.
+times are validated before either one is changed. An omitted event time remains
+unchanged. Duplicate or unknown slash markers are rejected, while trailing
+commentary without an additional slash is ignored.
 
 ## Date and time input
 
@@ -108,8 +121,7 @@ The parser accepts the date and time formats documented in the main
 relative to its event start and moves to the next day when necessary.
 
 Trailing commentary after a valid snooze or rescheduling value is ignored, but
-an additional `/` is treated as malformed syntax. Reversed `/from` and `/to`
-order and partial event rescheduling are reserved for later increments.
+an additional `/` is treated as malformed syntax.
 
 ## Saving tasks
 

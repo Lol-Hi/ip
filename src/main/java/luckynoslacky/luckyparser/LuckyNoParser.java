@@ -469,32 +469,135 @@ public class LuckyNoParser {
             return new LuckyNoReschedCommand(taskNumber, endTime, taskMaster);
         }
 
-        if (taskType == Task.TaskType.EVENT && startsWithMarker(parts[1], "/from")) {
-            int toIndex = markerIndex(parts[1], "/to", 5);
-            if (toIndex < 0) {
-                throw reschedFormat(taskType);
-            }
-            String startTimeText = parts[1].substring(5, toIndex).trim();
-            String endTimeText = markerValue(
-                    parts[1].substring(toIndex), "/to", CommandName.RESCHED,
-                    LuckyNoMessages.reschedEventFormat());
-            if (startTimeText.isEmpty() || endTimeText.isEmpty()) {
-                throw reschedFormat(taskType);
-            }
-            if (startTimeText.contains("/")) {
-                throw reschedFormat(taskType);
-            }
-            LocalDateTime startTime = parseStartDateTimeIgnoringTrailingText(
-                    startTimeText);
-            LocalDateTime endTime = parseEndDateTimeIgnoringTrailingText(
-                    endTimeText, startTime);
-            if (endTime.isBefore(startTime)) {
-                throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
-            }
-            return new LuckyNoReschedCommand(
-                    taskNumber, startTime, endTime, taskMaster);
+        if (taskType == Task.TaskType.EVENT) {
+            return parseEventResched(parts[1], taskNumber, taskMaster);
         }
         throw reschedFormat(taskType);
+    }
+
+    /**
+     * Parses full or partial event rescheduling arguments.
+     *
+     * @param arguments event rescheduling arguments
+     * @param taskNumber one-based task number
+     * @param taskMaster task master containing the event
+     * @return parsed event rescheduling command
+     * @throws LuckyNoInputException if the markers, times, or final ordering
+     *                               are invalid
+     */
+    private LuckyNoReschedCommand parseEventResched(
+            String arguments,
+            int taskNumber,
+            TaskMaster taskMaster)
+            throws LuckyNoInputException {
+        ReschedParts parts = parseEventReschedParts(arguments);
+        LocalDateTime existingStart = taskMaster.getTaskStartTime(taskNumber);
+        LocalDateTime existingEnd = taskMaster.getTaskEndTime(taskNumber);
+
+        LocalDateTime startTime = parts.startTimeText() == null
+                ? existingStart
+                : parseStartDateTimeIgnoringTrailingText(parts.startTimeText());
+        LocalDateTime endTime = parts.endTimeText() == null
+                ? existingEnd
+                : parseEndDateTimeIgnoringTrailingText(
+                        parts.endTimeText(), startTime);
+
+        if (endTime.isBefore(startTime)) {
+            throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
+        }
+        return new LuckyNoReschedCommand(
+                taskNumber, startTime, endTime, taskMaster);
+    }
+
+    /**
+     * Extracts the optional event rescheduling marker values.
+     *
+     * @param arguments event rescheduling arguments
+     * @return extracted start and end time text
+     * @throws LuckyNoInputException if the marker structure is invalid
+     */
+    private ReschedParts parseEventReschedParts(String arguments)
+            throws LuckyNoInputException {
+        int fromIndex = markerIndex(arguments, "/from", 0);
+        int toIndex = markerIndex(arguments, "/to", 0);
+        if (!hasValidEventMarkers(arguments, fromIndex, toIndex)) {
+            throw reschedFormat(Task.TaskType.EVENT);
+        }
+
+        String startTimeText = fromIndex < 0
+                ? null
+                : extractMarkerSegment(
+                        arguments, fromIndex, toIndex, "/from");
+        String endTimeText = toIndex < 0
+                ? null
+                : extractMarkerSegment(
+                        arguments, toIndex, fromIndex, "/to");
+        return new ReschedParts(startTimeText, endTimeText);
+    }
+
+    /**
+     * Checks the marker structure for an event rescheduling command.
+     *
+     * @param arguments event rescheduling arguments
+     * @param fromIndex first {@code /from} marker index
+     * @param toIndex first {@code /to} marker index
+     * @return true if exactly the supported marker structure is present
+     */
+    private boolean hasValidEventMarkers(
+            String arguments, int fromIndex, int toIndex) {
+        if (fromIndex < 0 && toIndex < 0) {
+            return false;
+        }
+        int firstMarkerIndex = fromIndex < 0
+                ? toIndex
+                : toIndex < 0
+                ? fromIndex
+                : Math.min(fromIndex, toIndex);
+        if (firstMarkerIndex != 0) {
+            return false;
+        }
+        return !hasDuplicateMarker(arguments, "/from", fromIndex)
+                && !hasDuplicateMarker(arguments, "/to", toIndex);
+    }
+
+    /**
+     * Checks whether a marker occurs more than once.
+     *
+     * @param text text containing markers
+     * @param marker marker to check
+     * @param firstIndex first marker index, or -1 when absent
+     * @return true if a second marker is present
+     */
+    private boolean hasDuplicateMarker(
+            String text, String marker, int firstIndex) {
+        return firstIndex >= 0
+                && markerIndex(text, marker, firstIndex + marker.length()) >= 0;
+    }
+
+    /**
+     * Extracts one marker's value up to the other marker.
+     *
+     * @param text full marker argument text
+     * @param markerIndex marker index
+     * @param otherMarkerIndex other marker index
+     * @param marker marker whose value is being extracted
+     * @return marker value
+     * @throws LuckyNoInputException if the value is empty or contains a slash
+     */
+    private String extractMarkerSegment(
+            String text,
+            int markerIndex,
+            int otherMarkerIndex,
+            String marker)
+            throws LuckyNoInputException {
+        int valueEnd = otherMarkerIndex > markerIndex
+                ? otherMarkerIndex
+                : text.length();
+        return markerValue(
+                text.substring(markerIndex, valueEnd),
+                marker,
+                CommandName.RESCHED,
+                LuckyNoMessages.reschedEventFormat());
     }
 
     /**
@@ -782,6 +885,10 @@ public class LuckyNoParser {
             throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
         }
         return new EventTask(description, startTime.dateTime(), endTime.dateTime());
+    }
+
+    /** Stores the optional marker values of an event rescheduling command. */
+    private record ReschedParts(String startTimeText, String endTimeText) {
     }
 
     private record ParsedInput(String commandToken, String arguments) {

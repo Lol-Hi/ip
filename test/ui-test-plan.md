@@ -297,8 +297,8 @@ bye
 
 ## Test Case: Reschedule timed tasks
 
-- Aim: Verify deadline rescheduling, event rescheduling of both times, and the
-  final task list after the changes.
+- Aim: Verify deadline rescheduling, partial event rescheduling, reversed
+  event marker order, and the final task list after the changes.
 
 ### Input
 
@@ -306,7 +306,9 @@ bye
 deadline report /by 26 Aug 2026 12pm
 event meeting /from 26 Aug 2026 2pm /to 3pm
 resched 1 /to 27 Aug 2026 5pm
-resched 2 /from 28 Aug 2026 10am /to 11am
+resched 2 /to 4pm
+resched 2 /from 26 Aug 2026 3pm
+resched 2 /to 5pm /from 26 Aug 2026 4pm
 list
 bye
 ```
@@ -342,12 +344,20 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Nah here's your resched you lazy bum, don't slack too much hor!
-    [E][ ] meeting (from: Fri Aug 28 2026, 10.00am to: Fri Aug 28 2026, 11.00am)
+    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 4.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your resched you lazy bum, don't slack too much hor!
+    [E][ ] meeting (from: Wed Aug 26 2026, 3.00pm to: Wed Aug 26 2026, 4.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your resched you lazy bum, don't slack too much hor!
+    [E][ ] meeting (from: Wed Aug 26 2026, 4.00pm to: Wed Aug 26 2026, 5.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
   1.[D][ ] report (by: Thu Aug 27 2026, 5.00pm)
-  2.[E][ ] meeting (from: Fri Aug 28 2026, 10.00am to: Fri Aug 28 2026, 11.00am)
+  2.[E][ ] meeting (from: Wed Aug 26 2026, 4.00pm to: Wed Aug 26 2026, 5.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -357,7 +367,8 @@ bye
 ## Test Case: Invalid snooze and reschedule inputs
 
 - Aim: Verify dedicated ToDo rejection, negative and unsupported durations,
-  task-type-specific formats, and additional slash rejection.
+  task-type-specific formats, missing event markers, and additional slash
+  rejection.
 
 ### Input
 
@@ -369,7 +380,7 @@ snooze 1
 snooze 2 /by -1 hour
 snooze 2 /by 1.5 months
 resched 2 /from tomorrow /to tomorrow
-resched 3 /to tomorrow
+resched 3
 snooze 2 /by 1 hour /to tomorrow
 bye
 ```

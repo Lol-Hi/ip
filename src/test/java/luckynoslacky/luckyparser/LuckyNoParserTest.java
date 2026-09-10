@@ -489,6 +489,89 @@ class LuckyNoParserTest {
         assertEquals(LocalDateTime.of(2026, 8, 27, 1, 0), task.getEndTime());
     }
 
+    /** Verifies that partial event start rescheduling preserves the end. */
+    @Test
+    void parseCommand_eventFromOnly_preservesExistingEnd() throws Exception {
+        LocalDateTime existingEnd = LocalDateTime.of(2026, 8, 26, 16, 0);
+        EventTask task = new EventTask(
+                "project meeting",
+                LocalDateTime.of(2026, 8, 26, 14, 0),
+                existingEnd);
+        taskMaster.loadTasksFromCsvStorageRecord(java.util.List.of(task));
+
+        LuckyNoReschedCommand command = assertInstanceOf(LuckyNoReschedCommand.class,
+                scanner.parseCommand("resched 1 /from 26 Aug 2026 3pm", 1));
+
+        command.execute();
+
+        assertEquals(LocalDateTime.of(2026, 8, 26, 15, 0), task.getStartTime());
+        assertEquals(existingEnd, task.getEndTime());
+    }
+
+    /** Verifies that partial event end rescheduling preserves the start. */
+    @Test
+    void parseCommand_eventToOnly_preservesExistingStart() throws Exception {
+        LocalDateTime existingStart = LocalDateTime.of(2026, 8, 26, 14, 0);
+        EventTask task = new EventTask(
+                "project meeting",
+                existingStart,
+                LocalDateTime.of(2026, 8, 26, 16, 0));
+        taskMaster.loadTasksFromCsvStorageRecord(java.util.List.of(task));
+
+        LuckyNoReschedCommand command = assertInstanceOf(LuckyNoReschedCommand.class,
+                scanner.parseCommand("resched 1 /to 5pm", 1));
+
+        command.execute();
+
+        assertEquals(existingStart, task.getStartTime());
+        assertEquals(LocalDateTime.of(2026, 8, 26, 17, 0), task.getEndTime());
+    }
+
+    /** Verifies reversed markers use the new start as the end reference. */
+    @Test
+    void parseCommand_reversedEventMarkers_useNewStartReference() throws Exception {
+        EventTask task = new EventTask(
+                "project meeting",
+                LocalDateTime.of(2026, 8, 26, 14, 0),
+                LocalDateTime.of(2026, 8, 26, 16, 0));
+        taskMaster.loadTasksFromCsvStorageRecord(java.util.List.of(task));
+
+        LuckyNoReschedCommand command = assertInstanceOf(LuckyNoReschedCommand.class,
+                scanner.parseCommand(
+                        "resched 1 /to 1am /from 26 Aug 2026 11pm", 1));
+
+        command.execute();
+
+        assertEquals(LocalDateTime.of(2026, 8, 26, 23, 0), task.getStartTime());
+        assertEquals(LocalDateTime.of(2026, 8, 27, 1, 0), task.getEndTime());
+    }
+
+    /** Verifies duplicate and unknown event markers use the event format. */
+    @Test
+    void parseCommand_invalidEventMarkers_throwsEventFormat() {
+        taskMaster.loadTasksFromCsvStorageRecord(java.util.List.of(
+                new EventTask(
+                        "project meeting",
+                        LocalDateTime.of(2026, 8, 26, 14, 0),
+                        LocalDateTime.of(2026, 8, 26, 16, 0))));
+        String expectedMessage = LuckyNoMessages.invalidFormatMessage(
+                LuckyNoParser.CommandName.RESCHED,
+                LuckyNoMessages.reschedEventFormat());
+
+        assertInputError(
+                expectedMessage,
+                "resched 1 /from 3pm /from 4pm", 1);
+        assertInputError(
+                expectedMessage,
+                "resched 1 /when 5pm", 1);
+        assertInputError(
+                expectedMessage,
+                "resched 1 /to 5pm /to 6pm", 1);
+        assertInputError(
+                expectedMessage,
+                "resched 1 /from 3pm /to 5pm /extra", 1);
+    }
+
     /** Verifies that ToDos receive dedicated snooze and reschedule errors. */
     @Test
     void parseCommand_timedCommandOnTodo_throwsDedicatedInputErrors() {
@@ -522,9 +605,9 @@ class LuckyNoParserTest {
                 "snooze 1 /by 2 hours /to tomorrow", 1);
     }
 
-    /** Verifies rescheduling formats depend on the selected task type. */
+    /** Verifies invalid rescheduling formats depend on the selected task type. */
     @Test
-    void parseCommand_rescheduleWrongFormat_usesTaskTypeFormat() {
+    void parseCommand_rescheduleMissingFormat_usesTaskTypeFormat() {
         taskMaster.loadTasksFromCsvStorageRecord(java.util.List.of(
                 new DeadlineTask("return book", LocalDateTime.of(2026, 8, 26, 12, 0)),
                 new EventTask(
@@ -541,7 +624,7 @@ class LuckyNoParserTest {
                 LuckyNoMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.RESCHED,
                         LuckyNoMessages.reschedEventFormat()),
-                "resched 2 /to tomorrow", 2);
+                "resched 2", 2);
     }
 
     /** Verifies invalid, zero, and out-of-range task numbers are rejected. */
