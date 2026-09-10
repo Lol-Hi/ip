@@ -48,14 +48,22 @@ snooze 2 /by 1 month
 snooze 2 /by 1.5 hours
 snooze 2 /by 1 hour 30 minutes
 snooze 2 /by 1 month 2 days
+snooze 2 /by 1.5h
+snooze 2 /by 1hr 30mins
+snooze 2 /by 1mo 2ds 3hrs
 snooze 2 /to tomorrow 5pm
 ```
 
 For deadlines, snoozing changes `byTime`. For events, it changes only
 `endTime`; the event's start time is preserved. A zero duration is accepted as
 a no-op. Decimal minutes, hours, and days are accepted, while decimal months
-and years, abbreviations, repeated units, and non-canonical unit ordering are
-rejected. Negative and unsupported durations are rejected.
+and years, repeated units, and non-canonical unit ordering are rejected.
+Decimal month and year values display:
+`Paiseh bro... i cannot settle decimal values for years and months yet...`
+The abbreviations `min`, `mins`, `h`, `hs`, `hr`, `hrs`, `d`, `ds`, `mo`,
+`mos`, `yr`, and `yrs` are accepted, with or without whitespace after the
+number. The ambiguous abbreviation `m` is not supported. Negative and
+unsupported durations are rejected.
 
 ## Rescheduling tasks
 
@@ -91,8 +99,8 @@ relative to its event start and moves to the next day when necessary.
 
 Trailing commentary after a valid snooze or rescheduling value is ignored, but
 an additional `/` is treated as malformed syntax. Natural-language durations,
-abbreviations, reversed `/from` and `/to` order, and partial event
-rescheduling are reserved for later increments.
+reversed `/from` and `/to` order, and partial event rescheduling are reserved
+for later increments.
 
 ## Saving tasks
 

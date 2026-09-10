@@ -239,6 +239,15 @@ public final class LuckyNoMessages {
     }
 
     /**
+     * Returns the message shown for unsupported decimal calendar durations.
+     *
+     * @return decimal calendar duration message
+     */
+    public static String decimalCalendarDurationMessage() {
+        return "Paiseh bro... i cannot settle decimal values for years and months yet...";
+    }
+
+    /**
      * Returns the message shown when a task's time order is impossible.
      *
      * @return time-order error message

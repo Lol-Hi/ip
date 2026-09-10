@@ -4,7 +4,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Period;
+import java.util.Arrays;
 import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,7 +19,9 @@ import luckynoslacky.luckyui.LuckyNoMessages;
  */
 public final class DurationParser {
     private static final Pattern COMPONENT_PATTERN = Pattern.compile(
-            "(-?\\d+(?:\\.\\d+)?)\\s+(minutes?|hours?|days?|months?|years?)\\b",
+            "(-?\\d+(?:\\.\\d+)?)\\s*"
+                    + "(minutes?|min(?:s)?|hours?|h(?:r)?s?|days?|d(?:s)?|"
+                    + "months?|mo(?:s)?|years?|yr(?:s)?)\\b",
             Pattern.CASE_INSENSITIVE);
     private static final long NANOS_PER_MINUTE = Duration.ofMinutes(1).toNanos();
     private static final long NANOS_PER_HOUR = Duration.ofHours(1).toNanos();
@@ -54,9 +58,13 @@ public final class DurationParser {
         boolean parsedComponent = false;
 
         while (cursor < normalizedText.length()) {
+            int componentStart = cursor;
             while (cursor < normalizedText.length()
                     && Character.isWhitespace(normalizedText.charAt(cursor))) {
                 cursor++;
+            }
+            if (parsedComponent && cursor == componentStart) {
+                throw invalidFormat();
             }
             matcher.region(cursor, normalizedText.length());
             if (!matcher.lookingAt()) {
@@ -64,12 +72,16 @@ public final class DurationParser {
             }
 
             BigDecimal amount = parseAmount(matcher.group(1));
-            Unit unit = Unit.fromText(matcher.group(2));
+            DurationPeriodUnit unit =
+                    DurationPeriodUnit.fromText(matcher.group(2));
             if (amount.signum() < 0) {
                 throw negativeDuration();
             }
-            if (unit.order <= previousUnitOrder || (!unit.allowsDecimal
-                    && amount.scale() > 0)) {
+            if (!unit.allowsDecimal && amount.scale() > 0) {
+                throw new LuckyNoInputException(
+                        LuckyNoMessages.decimalCalendarDurationMessage());
+            }
+            if (unit.order <= previousUnitOrder) {
                 throw invalidFormat();
             }
 
@@ -149,37 +161,42 @@ public final class DurationParser {
                 "Siao ah time where got negative one");
     }
 
-    /** Identifies the supported duration units in canonical order. */
-    private enum Unit {
-        YEAR(0, false),
-        MONTH(1, false),
-        DAY(2, true),
-        HOUR(3, true),
-        MINUTE(4, true);
+    /** Identifies supported duration units and their accepted forms. */
+    private enum DurationPeriodUnit {
+        YEAR(0, false, "year", "years", "yr", "yrs"),
+        MONTH(1, false, "month", "months", "mo", "mos"),
+        DAY(2, true, "day", "days", "d", "ds"),
+        HOUR(3, true, "hour", "hours", "h", "hs", "hr", "hrs"),
+        MINUTE(4, true, "minute", "minutes", "min", "mins");
 
         private final int order;
         private final boolean allowsDecimal;
+        private final Set<String> acceptedForms;
 
-        Unit(int order, boolean allowsDecimal) {
+        DurationPeriodUnit(
+                int order,
+                boolean allowsDecimal,
+                String... acceptedForms) {
             this.order = order;
             this.allowsDecimal = allowsDecimal;
+            this.acceptedForms = Set.of(acceptedForms);
         }
 
         /**
          * Converts a parsed unit name into its unit definition.
          *
          * @param unitText unit name
-         * @return matching unit
+         * @return matching duration period unit
+         * @throws LuckyNoInputException if the unit is unsupported
          */
-        private static Unit fromText(String unitText) throws LuckyNoInputException {
-            return switch (unitText.toLowerCase(Locale.ROOT)) {
-                case "year", "years" -> YEAR;
-                case "month", "months" -> MONTH;
-                case "day", "days" -> DAY;
-                case "hour", "hours" -> HOUR;
-                case "minute", "minutes" -> MINUTE;
-                default -> throw invalidFormat();
-            };
+        private static DurationPeriodUnit fromText(String unitText)
+                throws LuckyNoInputException {
+            String normalizedUnit = unitText.toLowerCase(Locale.ROOT);
+
+            return Arrays.stream(values())
+                    .filter(unit -> unit.acceptedForms.contains(normalizedUnit))
+                    .findFirst()
+                    .orElseThrow(DurationParser::invalidFormat);
         }
     }
 

@@ -27,6 +27,22 @@ class DurationParserTest {
                 DurationParser.parse("1.5 days"));
     }
 
+    /** Verifies decimal calendar units use the dedicated user message. */
+    @Test
+    void parse_decimalCalendarUnits_throwsDedicatedInputException() {
+        LuckyNoInputException monthException = assertThrows(
+                LuckyNoInputException.class, () -> DurationParser.parse(
+                        "1.5 months"));
+        LuckyNoInputException yearException = assertThrows(
+                LuckyNoInputException.class, () -> DurationParser.parse(
+                        "1.5 years"));
+
+        assertEquals(
+                "Paiseh bro... i cannot settle decimal values for years and months yet...",
+                monthException.getMessage());
+        assertEquals(monthException.getMessage(), yearException.getMessage());
+    }
+
     /** Verifies integer month and year units become calendar amounts. */
     @Test
     void parse_integerCalendarUnits_returnsCalendarAmounts()
@@ -35,6 +51,58 @@ class DurationParserTest {
                 DurationParser.parse("2 months"));
         assertEquals(new DurationPeriod(Period.ofYears(3), Duration.ZERO),
                 DurationParser.parse("3 years"));
+    }
+
+    /** Verifies abbreviated units map to their canonical duration units. */
+    @Test
+    void parse_abbreviatedUnits_returnsExpectedAmounts()
+            throws LuckyNoInputException {
+        assertEquals(new DurationPeriod(Period.ofYears(1), Duration.ZERO),
+                DurationParser.parse("1yr"));
+        assertEquals(new DurationPeriod(Period.ofMonths(1), Duration.ZERO),
+                DurationParser.parse("1 mos"));
+        assertEquals(new DurationPeriod(Period.ofMonths(1), Duration.ZERO),
+                DurationParser.parse("1mo"));
+        assertEquals(new DurationPeriod(Period.ofDays(1), Duration.ZERO),
+                DurationParser.parse("1ds"));
+        assertEquals(new DurationPeriod(Period.ofDays(1), Duration.ZERO),
+                DurationParser.parse("1d"));
+        assertEquals(new DurationPeriod(Period.ZERO, Duration.ofHours(1)),
+                DurationParser.parse("1hrs"));
+        assertEquals(new DurationPeriod(Period.ZERO, Duration.ofHours(1)),
+                DurationParser.parse("1hr"));
+        assertEquals(new DurationPeriod(Period.ZERO, Duration.ofHours(1)),
+                DurationParser.parse("1h"));
+        assertEquals(new DurationPeriod(Period.ZERO, Duration.ofMinutes(1)),
+                DurationParser.parse("1 mins"));
+        assertEquals(new DurationPeriod(Period.ZERO, Duration.ofMinutes(1)),
+                DurationParser.parse("1min"));
+    }
+
+    /** Verifies abbreviated units accept optional whitespace and case changes. */
+    @Test
+    void parse_abbreviatedUnitsWithWhitespaceAndCase_returnsExpectedAmounts()
+            throws LuckyNoInputException {
+        assertEquals(new DurationPeriod(Period.ofMonths(1), Duration.ZERO),
+                DurationParser.parse("1   MO"));
+        assertEquals(new DurationPeriod(Period.ZERO, Duration.ofHours(1)),
+                DurationParser.parse("1 H"));
+        assertEquals(new DurationPeriod(Period.ZERO, Duration.ofHours(1)),
+                DurationParser.parse("1 hr"));
+        assertEquals(new DurationPeriod(Period.ZERO, Duration.ofMinutes(90)),
+                DurationParser.parse("1.5 h"));
+        assertEquals(new DurationPeriod(Period.ofDays(1), Duration.ofHours(12)),
+                DurationParser.parse("1.5 d"));
+    }
+
+    /** Verifies abbreviated components can be combined in canonical order. */
+    @Test
+    void parse_combinedAbbreviatedUnits_returnsExpectedAmounts()
+            throws LuckyNoInputException {
+        assertEquals(
+                new DurationPeriod(Period.of(1, 2, 3), Duration.ofHours(4)
+                        .plusMinutes(30)),
+                DurationParser.parse("1yr 2mos 3ds 4hrs 30mins"));
     }
 
     /** Verifies components are parsed in canonical order and combined. */
@@ -90,11 +158,17 @@ class DurationParserTest {
         assertThrows(LuckyNoInputException.class, () ->
                 DurationParser.parse("1.5 years"));
         assertThrows(LuckyNoInputException.class, () ->
+                DurationParser.parse("1.5mo"));
+        assertThrows(LuckyNoInputException.class, () ->
+                DurationParser.parse("1.5yr"));
+        assertThrows(LuckyNoInputException.class, () ->
                 DurationParser.parse("1 hour 2 hours"));
         assertThrows(LuckyNoInputException.class, () ->
                 DurationParser.parse("2 days 1 month"));
         assertThrows(LuckyNoInputException.class, () ->
-                DurationParser.parse("1.5h"));
+                DurationParser.parse("1m"));
+        assertThrows(LuckyNoInputException.class, () ->
+                DurationParser.parse("1h30min"));
         assertThrows(LuckyNoInputException.class, () ->
                 DurationParser.parse("2 fortnights"));
         assertThrows(LuckyNoInputException.class, () ->

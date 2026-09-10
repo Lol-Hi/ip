@@ -50,6 +50,14 @@ class LuckyNoMessagesTest {
                         "/on <date>"));
     }
 
+    /** Verifies the dedicated decimal calendar duration message. */
+    @Test
+    void decimalCalendarDurationMessage_noArguments_returnsConfiguredMessage() {
+        assertEquals(
+                "Paiseh bro... i cannot settle decimal values for years and months yet...",
+                LuckyNoMessages.decimalCalendarDurationMessage());
+    }
+
     /** Verifies that the banner retains its multiline layout. */
     @Test
     void banner_multipleLines_preservesExpectedLayout() {

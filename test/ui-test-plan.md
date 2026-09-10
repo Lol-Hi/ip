@@ -46,17 +46,17 @@ bye
 
 ## Test Case: Decimal and combined snooze durations
 
-- Aim: Verify decimal fixed-length durations and combined calendar and clock
-  durations update the correct task ending times.
+- Aim: Verify decimal fixed-length durations, abbreviations, and combined
+  calendar and clock durations update the correct task ending times.
 
 ### Input
 
 ```text
 deadline report /by 26 Aug 2026 12pm
 event meeting /from 26 Aug 2026 2pm /to 3pm
-snooze 1 /by 1.5 hours
-snooze 2 /by 1 hour 30 minutes
-snooze 2 /by 1 month 2 days 3 hours
+snooze 1 /by 1.5h
+snooze 2 /by 1hr 30mins
+snooze 2 /by 1mo 2ds 3hrs
 list
 bye
 ```
@@ -120,7 +120,8 @@ deadline report /by 26 Aug 2026 12pm
 snooze 1 /by 1.5 months
 snooze 1 /by 1 hour 2 hours
 snooze 1 /by 2 days 1 month
-snooze 1 /by 1.5h
+snooze 1 /by 1m
+snooze 1 /by 1h30min
 snooze 1 /by 1 hour /to tomorrow
 snooze 1 /by -30 minutes
 list
@@ -146,6 +147,9 @@ bye
   Got one more thing to remember ah: 
     [D][ ] report (by: Wed Aug 26 2026, 12.00pm)
   Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Paiseh bro... i cannot settle decimal values for years and months yet...
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
@@ -359,8 +363,7 @@ bye
   Siao ah time where got negative one
   ____________________________________________________________
   ____________________________________________________________
-  Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]
+  Paiseh bro... i cannot settle decimal values for years and months yet...
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
