@@ -105,6 +105,34 @@ class DurationParserTest {
                 DurationParser.parse("1yr 2mos 3ds 4hrs 30mins"));
     }
 
+    /** Verifies natural-language components become duration amounts. */
+    @Test
+    void parse_naturalLanguageComponents_returnsExpectedAmounts()
+            throws LuckyNoInputException {
+        assertEquals(new DurationPeriod(Period.ofDays(7), Duration.ZERO),
+                DurationParser.parse("a week"));
+        assertEquals(new DurationPeriod(Period.ofDays(7), Duration.ZERO),
+                DurationParser.parse("one more week"));
+        assertEquals(new DurationPeriod(Period.ofDays(7), Duration.ZERO),
+                DurationParser.parse("1 more week"));
+        assertEquals(new DurationPeriod(Period.ZERO, Duration.ofMinutes(30)),
+                DurationParser.parse("half an hour"));
+        assertEquals(new DurationPeriod(Period.ZERO, Duration.ofHours(12)),
+                DurationParser.parse("half a day"));
+        assertEquals(new DurationPeriod(Period.ofDays(3), Duration.ofHours(12)),
+                DurationParser.parse("half a week"));
+    }
+
+    /** Verifies natural-language components combine in canonical order. */
+    @Test
+    void parse_combinedNaturalLanguageComponents_returnsExpectedAmounts()
+            throws LuckyNoInputException {
+        assertEquals(
+                new DurationPeriod(Period.ofMonths(1).plusDays(14),
+                        Duration.ofHours(2)),
+                DurationParser.parse("one month two weeks 2 hours"));
+    }
+
     /** Verifies components are parsed in canonical order and combined. */
     @Test
     void parse_combinedUnits_returnsCalendarAndClockAmounts()
@@ -162,6 +190,12 @@ class DurationParserTest {
         assertThrows(LuckyNoInputException.class, () ->
                 DurationParser.parse("1.5yr"));
         assertThrows(LuckyNoInputException.class, () ->
+                DurationParser.parse("1.5 weeks"));
+        assertThrows(LuckyNoInputException.class, () ->
+                DurationParser.parse("half"));
+        assertThrows(LuckyNoInputException.class, () ->
+                DurationParser.parse("one and a half hours"));
+        assertThrows(LuckyNoInputException.class, () ->
                 DurationParser.parse("1 hour 2 hours"));
         assertThrows(LuckyNoInputException.class, () ->
                 DurationParser.parse("2 days 1 month"));
@@ -173,5 +207,16 @@ class DurationParserTest {
                 DurationParser.parse("2 fortnights"));
         assertThrows(LuckyNoInputException.class, () ->
                 DurationParser.parse("1 hour /to tomorrow"));
+    }
+
+    /** Verifies invalid duration errors include the original duration text. */
+    @Test
+    void parse_invalidDuration_includesOriginalInputInErrorMessage() {
+        LuckyNoInputException exception = assertThrows(
+                LuckyNoInputException.class, () -> DurationParser.parse("1h30min"));
+
+        assertEquals(
+                "Eh can you be more specific anot, what do you mean by \"1h30min\" sia?",
+                exception.getMessage());
     }
 }

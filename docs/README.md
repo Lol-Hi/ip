@@ -37,9 +37,12 @@ snooze <task number> /to <end date/time>
 ```
 
 The command without an option adds one hour. Supported duration forms are
-non-negative values followed by `minute(s)`, `hour(s)`, `day(s)`, `month(s)`,
-or `year(s)`. Components must be written in the order years, months, days,
-hours, then minutes, with each unit used at most once:
+non-negative values followed by `minute(s)`, `hour(s)`, `day(s)`, `week(s)`,
+`month(s)`, or `year(s)`. Components must be written in the order years,
+months, weeks, days, hours, then minutes, with each unit used at most once.
+Natural-language
+forms support number words from `one` to `ten`, the filler word `more`, and
+half-unit phrases:
 
 ```text
 snooze 2
@@ -51,6 +54,9 @@ snooze 2 /by 1 month 2 days
 snooze 2 /by 1.5h
 snooze 2 /by 1hr 30mins
 snooze 2 /by 1mo 2ds 3hrs
+snooze 2 /by one more week
+snooze 2 /by half a day
+snooze 2 /by half an hour
 snooze 2 /to tomorrow 5pm
 ```
 
@@ -63,7 +69,10 @@ Decimal month and year values display:
 The abbreviations `min`, `mins`, `h`, `hs`, `hr`, `hrs`, `d`, `ds`, `mo`,
 `mos`, `yr`, and `yrs` are accepted, with or without whitespace after the
 number. The ambiguous abbreviation `m` is not supported. Negative and
-unsupported durations are rejected.
+unsupported durations are rejected. Decimal weeks, compound number phrases
+such as `one and a half hours`, and other natural-language forms not listed
+above are not supported yet. Invalid duration text is reported back with the
+original input so that it can be clarified.
 
 ## Rescheduling tasks
 
@@ -98,9 +107,8 @@ The parser accepts the date and time formats documented in the main
 relative to its event start and moves to the next day when necessary.
 
 Trailing commentary after a valid snooze or rescheduling value is ignored, but
-an additional `/` is treated as malformed syntax. Natural-language durations,
-reversed `/from` and `/to` order, and partial event rescheduling are reserved
-for later increments.
+an additional `/` is treated as malformed syntax. Reversed `/from` and `/to`
+order and partial event rescheduling are reserved for later increments.
 
 ## Saving tasks
 

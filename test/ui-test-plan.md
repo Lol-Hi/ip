@@ -44,6 +44,57 @@ bye
   ____________________________________________________________
 ```
 
+## Test Case: Natural-language snooze durations
+
+- Aim: Verify article, number-word, filler-word, and half-unit duration forms.
+
+### Input
+
+```text
+deadline report /by 26 Aug 2026 12pm
+snooze 1 /by half an hour
+snooze 1 /by 1 more week
+list
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your snooze you lazy bum, don't slack too much hor!
+    [D][ ] report (by: Wed Aug 26 2026, 12.30pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your snooze you lazy bum, don't slack too much hor!
+    [D][ ] report (by: Wed Sep 02 2026, 12.30pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these things you need to do:
+  1.[D][ ] report (by: Wed Sep 02 2026, 12.30pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
 ## Test Case: Decimal and combined snooze durations
 
 - Aim: Verify decimal fixed-length durations, abbreviations, and combined
@@ -152,20 +203,16 @@ bye
   Paiseh bro... i cannot settle decimal values for years and months yet...
   ____________________________________________________________
   ____________________________________________________________
-  Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]
+  Eh can you be more specific anot, what do you mean by "1 hour 2 hours" sia?
   ____________________________________________________________
   ____________________________________________________________
-  Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]
+  Eh can you be more specific anot, what do you mean by "2 days 1 month" sia?
   ____________________________________________________________
   ____________________________________________________________
-  Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]
+  Eh can you be more specific anot, what do you mean by "1m" sia?
   ____________________________________________________________
   ____________________________________________________________
-  Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]
+  Eh can you be more specific anot, what do you mean by "1h30min" sia?
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 

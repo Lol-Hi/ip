@@ -248,6 +248,17 @@ public final class LuckyNoMessages {
     }
 
     /**
+     * Returns a message for an unrecognised snooze duration.
+     *
+     * @param durationText duration text supplied by the user
+     * @return message asking the user to clarify the duration
+     */
+    public static String invalidDurationMessage(String durationText) {
+        return "Eh can you be more specific anot, what do you mean by \""
+                + durationText + "\" sia?";
+    }
+
+    /**
      * Returns the message shown when a task's time order is impossible.
      *
      * @return time-order error message

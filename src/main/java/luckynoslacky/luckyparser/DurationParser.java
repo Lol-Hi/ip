@@ -21,7 +21,20 @@ public final class DurationParser {
     private static final Pattern COMPONENT_PATTERN = Pattern.compile(
             "(-?\\d+(?:\\.\\d+)?)\\s*"
                     + "(minutes?|min(?:s)?|hours?|h(?:r)?s?|days?|d(?:s)?|"
-                    + "months?|mo(?:s)?|years?|yr(?:s)?)\\b",
+                    + "weeks?|months?|mo(?:s)?|years?|yr(?:s)?)\\b",
+            Pattern.CASE_INSENSITIVE);
+    private static final Pattern HALF_UNIT_PATTERN = Pattern.compile(
+            "\\bhalf\\s+(?:a|an)\\s+(minutes?|hours?|days?|weeks?|"
+                    + "months?|years?)\\b",
+            Pattern.CASE_INSENSITIVE);
+    private static final Pattern WORD_NUMBER_PATTERN = Pattern.compile(
+            "\\b(a|an|one|two|three|four|five|six|seven|eight|nine|ten)"
+                    + "(?:\\s+more)?\\s+(minutes?|hours?|days?|weeks?|"
+                    + "months?|years?)\\b",
+            Pattern.CASE_INSENSITIVE);
+    private static final Pattern NUMERIC_MORE_PATTERN = Pattern.compile(
+            "\\b(-?\\d+(?:\\.\\d+)?)\\s+more\\s+(minutes?|hours?|days?|"
+                    + "weeks?|months?|years?)\\b",
             Pattern.CASE_INSENSITIVE);
     private static final long NANOS_PER_MINUTE = Duration.ofMinutes(1).toNanos();
     private static final long NANOS_PER_HOUR = Duration.ofHours(1).toNanos();
@@ -40,13 +53,15 @@ public final class DurationParser {
      */
     public static DurationPeriod parse(String durationText)
             throws LuckyNoInputException {
+        String inputText = String.valueOf(durationText);
         if (durationText == null || durationText.isBlank()) {
-            throw invalidFormat();
+            throw invalidFormat(inputText);
         }
         String normalizedText = durationText.trim();
         if (normalizedText.contains("/")) {
-            throw invalidFormat();
+            throw invalidFormat(inputText);
         }
+        normalizedText = normalizeNaturalLanguage(normalizedText);
 
         Matcher matcher = COMPONENT_PATTERN.matcher(normalizedText);
         int cursor = 0;
@@ -64,7 +79,7 @@ public final class DurationParser {
                 cursor++;
             }
             if (parsedComponent && cursor == componentStart) {
-                throw invalidFormat();
+                throw invalidFormat(inputText);
             }
             matcher.region(cursor, normalizedText.length());
             if (!matcher.lookingAt()) {
@@ -77,31 +92,39 @@ public final class DurationParser {
             if (amount.signum() < 0) {
                 throw negativeDuration();
             }
-            if (!unit.allowsDecimal && amount.scale() > 0) {
+            if (amount.scale() > 0
+                    && (unit == DurationPeriodUnit.MONTH
+                    || unit == DurationPeriodUnit.YEAR)) {
                 throw new LuckyNoInputException(
                         LuckyNoMessages.decimalCalendarDurationMessage());
             }
+            if (!unit.allowsDecimal && amount.scale() > 0) {
+                throw invalidFormat(inputText);
+            }
             if (unit.order <= previousUnitOrder) {
-                throw invalidFormat();
+                throw invalidFormat(inputText);
             }
 
             try {
                 switch (unit) {
                     case YEAR -> years = amount.intValueExact();
                     case MONTH -> months = amount.intValueExact();
+                    case WEEK -> days = Math.addExact(
+                            days, Math.multiplyExact(amount.intValueExact(), 7));
                     case DAY -> {
                         days = amount.setScale(0, RoundingMode.FLOOR).intValueExact();
                         timeAmount = timeAmount.plus(toDuration(
-                                amount.subtract(BigDecimal.valueOf(days)), NANOS_PER_DAY));
+                                amount.subtract(BigDecimal.valueOf(days)),
+                                NANOS_PER_DAY, inputText));
                     }
                     case HOUR -> timeAmount = timeAmount.plus(
-                            toDuration(amount, NANOS_PER_HOUR));
+                            toDuration(amount, NANOS_PER_HOUR, inputText));
                     case MINUTE -> timeAmount = timeAmount.plus(
-                            toDuration(amount, NANOS_PER_MINUTE));
-                    default -> throw invalidFormat();
+                            toDuration(amount, NANOS_PER_MINUTE, inputText));
+                    default -> throw invalidFormat(inputText);
                 }
             } catch (ArithmeticException exception) {
-                throw invalidFormat();
+                throw invalidFormat(inputText);
             }
 
             previousUnitOrder = unit.order;
@@ -111,9 +134,109 @@ public final class DurationParser {
 
         String remainingText = normalizedText.substring(cursor).trim();
         if (!parsedComponent || remainingText.matches("-?\\d.*")) {
-            throw invalidFormat();
+            throw invalidFormat(inputText);
         }
         return new DurationPeriod(Period.of(years, months, days), timeAmount);
+    }
+
+    /**
+     * Normalizes the supported natural-language duration forms.
+     *
+     * @param durationText duration text supplied by the user
+     * @return duration text in the numeric format understood by the parser
+     */
+    private static String normalizeNaturalLanguage(String durationText) {
+        String normalizedText = normalizeHalfUnits(durationText);
+        normalizedText = normalizeNumberWords(normalizedText);
+        return normalizeNumericMore(normalizedText);
+    }
+
+    /**
+     * Converts supported half-unit phrases into numeric components.
+     *
+     * @param durationText duration text to normalize
+     * @return text with half-unit phrases replaced
+     */
+    private static String normalizeHalfUnits(String durationText) {
+        Matcher matcher = HALF_UNIT_PATTERN.matcher(durationText);
+        StringBuffer normalizedText = new StringBuffer();
+
+        while (matcher.find()) {
+            String replacement = switch (matcher.group(1).toLowerCase(Locale.ROOT)) {
+                case "minute", "minutes" -> "0.5 minutes";
+                case "hour", "hours" -> "0.5 hours";
+                case "day", "days" -> "0.5 days";
+                case "week", "weeks" -> "3 days 12 hours";
+                case "month", "months" -> "0.5 months";
+                case "year", "years" -> "0.5 years";
+                default -> matcher.group(0);
+            };
+            matcher.appendReplacement(
+                    normalizedText, Matcher.quoteReplacement(replacement));
+        }
+        matcher.appendTail(normalizedText);
+        return normalizedText.toString();
+    }
+
+    /**
+     * Converts supported number-word components into numeric components.
+     *
+     * @param durationText duration text to normalize
+     * @return text with number-word components replaced
+     */
+    private static String normalizeNumberWords(String durationText) {
+        Matcher matcher = WORD_NUMBER_PATTERN.matcher(durationText);
+        StringBuffer normalizedText = new StringBuffer();
+
+        while (matcher.find()) {
+            String number = numberWordValue(matcher.group(1));
+            String replacement = number + " " + matcher.group(2);
+            matcher.appendReplacement(
+                    normalizedText, Matcher.quoteReplacement(replacement));
+        }
+        matcher.appendTail(normalizedText);
+        return normalizedText.toString();
+    }
+
+    /**
+     * Removes the optional filler word from numeric components.
+     *
+     * @param durationText duration text to normalize
+     * @return text with numeric filler words removed
+     */
+    private static String normalizeNumericMore(String durationText) {
+        Matcher matcher = NUMERIC_MORE_PATTERN.matcher(durationText);
+        StringBuffer normalizedText = new StringBuffer();
+
+        while (matcher.find()) {
+            String replacement = matcher.group(1) + " " + matcher.group(2);
+            matcher.appendReplacement(
+                    normalizedText, Matcher.quoteReplacement(replacement));
+        }
+        matcher.appendTail(normalizedText);
+        return normalizedText.toString();
+    }
+
+    /**
+     * Converts a supported number word or article into its numeric value.
+     *
+     * @param numberWord number word or article
+     * @return numeric value represented by the word
+     */
+    private static String numberWordValue(String numberWord) {
+        return switch (numberWord.toLowerCase(Locale.ROOT)) {
+            case "a", "an", "one" -> "1";
+            case "two" -> "2";
+            case "three" -> "3";
+            case "four" -> "4";
+            case "five" -> "5";
+            case "six" -> "6";
+            case "seven" -> "7";
+            case "eight" -> "8";
+            case "nine" -> "9";
+            case "ten" -> "10";
+            default -> numberWord;
+        };
     }
 
     /**
@@ -140,14 +263,15 @@ public final class DurationParser {
      * @return converted duration
      * @throws LuckyNoInputException if the amount exceeds supported precision
      */
-    private static Duration toDuration(BigDecimal amount, long nanosPerUnit)
+    private static Duration toDuration(
+            BigDecimal amount, long nanosPerUnit, String inputText)
             throws LuckyNoInputException {
         try {
             long nanos = amount.multiply(BigDecimal.valueOf(nanosPerUnit))
                     .longValueExact();
             return Duration.ofNanos(nanos);
         } catch (ArithmeticException exception) {
-            throw invalidFormat();
+            throw invalidFormat(inputText);
         }
     }
 
@@ -165,9 +289,10 @@ public final class DurationParser {
     private enum DurationPeriodUnit {
         YEAR(0, false, "year", "years", "yr", "yrs"),
         MONTH(1, false, "month", "months", "mo", "mos"),
-        DAY(2, true, "day", "days", "d", "ds"),
-        HOUR(3, true, "hour", "hours", "h", "hs", "hr", "hrs"),
-        MINUTE(4, true, "minute", "minutes", "min", "mins");
+        WEEK(2, false, "week", "weeks"),
+        DAY(3, true, "day", "days", "d", "ds"),
+        HOUR(4, true, "hour", "hours", "h", "hs", "hr", "hrs"),
+        MINUTE(5, true, "minute", "minutes", "min", "mins");
 
         private final int order;
         private final boolean allowsDecimal;
@@ -211,5 +336,16 @@ public final class DurationParser {
                         LuckyNoParser.CommandName.SNOOZE,
                         "<taskNumber> [/by <duration>]",
                         "<taskNumber> [/to <end date/time>]"));
+    }
+
+    /**
+     * Creates an invalid-duration exception that includes the original input.
+     *
+     * @param durationText original duration text supplied by the user
+     * @return invalid-duration exception
+     */
+    private static LuckyNoInputException invalidFormat(String durationText) {
+        return new LuckyNoInputException(
+                LuckyNoMessages.invalidDurationMessage(durationText));
     }
 }
