@@ -218,32 +218,32 @@ class LuckyNoParserTest {
     @Test
     void parseCommand_malformedTodoDeadlineOrEvent_throwsInputException() {
         assertInputError("You don't tell me what to do how I know what to do???", "todo", 0);
-        assertInputError("Eh HELLO you know how to type command one anot? \n"
-                        + "Lai lai let me teach you: deadline <description> /by <date/time>.",
+        assertInputError(LuckyNoMessages.invalidFormatMessage(
+                        LuckyNoParser.CommandName.DEADLINE),
                 "deadline return book", 0);
-        assertInputError("Eh HELLO you know how to type command one anot? \n"
-                        + "Lai lai let me teach you: event <description> /from <start date/time> /to <end date/time>.",
+        assertInputError(LuckyNoMessages.invalidFormatMessage(
+                        LuckyNoParser.CommandName.EVENT),
                 "event meeting /from 2pm", 0);
     }
 
     /** Verifies missing deadline and event time sections are rejected. */
     @Test
     void parseCommand_missingDeadlineOrEventTime_throwsInputException() {
-        assertInputError("Eh HELLO you know how to type command one anot? \n"
-                        + "Lai lai let me teach you: deadline <description> /by <date/time>.",
+        assertInputError(LuckyNoMessages.invalidFormatMessage(
+                        LuckyNoParser.CommandName.DEADLINE),
                 "deadline return book /by", 0);
-        assertInputError("Eh HELLO you know how to type command one anot? \n"
-                        + "Lai lai let me teach you: event <description> /from <start date/time> /to <end date/time>.",
+        assertInputError(LuckyNoMessages.invalidFormatMessage(
+                        LuckyNoParser.CommandName.EVENT),
                 "event meeting /from Mon 2pm /to", 0);
     }
 
     /** Verifies empty and reversed task sections are rejected. */
     @Test
     void parseCommand_emptyOrReversedTaskSections_throwsInputException() {
-        String deadlineFormat = "Eh HELLO you know how to type command one anot? \n"
-                + "Lai lai let me teach you: deadline <description> /by <date/time>.";
-        String eventFormat = "Eh HELLO you know how to type command one anot? \n"
-                + "Lai lai let me teach you: event <description> /from <start date/time> /to <end date/time>.";
+        String deadlineFormat = LuckyNoMessages.invalidFormatMessage(
+                LuckyNoParser.CommandName.DEADLINE);
+        String eventFormat = LuckyNoMessages.invalidFormatMessage(
+                LuckyNoParser.CommandName.EVENT);
 
         assertInputError(deadlineFormat, "deadline /by 2pm", 0);
         assertInputError(eventFormat, "event /from 1pm /to 2pm", 0);
@@ -253,11 +253,11 @@ class LuckyNoParserTest {
     /** Verifies malformed find commands are rejected. */
     @Test
     void parseCommand_malformedFindInput_throwsInputException() {
-        assertInputError("Eh HELLO you know how to type command one anot? \n"
-                        + "Lai lai let me teach you: find [<description>] [/on <date>]",
+        assertInputError(LuckyNoMessages.invalidFormatMessage(
+                        LuckyNoParser.CommandName.FIND),
                 "find", 0);
-        assertInputError("Eh HELLO you know how to type command one anot? \n"
-                        + "Lai lai let me teach you: find [<description>] [/on <date>]",
+        assertInputError(LuckyNoMessages.invalidFormatMessage(
+                        LuckyNoParser.CommandName.FIND),
                 "find /on", 0);
         assertInputError(LuckyNoMessages.invalidDateTimeMessage(),
                 "find ignored /on definitely-not-a-date", 0);
@@ -267,11 +267,11 @@ class LuckyNoParserTest {
                 "find /on 2026-13-01", 0);
         assertInputError(LuckyNoMessages.invalidDateTimeMessage(),
                 "find /on 25:99", 0);
-        assertInputError("Eh HELLO you know how to type command one anot? \n"
-                        + "Lai lai let me teach you: find [<description>] [/on <date>]",
+        assertInputError(LuckyNoMessages.invalidFormatMessage(
+                        LuckyNoParser.CommandName.FIND),
                 "find book /on", 0);
-        assertInputError("Eh HELLO you know how to type command one anot? \n"
-                        + "Lai lai let me teach you: find [<description>] [/on <date>]",
+        assertInputError(LuckyNoMessages.invalidFormatMessage(
+                        LuckyNoParser.CommandName.FIND),
                 "find book /on tomorrow /on Friday", 0);
     }
 

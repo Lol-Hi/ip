@@ -15,26 +15,39 @@ import luckynoslacky.luckytask.TodoTask;
  * Tests user-visible storage error messages.
  */
 class LuckyNoMessagesTest {
-    /** Verifies formats are selected correctly for dated commands. */
+    /** Verifies default formats are selected correctly for commands. */
     @Test
-    void invalidFormatMessage_knownCommandAndFormat_returnsFormattedMessage() {
+    void invalidFormatMessage_knownCommands_returnsFormattedMessages() {
         assertEquals(
                 "Eh HELLO you know how to type command one anot? \n"
-                        + "Lai lai let me teach you: deadline "
-                        + "<description> /by <date/time>.",
+                        + "Lai lai let me teach you: `deadline "
+                        + "<description> /by <date/time>.`",
                 LuckyNoMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.DEADLINE));
         assertEquals(
                 "Eh HELLO you know how to type command one anot? \n"
-                        + "Lai lai let me teach you: event "
-                        + "<description> /from <start date/time> /to <end date/time>.",
+                        + "Lai lai let me teach you: `event "
+                        + "<description> /from <start date/time> /to <end date/time>.`",
                 LuckyNoMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.EVENT));
         assertEquals(
                 "Eh HELLO you know how to type command one anot? \n"
-                        + "Lai lai let me teach you: find [<description>] [/on <date>]",
+                        + "Lai lai let me teach you: `find [<description>] [/on <date>]`",
                 LuckyNoMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.FIND));
+        assertEquals(
+                "Eh HELLO you know how to type command one anot? \n"
+                        + "Lai lai let me teach you: `snooze "
+                        + "<taskNumber> [/by <duration>]` or `snooze "
+                        + "<taskNumber> [/to <end date/time>]`",
+                LuckyNoMessages.invalidFormatMessage(
+                        LuckyNoParser.CommandName.SNOOZE));
+        assertEquals(
+                "Eh HELLO you know how to type command one anot? \n"
+                        + "Lai lai let me teach you: `resched "
+                        + "<taskNumber> /from <start date/time> /to <end date/time>`",
+                LuckyNoMessages.invalidFormatMessage(
+                        LuckyNoParser.CommandName.RESCHED));
     }
 
     /** Verifies that multiple valid formats are included in the error message. */
@@ -42,8 +55,8 @@ class LuckyNoMessagesTest {
     void invalidFormatMessage_multipleValidFormats_returnsAllFormats() {
         assertEquals(
                 "Eh HELLO you know how to type command one anot? \n"
-                        + "Lai lai let me teach you: find <description> "
-                        + "or /on <date>",
+                        + "Lai lai let me teach you: `find <description> "
+                        + "or /on <date>`",
                 LuckyNoMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.FIND,
                         "<description>",
@@ -56,6 +69,14 @@ class LuckyNoMessagesTest {
         assertEquals(
                 "Paiseh bro... i cannot settle decimal values for years and months yet...",
                 LuckyNoMessages.decimalCalendarDurationMessage());
+    }
+
+    /** Verifies invalid duration messages quote the supplied input. */
+    @Test
+    void invalidDurationMessage_durationText_returnsQuotedMessage() {
+        assertEquals(
+                "Eh can you be more specific anot, what do you mean by \"1h30min\" sia?",
+                LuckyNoMessages.invalidDurationMessage("1h30min"));
     }
 
     /** Verifies that the banner retains its multiline layout. */

@@ -46,13 +46,14 @@ bye
 
 ## Test Case: Natural-language snooze durations
 
-- Aim: Verify article, number-word, filler-word, and half-unit duration forms.
+- Aim: Verify article, number-word, filler-word, and abbreviated half-unit
+  duration forms.
 
 ### Input
 
 ```text
 deadline report /by 26 Aug 2026 12pm
-snooze 1 /by half an hour
+snooze 1 /by half an hr
 snooze 1 /by 1 more week
 list
 bye
@@ -216,7 +217,7 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]
+  Lai lai let me teach you: `snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]`
   ____________________________________________________________
   ____________________________________________________________
   Siao ah time where got negative one
@@ -414,15 +415,15 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: resched <taskNumber> /to <date/time>
+  Lai lai let me teach you: `resched <taskNumber> /to <date/time>`
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: resched <taskNumber> /from <start date/time> /to <end date/time>
+  Lai lai let me teach you: `resched <taskNumber> /from <start date/time> /to <end date/time>`
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]
+  Lai lai let me teach you: `snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]`
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -617,11 +618,11 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: find [<description>] [/on <date>]
+  Lai lai let me teach you: `find [<description>] [/on <date>]`
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: find [<description>] [/on <date>]
+  Lai lai let me teach you: `find [<description>] [/on <date>]`
   ____________________________________________________________
   ____________________________________________________________
   Eh mr smart alec you tell me your calendar and clock got tell you time like this one meh?
@@ -853,7 +854,7 @@ BYE
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: deadline <description> /by <date/time>.
+  Lai lai let me teach you: `deadline <description> /by <date/time>.`
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
@@ -867,7 +868,7 @@ BYE
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: event <description> /from <start date/time> /to <end date/time>.
+  Lai lai let me teach you: `event <description> /from <start date/time> /to <end date/time>.`
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
@@ -1025,11 +1026,11 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: deadline <description> /by <date/time>.
+  Lai lai let me teach you: `deadline <description> /by <date/time>.`
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: event <description> /from <start date/time> /to <end date/time>.
+  Lai lai let me teach you: `event <description> /from <start date/time> /to <end date/time>.`
   ____________________________________________________________
   ____________________________________________________________
   You siao ah how to spin this task from thin air?
@@ -1159,7 +1160,7 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: deadline <description> /by <date/time>.
+  Lai lai let me teach you: `deadline <description> /by <date/time>.`
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
@@ -1173,7 +1174,7 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: event <description> /from <start date/time> /to <end date/time>.
+  Lai lai let me teach you: `event <description> /from <start date/time> /to <end date/time>.`
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:

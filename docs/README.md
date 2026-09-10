@@ -57,6 +57,7 @@ snooze 2 /by 1mo 2ds 3hrs
 snooze 2 /by one more week
 snooze 2 /by half a day
 snooze 2 /by half an hour
+snooze 2 /by half an hr
 snooze 2 /to tomorrow 5pm
 ```
 

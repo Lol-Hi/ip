@@ -24,8 +24,9 @@ public final class DurationParser {
                     + "weeks?|months?|mo(?:s)?|years?|yr(?:s)?)\\b",
             Pattern.CASE_INSENSITIVE);
     private static final Pattern HALF_UNIT_PATTERN = Pattern.compile(
-            "\\bhalf\\s+(?:a|an)\\s+(minutes?|hours?|days?|weeks?|"
-                    + "months?|years?)\\b",
+            "\\bhalf\\s+(?:a|an)\\s+"
+                    + "(minutes?|min(?:s)?|hours?|h(?:r)?s?|days?|d(?:s)?|"
+                    + "weeks?|months?|mo(?:s)?|years?|yr(?:s)?)\\b",
             Pattern.CASE_INSENSITIVE);
     private static final Pattern WORD_NUMBER_PATTERN = Pattern.compile(
             "\\b(a|an|one|two|three|four|five|six|seven|eight|nine|ten)"
@@ -54,89 +55,265 @@ public final class DurationParser {
     public static DurationPeriod parse(String durationText)
             throws LuckyNoInputException {
         String inputText = String.valueOf(durationText);
+        String normalizedText = normalizeInput(durationText, inputText);
+
+        return parseDurationParts(normalizedText, inputText);
+    }
+
+    /**
+     * Validates and normalizes the raw duration input.
+     *
+     * @param durationText raw duration text supplied by the user
+     * @param inputText original duration text used in error messages
+     * @return normalized duration text
+     * @throws LuckyNoInputException if the input is blank or contains a slash
+     */
+    private static String normalizeInput(
+            String durationText,
+            String inputText)
+            throws LuckyNoInputException {
         if (durationText == null || durationText.isBlank()) {
-            throw invalidFormat(inputText);
+            throw invalidDurationFormat(inputText);
         }
         String normalizedText = durationText.trim();
         if (normalizedText.contains("/")) {
-            throw invalidFormat(inputText);
+            throw invalidDurationFormat(inputText);
         }
-        normalizedText = normalizeNaturalLanguage(normalizedText);
+        return normalizeNaturalLanguage(normalizedText);
+    }
 
+    /**
+     * Parses all duration components in normalized text.
+     *
+     * @param normalizedText normalized duration text
+     * @param inputText original duration text used in error messages
+     * @return parsed calendar and clock amounts
+     * @throws LuckyNoInputException if a component or remainder is malformed
+     */
+    private static DurationPeriod parseDurationParts(
+            String normalizedText,
+            String inputText)
+            throws LuckyNoInputException {
         Matcher matcher = COMPONENT_PATTERN.matcher(normalizedText);
         int cursor = 0;
-        int previousUnitOrder = -1;
-        int years = 0;
-        int months = 0;
-        int days = 0;
-        Duration timeAmount = Duration.ZERO;
-        boolean parsedComponent = false;
+        DurationAccumulator accumulator = new DurationAccumulator();
 
         while (cursor < normalizedText.length()) {
-            int componentStart = cursor;
-            while (cursor < normalizedText.length()
-                    && Character.isWhitespace(normalizedText.charAt(cursor))) {
-                cursor++;
-            }
-            if (parsedComponent && cursor == componentStart) {
-                throw invalidFormat(inputText);
-            }
+            cursor = skipWhitespace(
+                    normalizedText,
+                    cursor,
+                    accumulator.hasParsedComponent(),
+                    inputText);
+
             matcher.region(cursor, normalizedText.length());
             if (!matcher.lookingAt()) {
                 break;
             }
 
-            BigDecimal amount = parseAmount(matcher.group(1));
-            DurationPeriodUnit unit =
-                    DurationPeriodUnit.fromText(matcher.group(2));
-            if (amount.signum() < 0) {
-                throw negativeDuration();
-            }
-            if (amount.scale() > 0
-                    && (unit == DurationPeriodUnit.MONTH
-                    || unit == DurationPeriodUnit.YEAR)) {
-                throw new LuckyNoInputException(
-                        LuckyNoMessages.decimalCalendarDurationMessage());
-            }
-            if (!unit.allowsDecimal && amount.scale() > 0) {
-                throw invalidFormat(inputText);
-            }
-            if (unit.order <= previousUnitOrder) {
-                throw invalidFormat(inputText);
-            }
+            ParsedComponent component = parseNextComponent(
+                    matcher,
+                    accumulator.getPreviousUnitOrder(),
+                    inputText);
+            accumulator.add(component, inputText);
+            cursor = component.endIndex();
+        }
 
+        rejectInvalidRemainder(
+                normalizedText.substring(cursor),
+                accumulator.hasParsedComponent(),
+                inputText);
+
+        return accumulator.toDurationPeriod();
+    }
+
+    /**
+     * Skips whitespace between duration components.
+     *
+     * @param normalizedText normalized duration text
+     * @param cursor current parsing position
+     * @param parsedComponent whether a component has already been parsed
+     * @param inputText original duration text used in error messages
+     * @return next non-whitespace parsing position
+     * @throws LuckyNoInputException if components are adjacent without spacing
+     */
+    private static int skipWhitespace(
+            String normalizedText,
+            int cursor,
+            boolean parsedComponent,
+            String inputText)
+            throws LuckyNoInputException {
+        int componentStart = cursor;
+        while (cursor < normalizedText.length()
+                && Character.isWhitespace(normalizedText.charAt(cursor))) {
+            cursor++;
+        }
+        if (parsedComponent && cursor == componentStart) {
+            throw invalidDurationFormat(inputText);
+        }
+        return cursor;
+    }
+
+    /**
+     * Parses and validates the component at the matcher's current position.
+     *
+     * @param matcher matcher positioned at the next component
+     * @param previousUnitOrder order of the preceding unit
+     * @param inputText original duration text used in error messages
+     * @return parsed duration component
+     * @throws LuckyNoInputException if the component violates duration rules
+     */
+    private static ParsedComponent parseNextComponent(
+            Matcher matcher,
+            int previousUnitOrder,
+            String inputText)
+            throws LuckyNoInputException {
+        BigDecimal amount = parseAmount(matcher.group(1), inputText);
+        DurationPeriodUnit unit =
+                DurationPeriodUnit.fromText(matcher.group(2), inputText);
+        validateComponent(amount, unit, previousUnitOrder, inputText);
+
+        return new ParsedComponent(amount, unit, matcher.end());
+    }
+
+    /**
+     * Validates the value and ordering rules for one duration component.
+     *
+     * @param amount numeric amount in the component
+     * @param unit unit represented by the component
+     * @param previousUnitOrder order of the preceding unit
+     * @param inputText original duration text used in error messages
+     * @throws LuckyNoInputException if the component is invalid
+     */
+    private static void validateComponent(
+            BigDecimal amount,
+            DurationPeriodUnit unit,
+            int previousUnitOrder,
+            String inputText)
+            throws LuckyNoInputException {
+        if (amount.signum() < 0) {
+            throw negativeDuration();
+        }
+        if (amount.scale() > 0
+                && (unit == DurationPeriodUnit.MONTH
+                || unit == DurationPeriodUnit.YEAR)) {
+            throw new LuckyNoInputException(
+                    LuckyNoMessages.decimalCalendarDurationMessage());
+        }
+        if (!unit.allowsDecimal && amount.scale() > 0) {
+            throw invalidDurationFormat(inputText);
+        }
+        if (unit.order <= previousUnitOrder) {
+            throw invalidDurationFormat(inputText);
+        }
+    }
+
+    /**
+     * Rejects malformed text remaining after the last parsed component.
+     *
+     * @param remainingText unparsed trailing text
+     * @param parsedComponent whether at least one component was parsed
+     * @param inputText original duration text used in error messages
+     * @throws LuckyNoInputException if no component or a numeric remainder exists
+     */
+    private static void rejectInvalidRemainder(
+            String remainingText,
+            boolean parsedComponent,
+            String inputText)
+            throws LuckyNoInputException {
+        String trimmedText = remainingText.trim();
+        if (!parsedComponent || trimmedText.matches("-?\\d.*")) {
+            throw invalidDurationFormat(inputText);
+        }
+    }
+
+    /** Represents one duration component matched from the input. */
+    private record ParsedComponent(
+            BigDecimal amount,
+            DurationPeriodUnit unit,
+            int endIndex) {
+    }
+
+    /** Accumulates validated calendar and clock duration components. */
+    private static final class DurationAccumulator {
+        private int years;
+        private int months;
+        private int days;
+        private Duration timeAmount = Duration.ZERO;
+        private int previousUnitOrder = -1;
+        private boolean parsedComponent;
+
+        /**
+         * Adds one validated component to the accumulated duration.
+         *
+         * @param component validated duration component
+         * @param inputText original duration text used in error messages
+         * @throws LuckyNoInputException if the component exceeds supported precision
+         */
+        private void add(
+                ParsedComponent component,
+                String inputText)
+                throws LuckyNoInputException {
             try {
-                switch (unit) {
-                    case YEAR -> years = amount.intValueExact();
-                    case MONTH -> months = amount.intValueExact();
+                switch (component.unit()) {
+                    case YEAR -> years = component.amount().intValueExact();
+                    case MONTH -> months = component.amount().intValueExact();
                     case WEEK -> days = Math.addExact(
-                            days, Math.multiplyExact(amount.intValueExact(), 7));
-                    case DAY -> {
-                        days = amount.setScale(0, RoundingMode.FLOOR).intValueExact();
-                        timeAmount = timeAmount.plus(toDuration(
-                                amount.subtract(BigDecimal.valueOf(days)),
-                                NANOS_PER_DAY, inputText));
-                    }
+                            days,
+                            Math.multiplyExact(
+                                    component.amount().intValueExact(), 7));
+                    case DAY -> addDays(component.amount(), inputText);
                     case HOUR -> timeAmount = timeAmount.plus(
-                            toDuration(amount, NANOS_PER_HOUR, inputText));
+                            toDuration(
+                                    component.amount(),
+                                    NANOS_PER_HOUR,
+                                    inputText));
                     case MINUTE -> timeAmount = timeAmount.plus(
-                            toDuration(amount, NANOS_PER_MINUTE, inputText));
-                    default -> throw invalidFormat(inputText);
+                            toDuration(
+                                    component.amount(),
+                                    NANOS_PER_MINUTE,
+                                    inputText));
+                    default -> throw invalidDurationFormat(inputText);
                 }
             } catch (ArithmeticException exception) {
-                throw invalidFormat(inputText);
+                throw invalidDurationFormat(inputText);
             }
 
-            previousUnitOrder = unit.order;
+            previousUnitOrder = component.unit().order;
             parsedComponent = true;
-            cursor = matcher.end();
         }
 
-        String remainingText = normalizedText.substring(cursor).trim();
-        if (!parsedComponent || remainingText.matches("-?\\d.*")) {
-            throw invalidFormat(inputText);
+        /**
+         * Adds a potentially fractional day to the accumulated duration.
+         *
+         * @param amount day amount to add
+         * @param inputText original duration text used in error messages
+         * @throws LuckyNoInputException if the fractional part exceeds precision
+         */
+        private void addDays(
+                BigDecimal amount,
+                String inputText)
+                throws LuckyNoInputException {
+            days = amount.setScale(0, RoundingMode.FLOOR).intValueExact();
+            timeAmount = timeAmount.plus(
+                    toDuration(
+                            amount.subtract(BigDecimal.valueOf(days)),
+                            NANOS_PER_DAY,
+                            inputText));
         }
-        return new DurationPeriod(Period.of(years, months, days), timeAmount);
+
+        private boolean hasParsedComponent() {
+            return parsedComponent;
+        }
+
+        private int getPreviousUnitOrder() {
+            return previousUnitOrder;
+        }
+
+        private DurationPeriod toDurationPeriod() {
+            return new DurationPeriod(
+                    Period.of(years, months, days),
+                    timeAmount);
+        }
     }
 
     /**
@@ -144,8 +321,10 @@ public final class DurationParser {
      *
      * @param durationText duration text supplied by the user
      * @return duration text in the numeric format understood by the parser
+     * @throws LuckyNoInputException if a half-unit alias is unsupported
      */
-    private static String normalizeNaturalLanguage(String durationText) {
+    private static String normalizeNaturalLanguage(String durationText)
+            throws LuckyNoInputException {
         String normalizedText = normalizeHalfUnits(durationText);
         normalizedText = normalizeNumberWords(normalizedText);
         return normalizeNumericMore(normalizedText);
@@ -156,20 +335,24 @@ public final class DurationParser {
      *
      * @param durationText duration text to normalize
      * @return text with half-unit phrases replaced
+     * @throws LuckyNoInputException if a half-unit alias is unsupported
      */
-    private static String normalizeHalfUnits(String durationText) {
+    private static String normalizeHalfUnits(String durationText)
+            throws LuckyNoInputException {
         Matcher matcher = HALF_UNIT_PATTERN.matcher(durationText);
         StringBuffer normalizedText = new StringBuffer();
 
         while (matcher.find()) {
-            String replacement = switch (matcher.group(1).toLowerCase(Locale.ROOT)) {
-                case "minute", "minutes" -> "0.5 minutes";
-                case "hour", "hours" -> "0.5 hours";
-                case "day", "days" -> "0.5 days";
-                case "week", "weeks" -> "3 days 12 hours";
-                case "month", "months" -> "0.5 months";
-                case "year", "years" -> "0.5 years";
-                default -> matcher.group(0);
+            DurationPeriodUnit unit = DurationPeriodUnit.fromText(
+                    matcher.group(1),
+                    durationText);
+            String replacement = switch (unit) {
+                case MINUTE -> "0.5 minutes";
+                case HOUR -> "0.5 hours";
+                case DAY -> "0.5 days";
+                case WEEK -> "3 days 12 hours";
+                case MONTH -> "0.5 months";
+                case YEAR -> "0.5 years";
             };
             matcher.appendReplacement(
                     normalizedText, Matcher.quoteReplacement(replacement));
@@ -246,12 +429,14 @@ public final class DurationParser {
      * @return parsed numeric amount
      * @throws LuckyNoInputException if the number is malformed
      */
-    private static BigDecimal parseAmount(String amountText)
+    private static BigDecimal parseAmount(
+            String amountText,
+            String inputText)
             throws LuckyNoInputException {
         try {
             return new BigDecimal(amountText);
         } catch (NumberFormatException exception) {
-            throw invalidFormat();
+            throw invalidDurationFormat(inputText);
         }
     }
 
@@ -271,7 +456,7 @@ public final class DurationParser {
                     .longValueExact();
             return Duration.ofNanos(nanos);
         } catch (ArithmeticException exception) {
-            throw invalidFormat(inputText);
+            throw invalidDurationFormat(inputText);
         }
     }
 
@@ -314,37 +499,27 @@ public final class DurationParser {
          * @return matching duration period unit
          * @throws LuckyNoInputException if the unit is unsupported
          */
-        private static DurationPeriodUnit fromText(String unitText)
+        private static DurationPeriodUnit fromText(
+                String unitText,
+                String inputText)
                 throws LuckyNoInputException {
             String normalizedUnit = unitText.toLowerCase(Locale.ROOT);
 
             return Arrays.stream(values())
                     .filter(unit -> unit.acceptedForms.contains(normalizedUnit))
                     .findFirst()
-                    .orElseThrow(DurationParser::invalidFormat);
+                    .orElseThrow(() -> invalidDurationFormat(inputText));
         }
     }
 
     /**
-     * Creates the standard invalid-format exception for a duration.
-     *
-     * @return invalid duration exception
-     */
-    private static LuckyNoInputException invalidFormat() {
-        return new LuckyNoInputException(
-                LuckyNoMessages.invalidFormatMessage(
-                        LuckyNoParser.CommandName.SNOOZE,
-                        "<taskNumber> [/by <duration>]",
-                        "<taskNumber> [/to <end date/time>]"));
-    }
-
-    /**
-     * Creates an invalid-duration exception that includes the original input.
+     * Creates an invalid-duration exception with the original input.
      *
      * @param durationText original duration text supplied by the user
      * @return invalid-duration exception
      */
-    private static LuckyNoInputException invalidFormat(String durationText) {
+    private static LuckyNoInputException invalidDurationFormat(
+            String durationText) {
         return new LuckyNoInputException(
                 LuckyNoMessages.invalidDurationMessage(durationText));
     }

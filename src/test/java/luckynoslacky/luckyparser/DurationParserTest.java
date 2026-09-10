@@ -123,6 +123,34 @@ class DurationParserTest {
                 DurationParser.parse("half a week"));
     }
 
+    /** Verifies natural-language half-unit phrases accept duration aliases. */
+    @Test
+    void parse_naturalLanguageAliases_returnsExpectedAmounts()
+            throws LuckyNoInputException {
+        assertEquals(new DurationPeriod(Period.ZERO, Duration.ofMinutes(30)),
+                DurationParser.parse("half an hr"));
+        assertEquals(new DurationPeriod(Period.ZERO, Duration.ofHours(12)),
+                DurationParser.parse("half a DS"));
+        assertEquals(new DurationPeriod(Period.ofDays(3), Duration.ofHours(12)),
+                DurationParser.parse("half a week"));
+    }
+
+    /** Verifies half-unit calendar aliases retain decimal-calendar validation. */
+    @Test
+    void parse_naturalLanguageCalendarAliases_throwsDedicatedInputException() {
+        LuckyNoInputException monthException = assertThrows(
+                LuckyNoInputException.class, () -> DurationParser.parse(
+                        "half a mo"));
+        LuckyNoInputException yearException = assertThrows(
+                LuckyNoInputException.class, () -> DurationParser.parse(
+                        "half an yr"));
+
+        assertEquals(
+                "Paiseh bro... i cannot settle decimal values for years and months yet...",
+                monthException.getMessage());
+        assertEquals(monthException.getMessage(), yearException.getMessage());
+    }
+
     /** Verifies natural-language components combine in canonical order. */
     @Test
     void parse_combinedNaturalLanguageComponents_returnsExpectedAmounts()

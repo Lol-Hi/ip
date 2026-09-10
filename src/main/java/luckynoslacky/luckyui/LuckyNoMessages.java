@@ -24,6 +24,8 @@ public final class LuckyNoMessages {
             "<taskNumber> /to <date/time>";
     private static final String RESCHED_EVENT_FORMAT =
             "<taskNumber> /from <start date/time> /to <end date/time>";
+    private static final String INVALID_DURATION_FORMAT =
+            "Eh can you be more specific anot, what do you mean by \"%s\" sia?";
     private static final DateTimeFormatter FIND_DATE_FORMAT =
             DateTimeFormatter.ofPattern("MMM dd uuuu", Locale.ENGLISH);
 
@@ -63,8 +65,8 @@ public final class LuckyNoMessages {
 
         return joinMessageLines(
                 "Eh HELLO you know how to type command one anot? ",
-                "Lai lai let me teach you: "
-                        + commandName.getInputName() + " " + format);
+                "Lai lai let me teach you: `"
+                        + commandName.getInputName() + " " + format + "`");
     }
 
     /**
@@ -78,7 +80,7 @@ public final class LuckyNoMessages {
             case DEADLINE -> DEADLINE_FORMAT;
             case EVENT -> EVENT_FORMAT;
             case FIND -> FIND_FORMAT;
-            case SNOOZE -> SNOOZE_BY_FORMAT + " or " + SNOOZE_TO_FORMAT;
+            case SNOOZE -> SNOOZE_BY_FORMAT + "` or `snooze " + SNOOZE_TO_FORMAT;
             case RESCHED -> RESCHED_EVENT_FORMAT;
             default -> {
                 assert false : "No format is defined for command: " + commandName;
@@ -254,8 +256,7 @@ public final class LuckyNoMessages {
      * @return message asking the user to clarify the duration
      */
     public static String invalidDurationMessage(String durationText) {
-        return "Eh can you be more specific anot, what do you mean by \""
-                + durationText + "\" sia?";
+        return String.format(INVALID_DURATION_FORMAT, durationText);
     }
 
     /**
