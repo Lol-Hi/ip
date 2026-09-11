@@ -11,6 +11,7 @@ import luckynoslacky.luckytask.TaskList;
  * Stores and formats all messages that can be shown to the user.
  */
 public final class LuckyNoMessages {
+    private static final String TODO_FORMAT = "<description>";
     private static final String DEADLINE_FORMAT =
             "<description> /by <date/time>.";
     private static final String EVENT_FORMAT =
@@ -77,6 +78,7 @@ public final class LuckyNoMessages {
      */
     private static String defaultFormat(LuckyNoParser.CommandName commandName) {
         return switch (commandName) {
+            case TODO -> TODO_FORMAT;
             case DEADLINE -> DEADLINE_FORMAT;
             case EVENT -> EVENT_FORMAT;
             case FIND -> FIND_FORMAT;
@@ -88,6 +90,15 @@ public final class LuckyNoMessages {
                         "No format is defined for this command.");
             }
         };
+    }
+
+    /**
+     * Returns the expected ToDo command format.
+     *
+     * @return ToDo format
+     */
+    public static String todoFormat() {
+        return TODO_FORMAT;
     }
 
     /**

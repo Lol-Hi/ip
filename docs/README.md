@@ -12,6 +12,22 @@ deadline <description> /by <date/time>
 event <description> /from <start date/time> /to <end date/time>
 ```
 
+Slashes inside ordinary text and slash-separated dates are accepted:
+
+```text
+todo read/book
+todo read / book
+deadline slash date /by 2026/08/26
+```
+
+A slash at the beginning of an argument, or after whitespace, followed by a
+letter is treated as a command marker. Unsupported markers are invalid:
+
+```text
+todo read /book
+snooze 1 /by 2 hours /please
+```
+
 ## Managing tasks
 
 ```text

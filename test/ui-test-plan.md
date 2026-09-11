@@ -1200,7 +1200,7 @@ bye
 
 ## Test Case: Free-form task text and date/time strings
 
-- Aim: Verify that task descriptions are retained, while supported date/time values are normalized consistently, including punctuation and command-like text inside a ToDo description.
+- Aim: Verify that ordinary task descriptions are retained, supported date/time values are normalized consistently, and marker-like slashes are rejected.
 
 ### Input
 
@@ -1229,29 +1229,26 @@ bye
   Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
   ____________________________________________________________
   ____________________________________________________________
-  Got one more thing to remember ah: 
-    [T][ ] /by /from /to !@#
-  Now you got 1 tasks to settle.
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: `todo <description>`
   ____________________________________________________________
   ____________________________________________________________
-  Nah, all these things you need to do:
-  1.[T][ ] /by /from /to !@#
+  Chill lah bro got nothing yet lah!
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
     [D][ ] do homework (by: Sun Dec 08 2030, 9.00am)
-  Now you got 2 tasks to settle.
+  Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
     [E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
-  Now you got 3 tasks to settle.
+  Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] /by /from /to !@#
-  2.[D][ ] do homework (by: Sun Dec 08 2030, 9.00am)
-  3.[E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
+  1.[D][ ] do homework (by: Sun Dec 08 2030, 9.00am)
+  2.[E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -1576,6 +1573,79 @@ bye
   Nah, all these things you need to do:
   1.[E][ ] afternoon meeting (from: Tue Aug 25 2026, 2.00pm to: Tue Aug 25 2026, 4.00pm)
   2.[E][ ] overnight meeting (from: Tue Aug 25 2026, 11.00pm to: Wed Aug 26 2026, 1.00am)
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Marker-like slash validation
+
+- Aim: Verify that ordinary slashes and slash-separated dates remain valid while unsupported marker-like slashes are rejected consistently.
+
+### Input
+
+```text
+todo read/book
+todo read / book
+todo read /book
+deadline slash date /by 2026/08/26
+snooze 3 /by 2 hours /please
+list /now
+bye /now
+list
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [T][ ] read/book
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [T][ ] read / book
+  Now you got 2 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: `todo <description>`
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [D][ ] slash date (by: Wed Aug 26 2026, 11.59pm)
+  Now you got 3 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: `snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]`
+  ____________________________________________________________
+  ____________________________________________________________
+  Why you so losor! Leave the list command to do its own thing lah
+  ____________________________________________________________
+  ____________________________________________________________
+  Why you so losor! Leave the bye command to do its own thing lah
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these things you need to do:
+  1.[T][ ] read/book
+  2.[T][ ] read / book
+  3.[D][ ] slash date (by: Wed Aug 26 2026, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!

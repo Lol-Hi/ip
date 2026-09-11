@@ -316,6 +316,10 @@ public class LuckyNoParser {
             throw new LuckyNoInputException(
                     LuckyNoMessages.missingTaskDescriptionMessage());
         }
+        rejectMarkerLikeSlash(
+                commandArguments,
+                CommandName.TODO,
+                LuckyNoMessages.todoFormat());
         return new TodoTask(commandArguments);
     }
 
@@ -328,7 +332,7 @@ public class LuckyNoParser {
      */
     private DeadlineTask parseDeadline(String commandArguments)
             throws LuckyNoInputException {
-        int byIndex = commandArguments.indexOf("/by");
+        int byIndex = markerIndex(commandArguments, "/by", 0);
         if (byIndex <= 0) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
@@ -342,6 +346,12 @@ public class LuckyNoParser {
                     LuckyNoMessages.invalidFormatMessage(
                             CommandName.DEADLINE));
         }
+        rejectMarkerLikeSlash(
+                description,
+                CommandName.DEADLINE);
+        rejectMarkerLikeSlash(
+                byTimeText,
+                CommandName.DEADLINE);
         LocalDateTime byTime = dateTimeParser.parseEndDateTime(byTimeText).dateTime();
         if (byTime.isBefore(dateTimeParser.now())) {
             throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
@@ -366,13 +376,14 @@ public class LuckyNoParser {
                     LuckyNoMessages.invalidFormatMessage(CommandName.FIND));
         }
 
-        int onIndex = commandArguments.indexOf("/on");
+        int onIndex = markerIndex(commandArguments, "/on", 0);
         if (onIndex < 0) {
+            rejectMarkerLikeSlash(commandArguments, CommandName.FIND);
             return new LuckyNoFindCommand(
                     commandArguments.trim(), null, taskMaster);
         }
 
-        if (commandArguments.indexOf("/on", onIndex + 3) >= 0) {
+        if (markerIndex(commandArguments, "/on", onIndex + 3) >= 0) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(CommandName.FIND));
         }
@@ -384,6 +395,8 @@ public class LuckyNoParser {
                     LuckyNoMessages.invalidFormatMessage(
                             CommandName.FIND));
         }
+        rejectMarkerLikeSlash(descriptionQuery, CommandName.FIND);
+        rejectMarkerLikeSlash(dateText, CommandName.FIND);
 
         LocalDateTime searchDateTime =
                 dateTimeParser.parseStartDateTime(dateText).dateTime();
@@ -653,7 +666,7 @@ public class LuckyNoParser {
         if (value.isEmpty()) {
             throw invalidFormat(commandName, validFormats);
         }
-        if (value.contains("/")) {
+        if (hasMarkerLikeSlash(value)) {
             throw invalidFormat(commandName, validFormats);
         }
         return value;
@@ -671,11 +684,70 @@ public class LuckyNoParser {
         String normalizedText = text.toLowerCase(Locale.ROOT);
         String normalizedMarker = marker.toLowerCase(Locale.ROOT);
         int index = normalizedText.indexOf(normalizedMarker, fromIndex);
-        while (index >= 0 && index > 0
-                && !Character.isWhitespace(text.charAt(index - 1))) {
+        while (index >= 0) {
+            boolean atTokenStart = index == 0
+                    || Character.isWhitespace(text.charAt(index - 1));
+            int markerEnd = index + marker.length();
+            boolean isCompleteMarker = markerEnd == text.length()
+                    || Character.isWhitespace(text.charAt(markerEnd));
+            if (atTokenStart && isCompleteMarker) {
+                return index;
+            }
             index = normalizedText.indexOf(normalizedMarker, index + 1);
         }
-        return index;
+        return -1;
+    }
+
+    /**
+     * Rejects a slash that looks like an unsupported command marker.
+     *
+     * @param text text to inspect
+     * @param commandName command being parsed
+     * @param validFormats valid command formats
+     * @throws LuckyNoInputException if a marker-like slash is found
+     */
+    private void rejectMarkerLikeSlash(
+            String text,
+            CommandName commandName,
+            String... validFormats)
+            throws LuckyNoInputException {
+        if (hasMarkerLikeSlash(text)) {
+            throw invalidFormat(commandName, validFormats);
+        }
+    }
+
+    /**
+     * Checks whether text contains a slash followed by an ASCII letter at the
+     * beginning of an argument or immediately after Java whitespace.
+     *
+     * @param text text to inspect
+     * @return true if an unsupported marker-like slash is present
+     */
+    private boolean hasMarkerLikeSlash(String text) {
+        for (int index = 0; index < text.length(); index++) {
+            if (text.charAt(index) != '/') {
+                continue;
+            }
+            boolean atArgumentStart = index == 0
+                    || Character.isWhitespace(text.charAt(index - 1));
+            boolean followedByAsciiLetter = index + 1 < text.length()
+                    && isAsciiLetter(text.charAt(index + 1));
+            if (atArgumentStart && followedByAsciiLetter) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks whether a character is an ASCII letter.
+     *
+     * @param character character to inspect
+     * @return true if the character is an ASCII letter
+     */
+    private boolean isAsciiLetter(char character) {
+        return character >= 'A' && character <= 'Z'
+                || character >= 'a' && character <= 'z';
     }
 
     /**
@@ -860,8 +932,8 @@ public class LuckyNoParser {
      */
     private EventTask parseEvent(String commandArguments)
             throws LuckyNoInputException {
-        int fromIndex = commandArguments.indexOf("/from");
-        int toIndex = commandArguments.indexOf("/to");
+        int fromIndex = markerIndex(commandArguments, "/from", 0);
+        int toIndex = markerIndex(commandArguments, "/to", 0);
         if (fromIndex <= 0 || toIndex <= fromIndex) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
@@ -877,6 +949,9 @@ public class LuckyNoParser {
                     LuckyNoMessages.invalidFormatMessage(
                             CommandName.EVENT));
         }
+        rejectMarkerLikeSlash(description, CommandName.EVENT);
+        rejectMarkerLikeSlash(startTimeText, CommandName.EVENT);
+        rejectMarkerLikeSlash(endTimeText, CommandName.EVENT);
         DateTimeParser.ParsedDateTime startTime =
                 dateTimeParser.parseStartDateTime(startTimeText);
         DateTimeParser.ParsedDateTime endTime =

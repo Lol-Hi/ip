@@ -226,6 +226,45 @@ class LuckyNoParserTest {
                 "event meeting /from 2pm", 0);
     }
 
+    /** Verifies ordinary slashes remain valid in task text and date values. */
+    @Test
+    void parseCommand_nonMarkerSlashes_remainsValid() throws LuckyNoInputException {
+        assertEquals(
+                LuckyNoMessages.addedTaskMessage(new TodoTask("read/book"), 1),
+                scanner.parseCommand("todo read/book", 0).execute());
+        assertEquals(
+                LuckyNoMessages.addedTaskMessage(new TodoTask("read / book"), 2),
+                scanner.parseCommand("todo read / book", 1).execute());
+        assertEquals(
+                LuckyNoMessages.addedTaskMessage(
+                        new DeadlineTask(
+                                "slash date", LocalDateTime.of(2026, 8, 26, 23, 59)),
+                        3),
+                scanner.parseCommand(
+                        "deadline slash date /by 2026/08/26", 2).execute());
+    }
+
+    /** Verifies unsupported marker-like slashes use command format errors. */
+    @Test
+    void parseCommand_markerLikeSlashes_throwsCommandFormatErrors() {
+        assertInputError(
+                LuckyNoMessages.invalidFormatMessage(
+                        LuckyNoParser.CommandName.TODO),
+                "todo read /book", 0);
+        assertInputError(
+                LuckyNoMessages.invalidFormatMessage(
+                        LuckyNoParser.CommandName.DEADLINE),
+                "deadline report /by 2026/08/26 /extra", 0);
+        assertInputError(
+                LuckyNoMessages.invalidFormatMessage(
+                        LuckyNoParser.CommandName.FIND),
+                "find book /extra", 0);
+        assertInputError(
+                LuckyNoMessages.invalidFormatMessage(
+                        LuckyNoParser.CommandName.EVENT),
+                "event meeting /from 2026/08/26 /to 2026/08/27 /extra", 0);
+    }
+
     /** Verifies missing deadline and event time sections are rejected. */
     @Test
     void parseCommand_missingDeadlineOrEventTime_throwsInputException() {
@@ -603,6 +642,12 @@ class LuckyNoParserTest {
                         LuckyNoMessages.snoozeByFormat(),
                         LuckyNoMessages.snoozeToFormat()),
                 "snooze 1 /by 2 hours /to tomorrow", 1);
+        assertInputError(
+                LuckyNoMessages.invalidFormatMessage(
+                        LuckyNoParser.CommandName.SNOOZE,
+                        LuckyNoMessages.snoozeByFormat(),
+                        LuckyNoMessages.snoozeToFormat()),
+                "snooze 1 /by 2 hours /extra", 1);
     }
 
     /** Verifies invalid rescheduling formats depend on the selected task type. */
@@ -649,6 +694,8 @@ class LuckyNoParserTest {
     void parseCommand_extraArgumentsForListAndBye_throwsInputException() {
         assertInputError("Why you so losor! Leave the list command to do its own thing lah", "list now", 0);
         assertInputError("Why you so losor! Leave the bye command to do its own thing lah", "bye now", 0);
+        assertInputError("Why you so losor! Leave the list command to do its own thing lah", "list /now", 0);
+        assertInputError("Why you so losor! Leave the bye command to do its own thing lah", "bye /now", 0);
     }
 
     /** Asserts that parsing an input returns the expected user-facing error. */
