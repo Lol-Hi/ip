@@ -1,30 +1,161 @@
 # LuckyNoSlacky User Guide
 
-// Update the title above to match the actual product name
+LuckyNoSlacky is a task manager for ToDos, deadlines, and events. It accepts
+commands through the CLI or graphical interface and saves changes automatically
+to `data/luckyNoSlacky.csv`.
 
-// Product screenshot goes here
+## Creating tasks
 
-// Product intro goes here
-
-## Adding deadlines
-
-// Describe the action and its outcome.
-
-// Give examples of usage
-
-Example: `keyword (optional arguments)`
-
-// A description of the expected outcome goes here
-
-```
-expected output
+```text
+todo <description>
+deadline <description> /by <date/time>
+event <description> /from <start date/time> /to <end date/time>
 ```
 
-## Feature ABC
+Slashes inside ordinary text and slash-separated dates are accepted:
 
-// Feature details
+```text
+todo read/book
+todo read / book
+deadline slash date /by 2026/08/26
+```
 
+A slash at the beginning of an argument, or after whitespace, followed by a
+letter is treated as a command marker. Unsupported markers are invalid:
 
-## Feature XYZ
+```text
+todo read /book
+snooze 1 /by 2 hours /please
+```
 
-// Feature details
+## Managing tasks
+
+```text
+list
+mark <task number>
+unmark <task number>
+delete <task number>
+find [description] [/on <date>]
+```
+
+Task numbers are one-based and are shown by `list`. Date searches include
+deadlines on that date and events spanning that date.
+
+## Snoozing tasks
+
+Snoozing extends or replaces the ending time of a timed task. ToDos cannot be
+snoozed because they do not have a time.
+
+```text
+snooze <task number>
+snooze <task number> /by <duration>
+snooze <task number> /to <end date/time>
+```
+
+The command without an option adds one hour. Supported duration forms are
+non-negative values followed by `minute(s)`, `hour(s)`, `day(s)`, `week(s)`,
+`month(s)`, or `year(s)`. Components must be written in the order years,
+months, weeks, days, hours, then minutes, with each unit used at most once.
+Natural-language
+forms support number words from `one` to `ten`, the filler word `more`, and
+half-unit phrases:
+
+```text
+snooze 2
+snooze 2 /by 3 hours
+snooze 2 /by 1 month
+snooze 2 /by 1.5 hours
+snooze 2 /by 1 hour 30 minutes
+snooze 2 /by 1 month 2 days
+snooze 2 /by 1.5h
+snooze 2 /by 1hr 30mins
+snooze 2 /by 1mo 2ds 3hrs
+snooze 2 /by one more week
+snooze 2 /by half a day
+snooze 2 /by half an hour
+snooze 2 /by half an hr
+snooze 2 /to tomorrow 5pm
+```
+
+For deadlines, snoozing changes `byTime`. For events, it changes only
+`endTime`; the event's start time is preserved. A zero duration is accepted as
+a no-op. Decimal minutes, hours, and days are accepted, while decimal months
+and years, repeated units, and non-canonical unit ordering are rejected.
+Decimal month and year values display:
+`Paiseh bro... i cannot settle decimal values for years and months yet...`
+The abbreviations `min`, `mins`, `h`, `hs`, `hr`, `hrs`, `d`, `ds`, `mo`,
+`mos`, `yr`, and `yrs` are accepted, with or without whitespace after the
+number. The ambiguous abbreviation `m` is not supported. Negative and
+unsupported durations are rejected. Decimal weeks, compound number phrases
+such as `one and a half hours`, and other natural-language forms not listed
+above are not supported yet. Invalid duration text is reported back with the
+original input so that it can be clarified.
+
+## Rescheduling tasks
+
+Deadlines use a replacement ending time:
+
+```text
+resched <task number> /to <date/time>
+```
+
+Events replace both times:
+
+```text
+resched <task number> /from <start date/time> /to <end date/time>
+```
+
+Events may also be rescheduled partially, and the markers may appear in
+either order:
+
+```text
+resched <task number> /from <start date/time>
+resched <task number> /to <end date/time>
+resched <task number> /to <end date/time> /from <start date/time>
+```
+
+Examples:
+
+```text
+resched 2 /to Friday 6pm
+resched 3 /from next Monday 2pm /to 4pm
+resched 3 /from next Monday 2pm
+resched 3 /to Friday 6pm /from next Monday 2pm
+```
+
+The event end time must not be before its new start time. Past event start
+times remain allowed, while deadline times must not be in the past. Both event
+times are validated before either one is changed. An omitted event time remains
+unchanged. Duplicate or unknown slash markers are rejected, while trailing
+commentary without an additional slash is ignored.
+
+## Date and time input
+
+The parser accepts the date and time formats documented in the main
+[`README.md`](../README.md), including relative values such as `today`,
+`tomorrow`, `yesterday`, `tmr`, and `ytd`. A time-only event end is resolved
+relative to its event start and moves to the next day when necessary.
+
+Trailing commentary after a valid snooze or rescheduling value is ignored, but
+an additional `/` is treated as malformed syntax.
+
+## Saving tasks
+
+Tasks are saved automatically whenever the task list changes, including after
+adding, marking, unmarking, deleting, snoozing, or rescheduling a task. The
+existing CSV format is preserved:
+
+```text
+Task type,isCompleted,Description,startTime,endTime
+```
+
+Snoozing and rescheduling overwrite the relevant time columns while retaining
+the task type and completion status.
+
+## Exiting
+
+```text
+bye
+```
+
+The chatbot displays a goodbye message and then exits.

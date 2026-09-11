@@ -1,5 +1,6 @@
 package luckynoslacky.luckyparser;
 
+import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Locale;
@@ -11,10 +12,13 @@ import luckynoslacky.luckycommand.LuckyNoDeleteCommand;
 import luckynoslacky.luckycommand.LuckyNoFindCommand;
 import luckynoslacky.luckycommand.LuckyNoListCommand;
 import luckynoslacky.luckycommand.LuckyNoMarkCommand;
+import luckynoslacky.luckycommand.LuckyNoReschedCommand;
+import luckynoslacky.luckycommand.LuckyNoSnoozeCommand;
 import luckynoslacky.luckycommand.LuckyNoTaskCommand;
 import luckynoslacky.luckyexception.LuckyNoInputException;
 import luckynoslacky.luckytask.DeadlineTask;
 import luckynoslacky.luckytask.EventTask;
+import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
 import luckynoslacky.luckytask.TodoTask;
 import luckynoslacky.luckyui.LuckyNoMessages;
@@ -86,7 +90,11 @@ public class LuckyNoParser {
         /** Task-deletion command. */
         DELETE("delete"),
         /** Date-search command. */
-        FIND("find");
+        FIND("find"),
+        /** Task-snoozing command. */
+        SNOOZE("snooze"),
+        /** Task-rescheduling command. */
+        RESCHED("resched");
 
         private final String inputName;
 
@@ -244,6 +252,10 @@ public class LuckyNoParser {
                         parseTaskNumber(commandArguments, taskCount), commandTaskMaster);
             case FIND:
                 return parseFind(commandArguments, commandTaskMaster);
+            case SNOOZE:
+                return parseSnooze(commandArguments, taskCount, commandTaskMaster);
+            case RESCHED:
+                return parseResched(commandArguments, taskCount, commandTaskMaster);
             default:
                 assert false : "Unhandled command name: " + commandName;
                 throw new IllegalStateException("Unhandled command name.");
@@ -304,6 +316,10 @@ public class LuckyNoParser {
             throw new LuckyNoInputException(
                     LuckyNoMessages.missingTaskDescriptionMessage());
         }
+        rejectMarkerLikeSlash(
+                commandArguments,
+                CommandName.TODO,
+                LuckyNoMessages.todoFormat());
         return new TodoTask(commandArguments);
     }
 
@@ -316,7 +332,7 @@ public class LuckyNoParser {
      */
     private DeadlineTask parseDeadline(String commandArguments)
             throws LuckyNoInputException {
-        int byIndex = commandArguments.indexOf("/by");
+        int byIndex = markerIndex(commandArguments, "/by", 0);
         if (byIndex <= 0) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
@@ -330,6 +346,12 @@ public class LuckyNoParser {
                     LuckyNoMessages.invalidFormatMessage(
                             CommandName.DEADLINE));
         }
+        rejectMarkerLikeSlash(
+                description,
+                CommandName.DEADLINE);
+        rejectMarkerLikeSlash(
+                byTimeText,
+                CommandName.DEADLINE);
         LocalDateTime byTime = dateTimeParser.parseEndDateTime(byTimeText).dateTime();
         if (byTime.isBefore(dateTimeParser.now())) {
             throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
@@ -354,13 +376,14 @@ public class LuckyNoParser {
                     LuckyNoMessages.invalidFormatMessage(CommandName.FIND));
         }
 
-        int onIndex = commandArguments.indexOf("/on");
+        int onIndex = markerIndex(commandArguments, "/on", 0);
         if (onIndex < 0) {
+            rejectMarkerLikeSlash(commandArguments, CommandName.FIND);
             return new LuckyNoFindCommand(
                     commandArguments.trim(), null, taskMaster);
         }
 
-        if (commandArguments.indexOf("/on", onIndex + 3) >= 0) {
+        if (markerIndex(commandArguments, "/on", onIndex + 3) >= 0) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(CommandName.FIND));
         }
@@ -372,6 +395,8 @@ public class LuckyNoParser {
                     LuckyNoMessages.invalidFormatMessage(
                             CommandName.FIND));
         }
+        rejectMarkerLikeSlash(descriptionQuery, CommandName.FIND);
+        rejectMarkerLikeSlash(dateText, CommandName.FIND);
 
         LocalDateTime searchDateTime =
                 dateTimeParser.parseStartDateTime(dateText).dateTime();
@@ -385,6 +410,520 @@ public class LuckyNoParser {
     }
 
     /**
+     * Parses a snooze command for a timed task.
+     *
+     * @param commandArguments command arguments
+     * @param taskCount current number of tasks
+     * @param taskMaster task master attached to the parsed command
+     * @return parsed snooze command
+     * @throws LuckyNoInputException if the format or task number is invalid
+     */
+    private LuckyNoSnoozeCommand parseSnooze(
+            String commandArguments,
+            int taskCount,
+            TaskMaster taskMaster)
+            throws LuckyNoInputException {
+        String[] parts = splitTaskNumber(commandArguments);
+        int taskNumber = parseTaskNumber(parts[0], taskCount);
+        rejectTodoTask(taskNumber, taskMaster, CommandName.SNOOZE);
+
+        if (parts[1].isEmpty()) {
+            return new LuckyNoSnoozeCommand(taskNumber, taskMaster);
+        }
+        if (startsWithMarker(parts[1], "/by")) {
+            String durationText = markerValue(
+                    parts[1], "/by", CommandName.SNOOZE,
+                    LuckyNoMessages.snoozeByFormat(), LuckyNoMessages.snoozeToFormat());
+            DurationPeriod amount = DurationParser.parse(durationText);
+            validateSnoozeAmount(taskNumber, amount, taskMaster);
+            return new LuckyNoSnoozeCommand(
+                    taskNumber, amount, taskMaster);
+        }
+        if (startsWithMarker(parts[1], "/to")) {
+            String endTimeText = markerValue(
+                    parts[1], "/to", CommandName.SNOOZE,
+                    LuckyNoMessages.snoozeByFormat(), LuckyNoMessages.snoozeToFormat());
+            LocalDateTime endTime = parseEndDateTimeIgnoringTrailingText(endTimeText);
+            validateDeadlineOrEventEnd(taskNumber, endTime, taskMaster);
+            return new LuckyNoSnoozeCommand(taskNumber, endTime, taskMaster);
+        }
+        throw invalidSnoozeFormat();
+    }
+
+    /**
+     * Parses a rescheduling command after identifying the task category.
+     *
+     * @param commandArguments command arguments
+     * @param taskCount current number of tasks
+     * @param taskMaster task master attached to the parsed command
+     * @return parsed rescheduling command
+     * @throws LuckyNoInputException if the format, task number, or times are invalid
+     */
+    private LuckyNoReschedCommand parseResched(
+            String commandArguments,
+            int taskCount,
+            TaskMaster taskMaster)
+            throws LuckyNoInputException {
+        String[] parts = splitTaskNumber(commandArguments);
+        int taskNumber = parseTaskNumber(parts[0], taskCount);
+        Task.TaskType taskType = taskMaster.getTaskType(taskNumber);
+
+        if (taskType == Task.TaskType.TODO) {
+            rejectTodoTask(taskNumber, taskMaster, CommandName.RESCHED);
+        }
+        if (taskType == Task.TaskType.DEADLINE && startsWithMarker(parts[1], "/to")) {
+            String endTimeText = markerValue(
+                    parts[1], "/to", CommandName.RESCHED,
+                    LuckyNoMessages.reschedDeadlineFormat());
+            LocalDateTime endTime = parseEndDateTimeIgnoringTrailingText(endTimeText);
+            if (endTime.isBefore(dateTimeParser.now())) {
+                throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
+            }
+            return new LuckyNoReschedCommand(taskNumber, endTime, taskMaster);
+        }
+
+        if (taskType == Task.TaskType.EVENT) {
+            return parseEventResched(parts[1], taskNumber, taskMaster);
+        }
+        throw reschedFormat(taskType);
+    }
+
+    /**
+     * Parses full or partial event rescheduling arguments.
+     *
+     * @param arguments event rescheduling arguments
+     * @param taskNumber one-based task number
+     * @param taskMaster task master containing the event
+     * @return parsed event rescheduling command
+     * @throws LuckyNoInputException if the markers, times, or final ordering
+     *                               are invalid
+     */
+    private LuckyNoReschedCommand parseEventResched(
+            String arguments,
+            int taskNumber,
+            TaskMaster taskMaster)
+            throws LuckyNoInputException {
+        ReschedParts parts = parseEventReschedParts(arguments);
+        LocalDateTime existingStart = taskMaster.getTaskStartTime(taskNumber);
+        LocalDateTime existingEnd = taskMaster.getTaskEndTime(taskNumber);
+
+        LocalDateTime startTime = parts.startTimeText() == null
+                ? existingStart
+                : parseStartDateTimeIgnoringTrailingText(parts.startTimeText());
+        LocalDateTime endTime = parts.endTimeText() == null
+                ? existingEnd
+                : parseEndDateTimeIgnoringTrailingText(
+                        parts.endTimeText(), startTime);
+
+        if (endTime.isBefore(startTime)) {
+            throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
+        }
+        return new LuckyNoReschedCommand(
+                taskNumber, startTime, endTime, taskMaster);
+    }
+
+    /**
+     * Extracts the optional event rescheduling marker values.
+     *
+     * @param arguments event rescheduling arguments
+     * @return extracted start and end time text
+     * @throws LuckyNoInputException if the marker structure is invalid
+     */
+    private ReschedParts parseEventReschedParts(String arguments)
+            throws LuckyNoInputException {
+        int fromIndex = markerIndex(arguments, "/from", 0);
+        int toIndex = markerIndex(arguments, "/to", 0);
+        if (!hasValidEventMarkers(arguments, fromIndex, toIndex)) {
+            throw reschedFormat(Task.TaskType.EVENT);
+        }
+
+        String startTimeText = fromIndex < 0
+                ? null
+                : extractMarkerSegment(
+                        arguments, fromIndex, toIndex, "/from");
+        String endTimeText = toIndex < 0
+                ? null
+                : extractMarkerSegment(
+                        arguments, toIndex, fromIndex, "/to");
+        return new ReschedParts(startTimeText, endTimeText);
+    }
+
+    /**
+     * Checks the marker structure for an event rescheduling command.
+     *
+     * @param arguments event rescheduling arguments
+     * @param fromIndex first {@code /from} marker index
+     * @param toIndex first {@code /to} marker index
+     * @return true if exactly the supported marker structure is present
+     */
+    private boolean hasValidEventMarkers(
+            String arguments, int fromIndex, int toIndex) {
+        if (fromIndex < 0 && toIndex < 0) {
+            return false;
+        }
+        int firstMarkerIndex = fromIndex < 0
+                ? toIndex
+                : toIndex < 0
+                ? fromIndex
+                : Math.min(fromIndex, toIndex);
+        if (firstMarkerIndex != 0) {
+            return false;
+        }
+        return !hasDuplicateMarker(arguments, "/from", fromIndex)
+                && !hasDuplicateMarker(arguments, "/to", toIndex);
+    }
+
+    /**
+     * Checks whether a marker occurs more than once.
+     *
+     * @param text text containing markers
+     * @param marker marker to check
+     * @param firstIndex first marker index, or -1 when absent
+     * @return true if a second marker is present
+     */
+    private boolean hasDuplicateMarker(
+            String text, String marker, int firstIndex) {
+        return firstIndex >= 0
+                && markerIndex(text, marker, firstIndex + marker.length()) >= 0;
+    }
+
+    /**
+     * Extracts one marker's value up to the other marker.
+     *
+     * @param text full marker argument text
+     * @param markerIndex marker index
+     * @param otherMarkerIndex other marker index
+     * @param marker marker whose value is being extracted
+     * @return marker value
+     * @throws LuckyNoInputException if the value is empty or contains a slash
+     */
+    private String extractMarkerSegment(
+            String text,
+            int markerIndex,
+            int otherMarkerIndex,
+            String marker)
+            throws LuckyNoInputException {
+        int valueEnd = otherMarkerIndex > markerIndex
+                ? otherMarkerIndex
+                : text.length();
+        return markerValue(
+                text.substring(markerIndex, valueEnd),
+                marker,
+                CommandName.RESCHED,
+                LuckyNoMessages.reschedEventFormat());
+    }
+
+    /**
+     * Splits a command's first task number from its remaining arguments.
+     *
+     * @param commandArguments command arguments
+     * @return task-number text and remaining arguments
+     */
+    private String[] splitTaskNumber(String commandArguments) {
+        if (commandArguments == null || commandArguments.isBlank()) {
+            return new String[]{"", ""};
+        }
+        String[] parts = commandArguments.trim().split("\\s+", 2);
+        return parts.length == 1
+                ? new String[]{parts[0], ""}
+                : new String[]{parts[0], parts[1].trim()};
+    }
+
+    /**
+     * Checks whether an argument starts with a complete syntax marker.
+     *
+     * @param text argument text
+     * @param marker marker to find
+     * @return true if the marker is at the beginning of the text
+     */
+    private boolean startsWithMarker(String text, String marker) {
+        return text.length() >= marker.length()
+                && text.regionMatches(true, 0, marker, 0, marker.length())
+                && (text.length() == marker.length()
+                || Character.isWhitespace(text.charAt(marker.length())));
+    }
+
+    /**
+     * Extracts the value following a syntax marker and rejects extra markers.
+     *
+     * @param text marker and value text
+     * @param marker marker to remove
+     * @param commandName command being parsed
+     * @param validFormats valid formats for the command
+     * @return marker value
+     * @throws LuckyNoInputException if the value is empty or contains a slash
+     */
+    private String markerValue(
+            String text,
+            String marker,
+            CommandName commandName,
+            String... validFormats)
+            throws LuckyNoInputException {
+        if (!startsWithMarker(text, marker)) {
+            throw invalidFormat(commandName, validFormats);
+        }
+        String value = text.substring(marker.length()).trim();
+        if (value.isEmpty()) {
+            throw invalidFormat(commandName, validFormats);
+        }
+        if (hasMarkerLikeSlash(value)) {
+            throw invalidFormat(commandName, validFormats);
+        }
+        return value;
+    }
+
+    /**
+     * Finds a marker after a specified character offset.
+     *
+     * @param text text to search
+     * @param marker marker to find
+     * @param fromIndex first index to inspect
+     * @return marker index, or -1 when absent
+     */
+    private int markerIndex(String text, String marker, int fromIndex) {
+        String normalizedText = text.toLowerCase(Locale.ROOT);
+        String normalizedMarker = marker.toLowerCase(Locale.ROOT);
+        int index = normalizedText.indexOf(normalizedMarker, fromIndex);
+        while (index >= 0) {
+            boolean atTokenStart = index == 0
+                    || Character.isWhitespace(text.charAt(index - 1));
+            int markerEnd = index + marker.length();
+            boolean isCompleteMarker = markerEnd == text.length()
+                    || Character.isWhitespace(text.charAt(markerEnd));
+            if (atTokenStart && isCompleteMarker) {
+                return index;
+            }
+            index = normalizedText.indexOf(normalizedMarker, index + 1);
+        }
+        return -1;
+    }
+
+    /**
+     * Rejects a slash that looks like an unsupported command marker.
+     *
+     * @param text text to inspect
+     * @param commandName command being parsed
+     * @param validFormats valid command formats
+     * @throws LuckyNoInputException if a marker-like slash is found
+     */
+    private void rejectMarkerLikeSlash(
+            String text,
+            CommandName commandName,
+            String... validFormats)
+            throws LuckyNoInputException {
+        if (hasMarkerLikeSlash(text)) {
+            throw invalidFormat(commandName, validFormats);
+        }
+    }
+
+    /**
+     * Checks whether text contains a slash followed by an ASCII letter at the
+     * beginning of an argument or immediately after Java whitespace.
+     *
+     * @param text text to inspect
+     * @return true if an unsupported marker-like slash is present
+     */
+    private boolean hasMarkerLikeSlash(String text) {
+        for (int index = 0; index < text.length(); index++) {
+            if (text.charAt(index) != '/') {
+                continue;
+            }
+            boolean atArgumentStart = index == 0
+                    || Character.isWhitespace(text.charAt(index - 1));
+            boolean followedByAsciiLetter = index + 1 < text.length()
+                    && isAsciiLetter(text.charAt(index + 1));
+            if (atArgumentStart && followedByAsciiLetter) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks whether a character is an ASCII letter.
+     *
+     * @param character character to inspect
+     * @return true if the character is an ASCII letter
+     */
+    private boolean isAsciiLetter(char character) {
+        return character >= 'A' && character <= 'Z'
+                || character >= 'a' && character <= 'z';
+    }
+
+    /**
+     * Rejects commands that target a ToDo task.
+     *
+     * @param taskNumber one-based task number
+     * @param taskMaster task master containing the task
+     * @param commandName snooze or reschedule command
+     * @throws LuckyNoInputException if the selected task is a ToDo
+     */
+    private void rejectTodoTask(
+            int taskNumber,
+            TaskMaster taskMaster,
+            CommandName commandName)
+            throws LuckyNoInputException {
+        if (taskMaster.getTaskType(taskNumber) == Task.TaskType.TODO) {
+            throw new LuckyNoInputException(
+                    LuckyNoMessages.cannotSnoozeOrRescheduleTodoMessage(commandName));
+        }
+    }
+
+    /**
+     * Validates the result of a duration-based snooze.
+     *
+     * @param taskNumber one-based task number
+     * @param amount snooze amount
+     * @param taskMaster task master containing the task
+     * @throws LuckyNoInputException if a deadline would remain in the past
+     */
+    private void validateSnoozeAmount(
+            int taskNumber, DurationPeriod amount, TaskMaster taskMaster)
+            throws LuckyNoInputException {
+        if (taskMaster.getTaskType(taskNumber) == Task.TaskType.DEADLINE) {
+            try {
+                if (amount.addTo(taskMaster.getTaskEndTime(taskNumber))
+                        .isBefore(dateTimeParser.now())) {
+                    throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
+                }
+            } catch (DateTimeException exception) {
+                throw invalidSnoozeFormat();
+            }
+        }
+    }
+
+    /**
+     * Validates a replacement ending time against the selected task.
+     *
+     * @param taskNumber one-based task number
+     * @param endTime replacement ending time
+     * @param taskMaster task master containing the task
+     * @throws LuckyNoInputException if the replacement violates time ordering
+     */
+    private void validateDeadlineOrEventEnd(
+            int taskNumber, LocalDateTime endTime, TaskMaster taskMaster)
+            throws LuckyNoInputException {
+        Task.TaskType taskType = taskMaster.getTaskType(taskNumber);
+        if (taskType == Task.TaskType.DEADLINE
+                && endTime.isBefore(dateTimeParser.now())) {
+            throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
+        }
+        if (taskType == Task.TaskType.EVENT
+                && endTime.isBefore(taskMaster.getTaskStartTime(taskNumber))) {
+            throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
+        }
+    }
+
+    /**
+     * Parses an end datetime while ignoring trailing commentary.
+     *
+     * @param dateTimeText datetime text
+     * @return parsed datetime
+     * @throws LuckyNoInputException if no prefix is a valid datetime
+     */
+    private LocalDateTime parseEndDateTimeIgnoringTrailingText(String dateTimeText)
+            throws LuckyNoInputException {
+        return parseDateTimePrefix(dateTimeText, null, false);
+    }
+
+    /**
+     * Parses an event end datetime relative to its new start time.
+     *
+     * @param dateTimeText datetime text
+     * @param referenceDateTime event start datetime
+     * @return parsed datetime
+     * @throws LuckyNoInputException if no prefix is a valid datetime
+     */
+    private LocalDateTime parseEndDateTimeIgnoringTrailingText(
+            String dateTimeText, LocalDateTime referenceDateTime)
+            throws LuckyNoInputException {
+        return parseDateTimePrefix(dateTimeText, referenceDateTime, false);
+    }
+
+    /**
+     * Parses an event start datetime while ignoring trailing commentary.
+     *
+     * @param dateTimeText datetime text
+     * @return parsed datetime
+     * @throws LuckyNoInputException if no prefix is a valid datetime
+     */
+    private LocalDateTime parseStartDateTimeIgnoringTrailingText(String dateTimeText)
+            throws LuckyNoInputException {
+        return parseDateTimePrefix(dateTimeText, null, true);
+    }
+
+    /**
+     * Tries progressively shorter prefixes until one parses as a datetime.
+     *
+     * @param dateTimeText datetime text
+     * @param referenceDateTime reference for an event end, or null
+     * @param isStart whether the input is an event start
+     * @return parsed datetime
+     * @throws LuckyNoInputException if no prefix parses successfully
+     */
+    private LocalDateTime parseDateTimePrefix(
+            String dateTimeText,
+            LocalDateTime referenceDateTime,
+            boolean isStart)
+            throws LuckyNoInputException {
+        String[] words = dateTimeText.trim().split("\\s+");
+        for (int wordCount = words.length; wordCount > 0; wordCount--) {
+            String candidate = String.join(
+                    " ", Arrays.copyOf(words, wordCount));
+            try {
+                DateTimeParser.ParsedDateTime parsed = isStart
+                        ? dateTimeParser.parseStartDateTime(candidate)
+                        : referenceDateTime == null
+                        ? dateTimeParser.parseEndDateTime(candidate)
+                        : dateTimeParser.parseEndDateTime(candidate, referenceDateTime);
+                return parsed.dateTime();
+            } catch (LuckyNoInputException exception) {
+                // Try a shorter prefix so valid trailing commentary is ignored.
+            }
+        }
+        throw new LuckyNoInputException(LuckyNoMessages.invalidDateTimeMessage());
+    }
+
+    /**
+     * Creates an invalid snooze-format exception.
+     *
+     * @return invalid snooze-format exception
+     */
+    private LuckyNoInputException invalidSnoozeFormat() {
+        return invalidFormat(
+                CommandName.SNOOZE,
+                LuckyNoMessages.snoozeByFormat(),
+                LuckyNoMessages.snoozeToFormat());
+    }
+
+    /**
+     * Creates an invalid format exception with the supplied alternatives.
+     *
+     * @param commandName command being parsed
+     * @param formats valid command formats
+     * @return invalid-format exception
+     */
+    private LuckyNoInputException invalidFormat(
+            CommandName commandName, String... formats) {
+        return new LuckyNoInputException(
+                LuckyNoMessages.invalidFormatMessage(commandName, formats));
+    }
+
+    /**
+     * Returns the invalid-format exception for a rescheduling task type.
+     *
+     * @param taskType selected task type
+     * @return invalid-format exception
+     */
+    private LuckyNoInputException reschedFormat(Task.TaskType taskType) {
+        return taskType == Task.TaskType.DEADLINE
+                ? invalidFormat(CommandName.RESCHED,
+                LuckyNoMessages.reschedDeadlineFormat())
+                : invalidFormat(CommandName.RESCHED,
+                LuckyNoMessages.reschedEventFormat());
+    }
+
+    /**
      * Parses an event description and its {@code /from} and {@code /to} times.
      *
      * @param commandArguments command arguments
@@ -393,8 +932,8 @@ public class LuckyNoParser {
      */
     private EventTask parseEvent(String commandArguments)
             throws LuckyNoInputException {
-        int fromIndex = commandArguments.indexOf("/from");
-        int toIndex = commandArguments.indexOf("/to");
+        int fromIndex = markerIndex(commandArguments, "/from", 0);
+        int toIndex = markerIndex(commandArguments, "/to", 0);
         if (fromIndex <= 0 || toIndex <= fromIndex) {
             throw new LuckyNoInputException(
                     LuckyNoMessages.invalidFormatMessage(
@@ -410,6 +949,9 @@ public class LuckyNoParser {
                     LuckyNoMessages.invalidFormatMessage(
                             CommandName.EVENT));
         }
+        rejectMarkerLikeSlash(description, CommandName.EVENT);
+        rejectMarkerLikeSlash(startTimeText, CommandName.EVENT);
+        rejectMarkerLikeSlash(endTimeText, CommandName.EVENT);
         DateTimeParser.ParsedDateTime startTime =
                 dateTimeParser.parseStartDateTime(startTimeText);
         DateTimeParser.ParsedDateTime endTime =
@@ -418,6 +960,10 @@ public class LuckyNoParser {
             throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
         }
         return new EventTask(description, startTime.dateTime(), endTime.dateTime());
+    }
+
+    /** Stores the optional marker values of an event rescheduling command. */
+    private record ReschedParts(String startTimeText, String endTimeText) {
     }
 
     private record ParsedInput(String commandToken, String arguments) {

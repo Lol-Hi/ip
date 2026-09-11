@@ -11,8 +11,10 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import luckynoslacky.luckyparser.DurationPeriod;
 import luckynoslacky.luckystorage.CsvSaver;
 import luckynoslacky.luckytask.DeadlineTask;
+import luckynoslacky.luckytask.EventTask;
 import luckynoslacky.luckytask.TaskMaster;
 import luckynoslacky.luckytask.TodoTask;
 import luckynoslacky.luckyui.LuckyNoMessages;
@@ -105,6 +107,44 @@ class LuckyNoCommandTest {
         assertEquals(
                 LuckyNoMessages.listTasksMessage(taskMaster.findTasks(SEARCH_DATE)),
                 command.execute());
+    }
+
+    /** Verifies that a snooze command extends a deadline and returns its reply. */
+    @Test
+    void execute_snoozeCommandWithDuration_updatesDeadlineAndReturnsReply() {
+        TaskMaster taskMaster = createTaskMaster();
+        DeadlineTask task = new DeadlineTask(
+                "return book", LocalDateTime.of(2026, 8, 26, 12, 0));
+        taskMaster.loadTasksFromCsvStorageRecord(java.util.List.of(task));
+        LuckyNoSnoozeCommand command = new LuckyNoSnoozeCommand(
+                1, new DurationPeriod(java.time.Period.ZERO,
+                java.time.Duration.ofHours(2)), taskMaster);
+
+        String reply = command.execute();
+
+        assertEquals(LuckyNoMessages.snoozedTaskMessage(task), reply);
+        assertEquals(LocalDateTime.of(2026, 8, 26, 14, 0), task.getByTime());
+    }
+
+    /** Verifies that a reschedule command replaces both event times. */
+    @Test
+    void execute_reschedCommandWithEventTimes_updatesEventAndReturnsReply() {
+        TaskMaster taskMaster = createTaskMaster();
+        EventTask task = new EventTask(
+                "project meeting",
+                LocalDateTime.of(2026, 8, 26, 12, 0),
+                LocalDateTime.of(2026, 8, 26, 13, 0));
+        taskMaster.loadTasksFromCsvStorageRecord(java.util.List.of(task));
+        LocalDateTime newStart = LocalDateTime.of(2026, 8, 27, 10, 0);
+        LocalDateTime newEnd = LocalDateTime.of(2026, 8, 27, 11, 0);
+        LuckyNoReschedCommand command = new LuckyNoReschedCommand(
+                1, newStart, newEnd, taskMaster);
+
+        String reply = command.execute();
+
+        assertEquals(LuckyNoMessages.rescheduledTaskMessage(task), reply);
+        assertEquals(newStart, task.getStartTime());
+        assertEquals(newEnd, task.getEndTime());
     }
 
     /** Verifies that a bye command returns goodbye and requests exit. */

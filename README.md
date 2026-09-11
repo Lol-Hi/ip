@@ -1,8 +1,8 @@
 # LuckyNoSlacky
 
-LuckyNoSlacky is a command-line task manager for keeping track of ToDos,
-deadlines, and events. Tasks are stored in memory while the application is
-running and can be marked as done or not done.
+LuckyNoSlacky is a task manager for keeping track of ToDos, deadlines, and
+events through the command-line or graphical interface. Tasks are kept in
+memory while the application is running and persisted automatically to disk.
 
 ## Features
 
@@ -13,6 +13,10 @@ running and can be marked as done or not done.
 - Find tasks by description, date, or both.
 - Mark tasks as done or explicitly mark them as not done.
 - Delete tasks by their task number.
+- Snooze deadlines and events by a duration or explicit end time.
+- Reschedule deadlines and events, including partial event rescheduling.
+- Accept natural-language and abbreviated snooze durations.
+- Validate unsupported slash markers consistently.
 - Store up to 100 tasks.
 - Save tasks automatically to disk whenever the task list changes.
 - Load previously saved tasks automatically when the chatbot starts.
@@ -111,8 +115,8 @@ created in the same `build/libs/` library.
 ### Task data persistence
 
 LuckyNoSlacky saves the task list automatically after a task is added, marked,
-unmarked, or deleted. The data is stored in the relative path
-`data/luckyNoSlacky.csv` using the following columns:
+unmarked, deleted, snoozed, or rescheduled. The data is stored in the relative
+path `data/luckyNoSlacky.csv` using the following columns:
 
 ```text
 Task type, isCompleted, Description, startTime, endTime
@@ -161,6 +165,10 @@ trailing spaces are ignored.
 | Unmark Task as Undone | `unmark <number>`                                                 | Marks the specified task as not done. |
 | Delete Task           | `delete <number>`                                                 | Removes the specified task from the list. |
 | Find Tasks             | `find [<description>] [/on <date>]`                               | Finds tasks by description, date, or both. |
+| Snooze Task            | `snooze <number> [/by <duration>]`                                | Extends a timed task by a duration. |
+| Snooze Task            | `snooze <number> [/to <date/time>]`                               | Replaces a timed task's ending time. |
+| Reschedule Deadline    | `resched <number> /to <date/time>`                                | Replaces a deadline's date/time. |
+| Reschedule Event       | `resched <number> [/from <date/time>] [/to <date/time>]`           | Changes an event's start and/or end time. |
 | Exit                  | `bye`                                                             | Exits the chatbot. |
 
 ### Adding tasks
@@ -279,6 +287,55 @@ If there are no tasks found, LuckyNoSlacky replies:
 Wah, you very free hor, got nothing to do sia!
 ```
 
+### Snoozing tasks
+
+ToDos cannot be snoozed because they do not have time fields.
+
+```text
+snooze 2
+snooze 2 /by 1.5 hours
+snooze 2 /by 1 hour 30 minutes
+snooze 2 /by 1 month 2 days
+snooze 2 /to tomorrow 5pm
+```
+
+The default snooze adds one hour. For deadlines, snoozing changes the
+deadline. For events, only the end time changes; the start time is preserved.
+Supported duration units include minutes, hours, days, weeks, months, and
+years. Abbreviations such as `1h`, `1hr`, `1mo`, and `1yr` are accepted.
+Natural-language forms such as `one more week` and `half an hour` are also
+supported.
+
+### Rescheduling tasks
+
+```text
+resched 2 /to Friday 6pm
+resched 3 /from next Monday 2pm
+resched 3 /to Friday 6pm
+resched 3 /to Friday 6pm /from next Monday 2pm
+```
+
+Event markers may appear in either order. Event start and end times are
+validated before the task is changed, and omitted event times remain unchanged.
+
+### Slash handling
+
+Ordinary slashes are accepted:
+
+```text
+todo read/book
+todo read / book
+deadline report /by 2026/08/26
+```
+
+A slash at the beginning of an argument, or after whitespace, followed by a
+letter is treated as a command marker. Unsupported markers are rejected:
+
+```text
+todo read /book
+snooze 1 /by 2 hours /please
+```
+
 ### Invalid commands
 
 Invalid input produces an explanatory message and does not terminate the
@@ -291,6 +348,7 @@ chatbot. Examples include:
 - Extra arguments after `list` or `bye`.
 - Incorrect `/by`, `/from`, or `/to` formats.
 - Missing or invalid `/on` formats for `find`.
+- Unsupported slash markers in command arguments.
 - Invalid date/time values.
 - Deadlines in the past or events whose end is before their start.
 

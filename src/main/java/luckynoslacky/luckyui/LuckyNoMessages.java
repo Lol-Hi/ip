@@ -11,11 +11,22 @@ import luckynoslacky.luckytask.TaskList;
  * Stores and formats all messages that can be shown to the user.
  */
 public final class LuckyNoMessages {
+    private static final String TODO_FORMAT = "<description>";
     private static final String DEADLINE_FORMAT =
             "<description> /by <date/time>.";
     private static final String EVENT_FORMAT =
             "<description> /from <start date/time> /to <end date/time>.";
     private static final String FIND_FORMAT = "[<description>] [/on <date>]";
+    private static final String SNOOZE_BY_FORMAT =
+            "<taskNumber> [/by <duration>]";
+    private static final String SNOOZE_TO_FORMAT =
+            "<taskNumber> [/to <end date/time>]";
+    private static final String RESCHED_DEADLINE_FORMAT =
+            "<taskNumber> /to <date/time>";
+    private static final String RESCHED_EVENT_FORMAT =
+            "<taskNumber> /from <start date/time> /to <end date/time>";
+    private static final String INVALID_DURATION_FORMAT =
+            "Eh can you be more specific anot, what do you mean by \"%s\" sia?";
     private static final DateTimeFormatter FIND_DATE_FORMAT =
             DateTimeFormatter.ofPattern("MMM dd uuuu", Locale.ENGLISH);
 
@@ -55,8 +66,8 @@ public final class LuckyNoMessages {
 
         return joinMessageLines(
                 "Eh HELLO you know how to type command one anot? ",
-                "Lai lai let me teach you: "
-                        + commandName.getInputName() + " " + format);
+                "Lai lai let me teach you: `"
+                        + commandName.getInputName() + " " + format + "`");
     }
 
     /**
@@ -67,15 +78,27 @@ public final class LuckyNoMessages {
      */
     private static String defaultFormat(LuckyNoParser.CommandName commandName) {
         return switch (commandName) {
+            case TODO -> TODO_FORMAT;
             case DEADLINE -> DEADLINE_FORMAT;
             case EVENT -> EVENT_FORMAT;
             case FIND -> FIND_FORMAT;
+            case SNOOZE -> SNOOZE_BY_FORMAT + "` or `snooze " + SNOOZE_TO_FORMAT;
+            case RESCHED -> RESCHED_EVENT_FORMAT;
             default -> {
                 assert false : "No format is defined for command: " + commandName;
                 throw new IllegalArgumentException(
                         "No format is defined for this command.");
             }
         };
+    }
+
+    /**
+     * Returns the expected ToDo command format.
+     *
+     * @return ToDo format
+     */
+    public static String todoFormat() {
+        return TODO_FORMAT;
     }
 
     /**
@@ -103,6 +126,42 @@ public final class LuckyNoMessages {
      */
     public static String findFormat() {
         return FIND_FORMAT;
+    }
+
+    /**
+     * Returns the duration-based snooze format.
+     *
+     * @return duration-based snooze format
+     */
+    public static String snoozeByFormat() {
+        return SNOOZE_BY_FORMAT;
+    }
+
+    /**
+     * Returns the explicit-ending-time snooze format.
+     *
+     * @return explicit-ending-time snooze format
+     */
+    public static String snoozeToFormat() {
+        return SNOOZE_TO_FORMAT;
+    }
+
+    /**
+     * Returns the deadline rescheduling format.
+     *
+     * @return deadline rescheduling format
+     */
+    public static String reschedDeadlineFormat() {
+        return RESCHED_DEADLINE_FORMAT;
+    }
+
+    /**
+     * Returns the event rescheduling format.
+     *
+     * @return event rescheduling format
+     */
+    public static String reschedEventFormat() {
+        return RESCHED_EVENT_FORMAT;
     }
 
     /**
@@ -160,7 +219,7 @@ public final class LuckyNoMessages {
     public static String unknownCommandMessage() {
         return "What talking you? "
                 + "I only understand todo, deadline, event, list, mark, unmark, "
-                + "delete, find, or bye, ok?";
+                + "delete, find, snooze, resched, or bye, ok?";
     }
 
     /**
@@ -193,12 +252,76 @@ public final class LuckyNoMessages {
     }
 
     /**
+     * Returns the message shown for unsupported decimal calendar durations.
+     *
+     * @return decimal calendar duration message
+     */
+    public static String decimalCalendarDurationMessage() {
+        return "Paiseh bro... i cannot settle decimal values for years and months yet...";
+    }
+
+    /**
+     * Returns a message for an unrecognised snooze duration.
+     *
+     * @param durationText duration text supplied by the user
+     * @return message asking the user to clarify the duration
+     */
+    public static String invalidDurationMessage(String durationText) {
+        return String.format(INVALID_DURATION_FORMAT, durationText);
+    }
+
+    /**
      * Returns the message shown when a task's time order is impossible.
      *
      * @return time-order error message
      */
     public static String timeTravelMessage() {
         return "you think you time travelling issit? check your date and time properly hor!";
+    }
+
+    /**
+     * Returns the message shown when a ToDo is used with a timed-task command.
+     *
+     * @param commandName snooze or reschedule command
+     * @return ToDo rejection message
+     */
+    public static String cannotSnoozeOrRescheduleTodoMessage(
+            LuckyNoParser.CommandName commandName) {
+        if (commandName == null) {
+            throw new IllegalArgumentException("Command name cannot be null.");
+        }
+        return "Eh mr blur sotong this task don't even have time for you to "
+                + commandName.getInputName() + " la";
+    }
+
+    /**
+     * Returns the response shown after snoozing a task.
+     *
+     * @param task updated task
+     * @return snooze response
+     */
+    public static String snoozedTaskMessage(Task task) {
+        if (task == null) {
+            throw new IllegalArgumentException("Task cannot be null.");
+        }
+        return joinMessageLines(
+                "Nah here's your snooze you lazy bum, don't slack too much hor!",
+                "  " + task);
+    }
+
+    /**
+     * Returns the response shown after rescheduling a task.
+     *
+     * @param task updated task
+     * @return rescheduling response
+     */
+    public static String rescheduledTaskMessage(Task task) {
+        if (task == null) {
+            throw new IllegalArgumentException("Task cannot be null.");
+        }
+        return joinMessageLines(
+                "Nah here's your resched you lazy bum, don't slack too much hor!",
+                "  " + task);
     }
 
     /**

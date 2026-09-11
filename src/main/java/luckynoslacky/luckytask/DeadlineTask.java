@@ -4,11 +4,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import luckynoslacky.luckyparser.DurationPeriod;
+
 /**
  * Represents a task that must be completed by a specified time.
  */
 public class DeadlineTask extends Task {
-    private final LocalDateTime byTime;
+    private LocalDateTime byTime;
 
     /**
      * Creates an incomplete deadline task.
@@ -24,6 +26,51 @@ public class DeadlineTask extends Task {
         }
 
         this.byTime = byTime;
+    }
+
+    /**
+     * Returns the category of this task.
+     *
+     * @return deadline task category
+     */
+    @Override
+    public TaskType getTaskType() {
+        return TaskType.DEADLINE;
+    }
+
+    /**
+     * Returns the current deadline.
+     *
+     * @return deadline date and time
+     */
+    public LocalDateTime getByTime() {
+        return byTime;
+    }
+
+    /**
+     * Extends the deadline by the supplied amount.
+     *
+     * @param amount amount by which to extend the deadline
+     * @throws IllegalArgumentException if {@code amount} is null
+     */
+    public void snoozeBy(DurationPeriod amount) {
+        if (amount == null) {
+            throw new IllegalArgumentException("Snooze amount cannot be null.");
+        }
+        byTime = amount.addTo(byTime);
+    }
+
+    /**
+     * Replaces the deadline.
+     *
+     * @param newByTime replacement deadline
+     * @throws IllegalArgumentException if {@code newByTime} is null
+     */
+    public void rescheduleTo(LocalDateTime newByTime) {
+        if (newByTime == null) {
+            throw new IllegalArgumentException("Deadline cannot be empty.");
+        }
+        byTime = newByTime;
     }
 
     /**

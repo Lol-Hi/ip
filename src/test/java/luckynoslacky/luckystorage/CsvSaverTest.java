@@ -8,7 +8,9 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.List;
 
 import org.apache.commons.csv.CSVFormat;
@@ -18,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import luckynoslacky.luckyexception.LuckyNoStorageException;
+import luckynoslacky.luckyparser.DurationPeriod;
 import luckynoslacky.luckytask.DeadlineTask;
 import luckynoslacky.luckytask.EventTask;
 import luckynoslacky.luckytask.Task;
@@ -66,6 +69,194 @@ class CsvSaverTest {
                             "2026-08-06 14:00", "2026-08-06 16:00"),
                     records.get(3).toList());
         }
+    }
+
+    /** Verifies that a deadline duration snooze is written and reloadable. */
+    @Test
+    void snoozeTaskBy_deadlineDuration_writesUpdatedEndTimeToCsv() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("deadline-snooze.csv");
+        CsvSaver saver = new CsvSaver(dataFile);
+        TaskMaster taskMaster = new TaskMaster(100, saver);
+        taskMaster.addTask(new DeadlineTask(
+                "return book", LocalDateTime.of(2026, 8, 26, 12, 0)));
+
+        taskMaster.snoozeTaskBy(
+                1, new DurationPeriod(Period.ZERO, Duration.ofHours(2)));
+
+        assertCsvRecord(dataFile,
+                List.of("D", "0", "return book", "", "2026-08-26 14:00"));
+        TaskMaster restored = loadTaskMaster(dataFile);
+        assertEquals(
+                LocalDateTime.of(2026, 8, 26, 14, 0),
+                restored.getTaskEndTime(1));
+    }
+
+    /** Verifies that an event duration snooze changes only the saved end time. */
+    @Test
+    void snoozeTaskBy_eventDuration_writesOnlyUpdatedEndTimeToCsv() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("event-snooze.csv");
+        CsvSaver saver = new CsvSaver(dataFile);
+        TaskMaster taskMaster = new TaskMaster(100, saver);
+        taskMaster.addTask(new EventTask(
+                "project meeting",
+                LocalDateTime.of(2026, 8, 26, 14, 0),
+                LocalDateTime.of(2026, 8, 26, 16, 0)));
+
+        taskMaster.snoozeTaskBy(
+                1, new DurationPeriod(Period.ZERO, Duration.ofHours(2)));
+
+        assertCsvRecord(dataFile,
+                List.of("E", "0", "project meeting",
+                        "2026-08-26 14:00", "2026-08-26 18:00"));
+        TaskMaster restored = loadTaskMaster(dataFile);
+        assertEquals(
+                LocalDateTime.of(2026, 8, 26, 14, 0),
+                restored.getTaskStartTime(1));
+        assertEquals(
+                LocalDateTime.of(2026, 8, 26, 18, 0),
+                restored.getTaskEndTime(1));
+    }
+
+    /** Verifies that an explicit deadline snooze is written and reloadable. */
+    @Test
+    void snoozeTaskTo_deadlineTarget_writesNewEndTimeToCsv() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("deadline-snooze-to.csv");
+        CsvSaver saver = new CsvSaver(dataFile);
+        TaskMaster taskMaster = new TaskMaster(100, saver);
+        taskMaster.addTask(new DeadlineTask(
+                "return book", LocalDateTime.of(2026, 8, 26, 12, 0)));
+
+        taskMaster.snoozeTaskTo(
+                1, LocalDateTime.of(2026, 8, 28, 17, 0));
+
+        assertCsvRecord(dataFile,
+                List.of("D", "0", "return book", "", "2026-08-28 17:00"));
+        assertEquals(
+                LocalDateTime.of(2026, 8, 28, 17, 0),
+                loadTaskMaster(dataFile).getTaskEndTime(1));
+    }
+
+    /** Verifies that an explicit event snooze preserves the saved start time. */
+    @Test
+    void snoozeTaskTo_eventTarget_preservesStartTimeInCsv() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("event-snooze-to.csv");
+        CsvSaver saver = new CsvSaver(dataFile);
+        TaskMaster taskMaster = new TaskMaster(100, saver);
+        taskMaster.addTask(new EventTask(
+                "project meeting",
+                LocalDateTime.of(2026, 8, 26, 14, 0),
+                LocalDateTime.of(2026, 8, 26, 16, 0)));
+
+        taskMaster.snoozeTaskTo(
+                1, LocalDateTime.of(2026, 8, 28, 17, 0));
+
+        assertCsvRecord(dataFile,
+                List.of("E", "0", "project meeting",
+                        "2026-08-26 14:00", "2026-08-28 17:00"));
+        TaskMaster restored = loadTaskMaster(dataFile);
+        assertEquals(
+                LocalDateTime.of(2026, 8, 26, 14, 0),
+                restored.getTaskStartTime(1));
+        assertEquals(
+                LocalDateTime.of(2026, 8, 28, 17, 0),
+                restored.getTaskEndTime(1));
+    }
+
+    /** Verifies that a deadline reschedule is written and reloadable. */
+    @Test
+    void rescheduleDeadline_newTime_writesUpdatedDeadlineToCsv() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("deadline-reschedule.csv");
+        CsvSaver saver = new CsvSaver(dataFile);
+        TaskMaster taskMaster = new TaskMaster(100, saver);
+        taskMaster.addTask(new DeadlineTask(
+                "return book", LocalDateTime.of(2026, 8, 26, 12, 0)));
+
+        taskMaster.rescheduleDeadline(
+                1, LocalDateTime.of(2026, 9, 1, 9, 30));
+
+        assertCsvRecord(dataFile,
+                List.of("D", "0", "return book", "", "2026-09-01 09:30"));
+        assertEquals(
+                LocalDateTime.of(2026, 9, 1, 9, 30),
+                loadTaskMaster(dataFile).getTaskEndTime(1));
+    }
+
+    /** Verifies that full event rescheduling writes both event times. */
+    @Test
+    void rescheduleEvent_newTimes_writesBothEventTimesToCsv() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("event-reschedule.csv");
+        CsvSaver saver = new CsvSaver(dataFile);
+        TaskMaster taskMaster = new TaskMaster(100, saver);
+        taskMaster.addTask(new EventTask(
+                "project meeting",
+                LocalDateTime.of(2026, 8, 26, 14, 0),
+                LocalDateTime.of(2026, 8, 26, 16, 0)));
+
+        taskMaster.rescheduleEvent(
+                1,
+                LocalDateTime.of(2026, 8, 28, 10, 0),
+                LocalDateTime.of(2026, 8, 28, 11, 0));
+
+        assertCsvRecord(dataFile,
+                List.of("E", "0", "project meeting",
+                        "2026-08-28 10:00", "2026-08-28 11:00"));
+        TaskMaster restored = loadTaskMaster(dataFile);
+        assertEquals(
+                LocalDateTime.of(2026, 8, 28, 10, 0),
+                restored.getTaskStartTime(1));
+        assertEquals(
+                LocalDateTime.of(2026, 8, 28, 11, 0),
+                restored.getTaskEndTime(1));
+    }
+
+    /** Verifies that partial event updates retain the omitted time in CSV. */
+    @Test
+    void rescheduleEvent_partialUpdates_writeRetainedTimes() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("partial-event-reschedule.csv");
+        CsvSaver saver = new CsvSaver(dataFile);
+        TaskMaster taskMaster = new TaskMaster(100, saver);
+        taskMaster.addTask(new EventTask(
+                "project meeting",
+                LocalDateTime.of(2026, 8, 26, 14, 0),
+                LocalDateTime.of(2026, 8, 26, 16, 0)));
+
+        taskMaster.rescheduleEvent(
+                1,
+                LocalDateTime.of(2026, 8, 26, 15, 0),
+                LocalDateTime.of(2026, 8, 26, 16, 0));
+        assertCsvRecord(dataFile,
+                List.of("E", "0", "project meeting",
+                        "2026-08-26 15:00", "2026-08-26 16:00"));
+
+        taskMaster.rescheduleEvent(
+                1,
+                LocalDateTime.of(2026, 8, 26, 15, 0),
+                LocalDateTime.of(2026, 8, 26, 18, 0));
+        assertCsvRecord(dataFile,
+                List.of("E", "0", "project meeting",
+                        "2026-08-26 15:00", "2026-08-26 18:00"));
+        assertEquals(
+                LocalDateTime.of(2026, 8, 26, 18, 0),
+                loadTaskMaster(dataFile).getTaskEndTime(1));
+    }
+
+    /** Verifies that a completed task remains completed after a time update. */
+    @Test
+    void snoozeTaskBy_completedTask_preservesCompletionStatusInCsv() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("completed-snooze.csv");
+        CsvSaver saver = new CsvSaver(dataFile);
+        TaskMaster taskMaster = new TaskMaster(100, saver);
+        taskMaster.addTask(new DeadlineTask(
+                "return book", LocalDateTime.of(2026, 8, 26, 12, 0)));
+        taskMaster.markTaskDone(1);
+
+        taskMaster.snoozeTaskBy(
+                1, new DurationPeriod(Period.ZERO, Duration.ofHours(2)));
+
+        assertCsvRecord(dataFile,
+                List.of("D", "1", "return book", "", "2026-08-26 14:00"));
+        assertTrue(loadTaskMaster(dataFile).listTasks().toDisplayString()
+                .contains("[D][X] return book"));
     }
 
     /** Verifies saving rewrites the file after a task is deleted. */
@@ -247,5 +438,30 @@ class CsvSaverTest {
                 taskMaster.loadTasksFromCsvStorageRecord(List.of(
                         new TodoTask("first"),
                         new TodoTask("second"))));
+    }
+
+    /** Reads all records from a saved CSV file. */
+    private List<CSVRecord> readCsvRecords(Path dataFile) throws Exception {
+        try (Reader reader = Files.newBufferedReader(dataFile, StandardCharsets.UTF_8);
+             CSVParser parser = CSVFormat.DEFAULT.parse(reader)) {
+            return parser.getRecords();
+        }
+    }
+
+    /** Verifies the first saved task record after the CSV header. */
+    private void assertCsvRecord(
+            Path dataFile,
+            List<String> expectedRecord)
+            throws Exception {
+        List<CSVRecord> records = readCsvRecords(dataFile);
+        assertEquals(expectedRecord, records.get(1).toList());
+    }
+
+    /** Loads a task master from the supplied CSV file. */
+    private TaskMaster loadTaskMaster(Path dataFile) {
+        CsvSaver saver = new CsvSaver(dataFile);
+        TaskMaster taskMaster = new TaskMaster(100, saver);
+        taskMaster.loadTasksFromCsvStorageRecord(saver.load());
+        return taskMaster;
     }
 }

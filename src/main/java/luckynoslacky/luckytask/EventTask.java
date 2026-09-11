@@ -4,12 +4,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import luckynoslacky.luckyparser.DurationPeriod;
+
 /**
  * Represents a task with a specified start and end time.
  */
 public class EventTask extends Task {
-    private final LocalDateTime startTime;
-    private final LocalDateTime endTime;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
 
     /**
      * Creates an incomplete event task.
@@ -30,6 +32,66 @@ public class EventTask extends Task {
 
         this.startTime = startTime;
         this.endTime = endTime;
+    }
+
+    /**
+     * Returns the category of this task.
+     *
+     * @return event task category
+     */
+    @Override
+    public TaskType getTaskType() {
+        return TaskType.EVENT;
+    }
+
+    /**
+     * Returns the current event start time.
+     *
+     * @return event start date and time
+     */
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    /**
+     * Returns the current event end time.
+     *
+     * @return event end date and time
+     */
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    /**
+     * Extends the event's end time by the supplied amount.
+     *
+     * @param amount amount by which to extend the event
+     * @throws IllegalArgumentException if {@code amount} is null
+     */
+    public void snoozeBy(DurationPeriod amount) {
+        if (amount == null) {
+            throw new IllegalArgumentException("Snooze amount cannot be null.");
+        }
+        reschedule(startTime, amount.addTo(endTime));
+    }
+
+    /**
+     * Replaces both event times after validating their ordering.
+     *
+     * @param newStartTime replacement start time
+     * @param newEndTime replacement end time
+     * @throws IllegalArgumentException if either time is null or the end is
+     *                                  before the start
+     */
+    public void reschedule(LocalDateTime newStartTime, LocalDateTime newEndTime) {
+        if (newStartTime == null || newEndTime == null) {
+            throw new IllegalArgumentException("Event times cannot be empty.");
+        }
+        if (newEndTime.isBefore(newStartTime)) {
+            throw new IllegalArgumentException("Event end cannot be before its start.");
+        }
+        startTime = newStartTime;
+        endTime = newEndTime;
     }
 
     /**

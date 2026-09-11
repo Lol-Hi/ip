@@ -44,6 +44,403 @@ bye
   ____________________________________________________________
 ```
 
+## Test Case: Natural-language snooze durations
+
+- Aim: Verify article, number-word, filler-word, and abbreviated half-unit
+  duration forms.
+
+### Input
+
+```text
+deadline report /by 26 Aug 2026 12pm
+snooze 1 /by half an hr
+snooze 1 /by 1 more week
+list
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your snooze you lazy bum, don't slack too much hor!
+    [D][ ] report (by: Wed Aug 26 2026, 12.30pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your snooze you lazy bum, don't slack too much hor!
+    [D][ ] report (by: Wed Sep 02 2026, 12.30pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these things you need to do:
+  1.[D][ ] report (by: Wed Sep 02 2026, 12.30pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Decimal and combined snooze durations
+
+- Aim: Verify decimal fixed-length durations, abbreviations, and combined
+  calendar and clock durations update the correct task ending times.
+
+### Input
+
+```text
+deadline report /by 26 Aug 2026 12pm
+event meeting /from 26 Aug 2026 2pm /to 3pm
+snooze 1 /by 1.5h
+snooze 2 /by 1hr 30mins
+snooze 2 /by 1mo 2ds 3hrs
+list
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
+  Now you got 2 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your snooze you lazy bum, don't slack too much hor!
+    [D][ ] report (by: Wed Aug 26 2026, 1.30pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your snooze you lazy bum, don't slack too much hor!
+    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 4.30pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your snooze you lazy bum, don't slack too much hor!
+    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Mon Sep 28 2026, 7.30pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these things you need to do:
+  1.[D][ ] report (by: Wed Aug 26 2026, 1.30pm)
+  2.[E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Mon Sep 28 2026, 7.30pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Invalid decimal and combined snooze durations
+
+- Aim: Verify decimal calendar units, duplicate units, non-canonical order,
+  abbreviations, extra markers, and negative components are rejected.
+
+### Input
+
+```text
+deadline report /by 26 Aug 2026 12pm
+snooze 1 /by 1.5 months
+snooze 1 /by 1 hour 2 hours
+snooze 1 /by 2 days 1 month
+snooze 1 /by 1m
+snooze 1 /by 1h30min
+snooze 1 /by 1 hour /to tomorrow
+snooze 1 /by -30 minutes
+list
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Paiseh bro... i cannot settle decimal values for years and months yet...
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh can you be more specific anot, what do you mean by "1 hour 2 hours" sia?
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh can you be more specific anot, what do you mean by "2 days 1 month" sia?
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh can you be more specific anot, what do you mean by "1m" sia?
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh can you be more specific anot, what do you mean by "1h30min" sia?
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: `snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]`
+  ____________________________________________________________
+  ____________________________________________________________
+  Siao ah time where got negative one
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these things you need to do:
+  1.[D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Snooze timed tasks
+
+- Aim: Verify default, duration-based, and explicit-ending-time snoozes, while
+  rejecting a ToDo and preserving the event start time.
+
+### Input
+
+```text
+deadline report /by 26 Aug 2026 12pm
+event meeting /from 26 Aug 2026 2pm /to 3pm
+snooze 1
+snooze 2 /by 2 hours
+snooze 2 /to 28 Aug 2026 5pm
+list
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
+  Now you got 2 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your snooze you lazy bum, don't slack too much hor!
+    [D][ ] report (by: Wed Aug 26 2026, 1.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your snooze you lazy bum, don't slack too much hor!
+    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 5.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your snooze you lazy bum, don't slack too much hor!
+    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Fri Aug 28 2026, 5.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these things you need to do:
+  1.[D][ ] report (by: Wed Aug 26 2026, 1.00pm)
+  2.[E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Fri Aug 28 2026, 5.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Reschedule timed tasks
+
+- Aim: Verify deadline rescheduling, partial event rescheduling, reversed
+  event marker order, and the final task list after the changes.
+
+### Input
+
+```text
+deadline report /by 26 Aug 2026 12pm
+event meeting /from 26 Aug 2026 2pm /to 3pm
+resched 1 /to 27 Aug 2026 5pm
+resched 2 /to 4pm
+resched 2 /from 26 Aug 2026 3pm
+resched 2 /to 5pm /from 26 Aug 2026 4pm
+list
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
+  Now you got 2 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your resched you lazy bum, don't slack too much hor!
+    [D][ ] report (by: Thu Aug 27 2026, 5.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your resched you lazy bum, don't slack too much hor!
+    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 4.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your resched you lazy bum, don't slack too much hor!
+    [E][ ] meeting (from: Wed Aug 26 2026, 3.00pm to: Wed Aug 26 2026, 4.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your resched you lazy bum, don't slack too much hor!
+    [E][ ] meeting (from: Wed Aug 26 2026, 4.00pm to: Wed Aug 26 2026, 5.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these things you need to do:
+  1.[D][ ] report (by: Thu Aug 27 2026, 5.00pm)
+  2.[E][ ] meeting (from: Wed Aug 26 2026, 4.00pm to: Wed Aug 26 2026, 5.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Invalid snooze and reschedule inputs
+
+- Aim: Verify dedicated ToDo rejection, negative and unsupported durations,
+  task-type-specific formats, missing event markers, and additional slash
+  rejection.
+
+### Input
+
+```text
+todo read book
+deadline return book /by 26 Aug 2026 12pm
+event project meeting /from 26 Aug 2026 2pm /to 3pm
+snooze 1
+snooze 2 /by -1 hour
+snooze 2 /by 1.5 months
+resched 2 /from tomorrow /to tomorrow
+resched 3
+snooze 2 /by 1 hour /to tomorrow
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [T][ ] read book
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [D][ ] return book (by: Wed Aug 26 2026, 12.00pm)
+  Now you got 2 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [E][ ] project meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
+  Now you got 3 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh mr blur sotong this task don't even have time for you to snooze la
+  ____________________________________________________________
+  ____________________________________________________________
+  Siao ah time where got negative one
+  ____________________________________________________________
+  ____________________________________________________________
+  Paiseh bro... i cannot settle decimal values for years and months yet...
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: `resched <taskNumber> /to <date/time>`
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: `resched <taskNumber> /from <start date/time> /to <end date/time>`
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: `snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]`
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
 ## Test Case: Standardized relative-date terminology
 
 - Aim: Verify current-week, following-week, next-next, coming-weekday, and
@@ -232,11 +629,11 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: find [<description>] [/on <date>]
+  Lai lai let me teach you: `find [<description>] [/on <date>]`
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: find [<description>] [/on <date>]
+  Lai lai let me teach you: `find [<description>] [/on <date>]`
   ____________________________________________________________
   ____________________________________________________________
   Eh mr smart alec you tell me your calendar and clock got tell you time like this one meh?
@@ -468,7 +865,7 @@ BYE
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: deadline <description> /by <date/time>.
+  Lai lai let me teach you: `deadline <description> /by <date/time>.`
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
@@ -482,7 +879,7 @@ BYE
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: event <description> /from <start date/time> /to <end date/time>.
+  Lai lai let me teach you: `event <description> /from <start date/time> /to <end date/time>.`
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
@@ -636,15 +1033,15 @@ bye
   Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
   ____________________________________________________________
   ____________________________________________________________
-  What talking you? I only understand todo, deadline, event, list, mark, unmark, delete, find, or bye, ok?
+  What talking you? I only understand todo, deadline, event, list, mark, unmark, delete, find, snooze, resched, or bye, ok?
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: deadline <description> /by <date/time>.
+  Lai lai let me teach you: `deadline <description> /by <date/time>.`
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: event <description> /from <start date/time> /to <end date/time>.
+  Lai lai let me teach you: `event <description> /from <start date/time> /to <end date/time>.`
   ____________________________________________________________
   ____________________________________________________________
   You siao ah how to spin this task from thin air?
@@ -774,7 +1171,7 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: deadline <description> /by <date/time>.
+  Lai lai let me teach you: `deadline <description> /by <date/time>.`
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
@@ -788,7 +1185,7 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot? 
-  Lai lai let me teach you: event <description> /from <start date/time> /to <end date/time>.
+  Lai lai let me teach you: `event <description> /from <start date/time> /to <end date/time>.`
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
@@ -803,7 +1200,7 @@ bye
 
 ## Test Case: Free-form task text and date/time strings
 
-- Aim: Verify that task descriptions are retained, while supported date/time values are normalized consistently, including punctuation and command-like text inside a ToDo description.
+- Aim: Verify that ordinary task descriptions are retained, supported date/time values are normalized consistently, and marker-like slashes are rejected.
 
 ### Input
 
@@ -832,29 +1229,26 @@ bye
   Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
   ____________________________________________________________
   ____________________________________________________________
-  Got one more thing to remember ah: 
-    [T][ ] /by /from /to !@#
-  Now you got 1 tasks to settle.
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: `todo <description>`
   ____________________________________________________________
   ____________________________________________________________
-  Nah, all these things you need to do:
-  1.[T][ ] /by /from /to !@#
+  Chill lah bro got nothing yet lah!
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
     [D][ ] do homework (by: Sun Dec 08 2030, 9.00am)
-  Now you got 2 tasks to settle.
+  Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
     [E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
-  Now you got 3 tasks to settle.
+  Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] /by /from /to !@#
-  2.[D][ ] do homework (by: Sun Dec 08 2030, 9.00am)
-  3.[E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
+  1.[D][ ] do homework (by: Sun Dec 08 2030, 9.00am)
+  2.[E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -1179,6 +1573,79 @@ bye
   Nah, all these things you need to do:
   1.[E][ ] afternoon meeting (from: Tue Aug 25 2026, 2.00pm to: Tue Aug 25 2026, 4.00pm)
   2.[E][ ] overnight meeting (from: Tue Aug 25 2026, 11.00pm to: Wed Aug 26 2026, 1.00am)
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: Marker-like slash validation
+
+- Aim: Verify that ordinary slashes and slash-separated dates remain valid while unsupported marker-like slashes are rejected consistently.
+
+### Input
+
+```text
+todo read/book
+todo read / book
+todo read /book
+deadline slash date /by 2026/08/26
+snooze 3 /by 2 hours /please
+list /now
+bye /now
+list
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [T][ ] read/book
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [T][ ] read / book
+  Now you got 2 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: `todo <description>`
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [D][ ] slash date (by: Wed Aug 26 2026, 11.59pm)
+  Now you got 3 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: `snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]`
+  ____________________________________________________________
+  ____________________________________________________________
+  Why you so losor! Leave the list command to do its own thing lah
+  ____________________________________________________________
+  ____________________________________________________________
+  Why you so losor! Leave the bye command to do its own thing lah
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah, all these things you need to do:
+  1.[T][ ] read/book
+  2.[T][ ] read / book
+  3.[D][ ] slash date (by: Wed Aug 26 2026, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
