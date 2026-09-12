@@ -537,7 +537,7 @@ class TaskMasterTest {
 
         /** Always throws to simulate a persistence failure. */
         @Override
-        public void save(TaskMaster taskMaster) {
+        public void save(TaskList taskList) {
             throw new LuckyNoStorageException("simulated save failure");
         }
     }

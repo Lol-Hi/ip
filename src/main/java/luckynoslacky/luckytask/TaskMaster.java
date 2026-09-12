@@ -2,10 +2,8 @@ package luckynoslacky.luckytask;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import luckynoslacky.luckyexception.LuckyNoStorageException;
 import luckynoslacky.luckyparser.DurationPeriod;
@@ -17,7 +15,7 @@ import luckynoslacky.luckystorage.CsvSaver;
 public class TaskMaster {
     private static final int DEFAULT_MAX_TASKS = 100;
 
-    private final List<Task> tasks;
+    private final TaskList tasks;
     private final int maxTasks;
     private final CsvSaver csvSaver;
 
@@ -63,7 +61,7 @@ public class TaskMaster {
 
         this.maxTasks = maxTasks;
         this.csvSaver = saver;
-        tasks = new ArrayList<>();
+        tasks = new TaskList();
     }
 
     /**
@@ -81,17 +79,12 @@ public class TaskMaster {
         }
 
         int previousTaskCount = tasks.size();
-        tasks.add(task);
+        tasks.addTask(task);
         assert tasks.size() == previousTaskCount + 1
                 : "Task count did not increase after adding a task";
         assert tasks.size() <= maxTasks
                 : "Task list exceeded its maximum capacity";
-        try {
-            saveChanges();
-        } catch (LuckyNoStorageException exception) {
-            tasks.remove(tasks.size() - 1);
-            throw exception;
-        }
+        saveChangesOrRollback(() -> tasks.removeTask(tasks.size()));
     }
 
     /**
@@ -109,7 +102,7 @@ public class TaskMaster {
      * @return indexed task list
      */
     public TaskList listTasks() {
-        return TaskList.fromTasks(tasks, null, task -> true);
+        return tasks.createView(null, task -> true);
     }
 
     /**
@@ -155,15 +148,10 @@ public class TaskMaster {
                 ? null
                 : dateTimeQuery.toLocalDate();
 
-        Predicate<Task> matcher = task -> {
-            boolean matchesDescription = descriptionQuery == null
-                    || task.matchesDescription(descriptionQuery);
-            boolean matchesDate = searchDate == null
-                    || task.occursOn(searchDate);
-            return matchesDescription && matchesDate;
-        };
+        Predicate<Task> matcher =
+                createSearchMatcher(descriptionQuery, searchDate);
 
-        return TaskList.fromTasks(tasks, searchDate, matcher);
+        return tasks.createView(searchDate, matcher);
     }
 
     /**
@@ -202,30 +190,11 @@ public class TaskMaster {
             throw new IllegalArgumentException("ToDos cannot be snoozed.");
         }
 
-        LocalDateTime previousByTime = task instanceof DeadlineTask
-                ? ((DeadlineTask) task).getByTime()
-                : null;
-        LocalDateTime previousEndTime = task instanceof EventTask
-                ? ((EventTask) task).getEndTime()
-                : null;
-        LocalDateTime previousStartTime = task instanceof EventTask
-                ? ((EventTask) task).getStartTime()
-                : null;
-
         if (task instanceof DeadlineTask deadlineTask) {
-            deadlineTask.snoozeBy(amount);
-        } else if (task instanceof EventTask eventTask) {
-            eventTask.snoozeBy(amount);
+            return snoozeDeadlineBy(deadlineTask, amount);
         }
 
-        try {
-            saveChanges();
-        } catch (LuckyNoStorageException exception) {
-            restoreTaskTimes(
-                    task, previousByTime, previousStartTime, previousEndTime);
-            throw exception;
-        }
-        return task;
+        return snoozeEventBy((EventTask) task, amount);
     }
 
     /**
@@ -244,30 +213,11 @@ public class TaskMaster {
             throw new IllegalArgumentException("ToDos cannot be snoozed.");
         }
 
-        LocalDateTime previousByTime = task instanceof DeadlineTask
-                ? ((DeadlineTask) task).getByTime()
-                : null;
-        LocalDateTime previousEndTime = task instanceof EventTask
-                ? ((EventTask) task).getEndTime()
-                : null;
-        LocalDateTime previousStartTime = task instanceof EventTask
-                ? ((EventTask) task).getStartTime()
-                : null;
-
         if (task instanceof DeadlineTask deadlineTask) {
-            deadlineTask.rescheduleTo(newEndTime);
-        } else if (task instanceof EventTask eventTask) {
-            eventTask.reschedule(eventTask.getStartTime(), newEndTime);
+            return snoozeDeadlineTo(deadlineTask, newEndTime);
         }
 
-        try {
-            saveChanges();
-        } catch (LuckyNoStorageException exception) {
-            restoreTaskTimes(
-                    task, previousByTime, previousStartTime, previousEndTime);
-            throw exception;
-        }
-        return task;
+        return snoozeEventTo((EventTask) task, newEndTime);
     }
 
     /**
@@ -287,12 +237,7 @@ public class TaskMaster {
 
         LocalDateTime previousByTime = deadlineTask.getByTime();
         deadlineTask.rescheduleTo(newByTime);
-        try {
-            saveChanges();
-        } catch (LuckyNoStorageException exception) {
-            deadlineTask.rescheduleTo(previousByTime);
-            throw exception;
-        }
+        saveChangesOrRollback(() -> deadlineTask.rescheduleTo(previousByTime));
         return task;
     }
 
@@ -319,13 +264,8 @@ public class TaskMaster {
         LocalDateTime previousStartTime = eventTask.getStartTime();
         LocalDateTime previousEndTime = eventTask.getEndTime();
         eventTask.reschedule(newStartTime, newEndTime);
-        try {
-            saveChanges();
-        } catch (LuckyNoStorageException exception) {
-            restoreTaskTimes(
-                    task, null, previousStartTime, previousEndTime);
-            throw exception;
-        }
+        saveChangesOrRollback(() ->
+                eventTask.reschedule(previousStartTime, previousEndTime));
         return task;
     }
 
@@ -390,12 +330,7 @@ public class TaskMaster {
             task.unmarkAsUndone();
         }
 
-        try {
-            saveChanges();
-        } catch (LuckyNoStorageException exception) {
-            restoreTaskStatus(task, wasDone);
-            throw exception;
-        }
+        saveChangesOrRollback(() -> restoreTaskStatus(task, wasDone));
         return task.toString();
     }
 
@@ -406,29 +341,12 @@ public class TaskMaster {
      * @return description of the deleted task
      */
     public String deleteTask(int taskNumber) {
-        int taskIndex = getTaskIndex(taskNumber);
         int previousTaskCount = tasks.size();
-        Task deletedTask = tasks.remove(taskIndex);
+        Task deletedTask = tasks.removeTask(taskNumber);
         assert tasks.size() == previousTaskCount - 1
                 : "Task count did not decrease after deleting a task";
-        try {
-            saveChanges();
-        } catch (LuckyNoStorageException exception) {
-            tasks.add(taskIndex, deletedTask);
-            throw exception;
-        }
+        saveChangesOrRollback(() -> tasks.insertTask(taskNumber, deletedTask));
         return deletedTask.toString();
-    }
-
-    /**
-     * Returns the task records in CSV column order.
-     *
-     * @return immutable list of CSV records
-     */
-    public List<List<String>> getCsvStorageRecords() {
-        return tasks.stream()
-                .map(Task::getCsvStorageFields)
-                .collect(Collectors.toUnmodifiableList());
     }
 
     /**
@@ -438,6 +356,54 @@ public class TaskMaster {
      * @param loadedTasks tasks loaded from CSV storage
      */
     public void loadTasksFromCsvStorageRecord(List<Task> loadedTasks) {
+        validateLoadedTasks(loadedTasks);
+
+        this.tasks.replaceTasks(loadedTasks);
+    }
+
+    /**
+     * Creates a predicate for the supplied optional search filters.
+     *
+     * @param descriptionQuery optional description text
+     * @param searchDate optional date on which a task must occur
+     * @return predicate matching both supplied filters
+     */
+    private Predicate<Task> createSearchMatcher(
+            String descriptionQuery,
+            LocalDate searchDate) {
+        return task -> {
+            boolean matchesDescription = descriptionQuery == null
+                    || task.matchesDescription(descriptionQuery);
+            boolean matchesDate = searchDate == null
+                    || task.occursOn(searchDate);
+            return matchesDescription && matchesDate;
+        };
+    }
+
+    /**
+     * Saves the current task list and restores the previous state if saving
+     * fails.
+     *
+     * @param rollbackAction action that restores the pre-save state
+     * @throws LuckyNoStorageException if saving fails
+     */
+    private void saveChangesOrRollback(Runnable rollbackAction) {
+        try {
+            csvSaver.save(tasks);
+        } catch (LuckyNoStorageException exception) {
+            rollbackAction.run();
+            throw exception;
+        }
+    }
+
+    /**
+     * Validates tasks loaded from persistent storage.
+     *
+     * @param loadedTasks tasks to validate
+     * @throws LuckyNoStorageException if the list is null, too large, or
+     *                                 contains a null task
+     */
+    private void validateLoadedTasks(List<Task> loadedTasks) {
         if (loadedTasks == null) {
             throw new LuckyNoStorageException("Tasks cannot be null.");
         }
@@ -451,14 +417,74 @@ public class TaskMaster {
             throw new LuckyNoStorageException(
                     "Saved task list contains a null task.");
         }
-
-        this.tasks.clear();
-        this.tasks.addAll(loadedTasks);
     }
 
-    /** Persists the current task list through the configured saver. */
-    private void saveChanges() {
-        csvSaver.save(this);
+    /**
+     * Snoozes a deadline by the supplied amount and persists the update.
+     *
+     * @param task deadline to update
+     * @param amount amount by which to extend the deadline
+     * @return updated deadline
+     */
+    private Task snoozeDeadlineBy(
+            DeadlineTask task,
+            DurationPeriod amount) {
+        LocalDateTime previousByTime = task.getByTime();
+        task.snoozeBy(amount);
+        saveChangesOrRollback(() -> task.rescheduleTo(previousByTime));
+        return task;
+    }
+
+    /**
+     * Snoozes an event by the supplied amount and persists the update.
+     *
+     * @param task event to update
+     * @param amount amount by which to extend the event
+     * @return updated event
+     */
+    private Task snoozeEventBy(
+            EventTask task,
+            DurationPeriod amount) {
+        LocalDateTime previousStartTime = task.getStartTime();
+        LocalDateTime previousEndTime = task.getEndTime();
+        task.snoozeBy(amount);
+        saveChangesOrRollback(() ->
+                task.reschedule(previousStartTime, previousEndTime));
+        return task;
+    }
+
+    /**
+     * Snoozes a deadline to a replacement ending time and persists the update.
+     *
+     * @param task deadline to update
+     * @param newEndTime replacement deadline
+     * @return updated deadline
+     */
+    private Task snoozeDeadlineTo(
+            DeadlineTask task,
+            LocalDateTime newEndTime) {
+        LocalDateTime previousByTime = task.getByTime();
+        task.rescheduleTo(newEndTime);
+        saveChangesOrRollback(() -> task.rescheduleTo(previousByTime));
+        return task;
+    }
+
+    /**
+     * Snoozes an event to a replacement ending time and persists the update.
+     *
+     * @param task event to update
+     * @param newEndTime replacement ending time
+     * @return updated event
+     */
+    private Task snoozeEventTo(
+            EventTask task,
+            LocalDateTime newEndTime) {
+        LocalDateTime previousStartTime = task.getStartTime();
+        LocalDateTime previousEndTime = task.getEndTime();
+        task.reschedule(task.getStartTime(), newEndTime);
+        saveChangesOrRollback(() ->
+                task.reschedule(previousStartTime, previousEndTime));
+        return task;
     }
 
     /**
@@ -476,47 +502,12 @@ public class TaskMaster {
     }
 
     /**
-     * Restores the datetime fields captured before a failed save.
-     *
-     * @param task task whose times should be restored
-     * @param byTime previous deadline, or null for an event
-     * @param startTime previous event start, or null for a deadline
-     * @param endTime previous event end, or null for a deadline
-     */
-    private void restoreTaskTimes(
-            Task task,
-            LocalDateTime byTime,
-            LocalDateTime startTime,
-            LocalDateTime endTime) {
-        if (task instanceof DeadlineTask deadlineTask) {
-            deadlineTask.rescheduleTo(byTime);
-        } else if (task instanceof EventTask eventTask) {
-            eventTask.reschedule(startTime, endTime);
-        }
-    }
-
-    /**
      * Gets a task by its one-based task number.
      *
      * @param taskNumber one-based number of the task
      * @return the requested task
      */
     private Task getTask(int taskNumber) {
-        return tasks.get(getTaskIndex(taskNumber));
-    }
-
-    /**
-     * Converts and validates a one-based task number.
-     *
-     * @param taskNumber one-based task number
-     * @return corresponding zero-based task index
-     * @throws IllegalArgumentException if the task number is outside the list
-     */
-    private int getTaskIndex(int taskNumber) {
-        int taskIndex = taskNumber - 1;
-        if (taskIndex < 0 || taskIndex >= tasks.size()) {
-            throw new IllegalArgumentException("Invalid task number.");
-        }
-        return taskIndex;
+        return tasks.getTask(taskNumber);
     }
 }

@@ -24,6 +24,7 @@ import luckynoslacky.luckyparser.DurationPeriod;
 import luckynoslacky.luckytask.DeadlineTask;
 import luckynoslacky.luckytask.EventTask;
 import luckynoslacky.luckytask.Task;
+import luckynoslacky.luckytask.TaskList;
 import luckynoslacky.luckytask.TaskMaster;
 import luckynoslacky.luckytask.TodoTask;
 import luckynoslacky.luckyui.LuckyNoMessages;
@@ -401,9 +402,9 @@ class CsvSaverTest {
         assertThrows(LuckyNoStorageException.class, saver::load);
     }
 
-    /** Verifies saving a null task master is rejected. */
+    /** Verifies saving a null task list is rejected. */
     @Test
-    void save_nullTaskMaster_throwsIllegalArgumentException() {
+    void save_nullTaskList_throwsIllegalArgumentException() {
         CsvSaver saver = new CsvSaver(temporaryDirectory.resolve("tasks.csv"));
 
         assertThrows(IllegalArgumentException.class, () -> saver.save(null));
@@ -424,7 +425,7 @@ class CsvSaverTest {
 
         assertThrows(LuckyNoStorageException.class, saver::load);
         assertThrows(LuckyNoStorageException.class, () ->
-                saver.save(new TaskMaster(100, saver)));
+                saver.save(new TaskList()));
     }
 
     /** Verifies loading beyond task capacity is rejected. */

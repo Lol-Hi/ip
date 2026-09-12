@@ -9,7 +9,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * Represents the indexed task results produced by a task-list query.
+ * Stores tasks together with their one-based task numbers and creates indexed
+ * views for list and find results.
  */
 public class TaskList {
     private final List<IndexedTask> indexedTasks;
@@ -34,49 +35,118 @@ public class TaskList {
     }
 
     /**
-     * Creates an indexed result from tasks satisfying a matching predicate.
-     * The original one-based task numbers are retained in the result.
+     * Adds a task to the end of this task list.
      *
-     * @param tasks source tasks to inspect
-     * @param searchDate date used by the query, or {@code null}
-     * @param matcher predicate deciding which tasks to include
-     * @return indexed task-list result
-     * @throws IllegalArgumentException if a parameter is null or a source task
-     *                                  is null
+     * @param task task to add
      */
-    public static TaskList fromTasks(
-            List<Task> tasks,
-            LocalDate searchDate,
-            Predicate<Task> matcher) {
-        if (tasks == null) {
+    public void addTask(Task task) {
+        addIndexedTask(indexedTasks.size() + 1, task);
+    }
+
+    /**
+     * Returns the number of tasks stored in this task list.
+     *
+     * @return number of stored tasks
+     */
+    public int size() {
+        return indexedTasks.size();
+    }
+
+    /**
+     * Returns a task identified by its one-based task number.
+     *
+     * @param taskNumber one-based task number
+     * @return requested task
+     * @throws IllegalArgumentException if the task number is invalid
+     */
+    public Task getTask(int taskNumber) {
+        return indexedTasks.get(getTaskIndex(taskNumber)).task();
+    }
+
+    /**
+     * Removes a task identified by its one-based task number.
+     *
+     * @param taskNumber one-based task number
+     * @return removed task
+     * @throws IllegalArgumentException if the task number is invalid
+     */
+    public Task removeTask(int taskNumber) {
+        Task removedTask = indexedTasks.remove(getTaskIndex(taskNumber)).task();
+        renumberTasks();
+        return removedTask;
+    }
+
+    /**
+     * Restores a task at its original one-based position.
+     *
+     * @param taskNumber original one-based task number
+     * @param task task to restore
+     * @throws IllegalArgumentException if the position or task is invalid
+     */
+    void insertTask(int taskNumber, Task task) {
+        if (taskNumber <= 0 || taskNumber > indexedTasks.size() + 1) {
+            throw new IllegalArgumentException("Invalid task number.");
+        }
+
+        indexedTasks.add(
+                taskNumber - 1,
+                new IndexedTask(taskNumber, task));
+        renumberTasks();
+    }
+
+    /**
+     * Replaces the task list with tasks loaded from storage.
+     *
+     * @param loadedTasks tasks to store and index
+     * @throws IllegalArgumentException if the list or one of its tasks is null
+     */
+    public void replaceTasks(List<Task> loadedTasks) {
+        if (loadedTasks == null) {
             throw new IllegalArgumentException("Tasks cannot be null.");
         }
-        if (matcher == null) {
-            throw new IllegalArgumentException("Matcher cannot be null.");
-        }
-        if (tasks.stream().anyMatch(task -> task == null)) {
+        if (loadedTasks.stream().anyMatch(task -> task == null)) {
             throw new IllegalArgumentException("Task cannot be null.");
         }
 
+        indexedTasks.clear();
+        loadedTasks.forEach(this::addTask);
+    }
+
+    /**
+     * Creates an indexed snapshot containing tasks that satisfy a matcher.
+     * The original one-based task numbers are retained in the snapshot.
+     *
+     * @param searchDate date used by the query, or {@code null}
+     * @param matcher predicate deciding which tasks to include
+     * @return indexed task-list snapshot
+     * @throws IllegalArgumentException if the matcher is null
+     */
+    public TaskList createView(
+            LocalDate searchDate,
+            Predicate<Task> matcher) {
+        if (matcher == null) {
+            throw new IllegalArgumentException("Matcher cannot be null.");
+        }
+
         TaskList result = new TaskList(searchDate);
-        IntStream.range(0, tasks.size())
-                .filter(index -> matcher.test(tasks.get(index)))
-                .forEach(index -> result.addTask(
-                        index + 1,
-                        tasks.get(index)));
+        indexedTasks.stream()
+                .filter(indexedTask -> matcher.test(indexedTask.task()))
+                .forEach(indexedTask -> result.addIndexedTask(
+                        indexedTask.taskNumber(),
+                        indexedTask.task()));
         return result;
     }
 
     /**
-     * Adds a task together with its original one-based task number.
+     * Returns the task records in CSV column order.
      *
-     * @param taskNumber original task number
-     * @param task task to add
-     * @throws IllegalArgumentException if the task number is not positive or
-     *                                  {@code task} is null
+     * @return immutable CSV records for the stored tasks
      */
-    public void addTask(int taskNumber, Task task) {
-        indexedTasks.add(new IndexedTask(taskNumber, task));
+    public List<List<String>> getCsvStorageRecords() {
+        return indexedTasks.stream()
+                .map(IndexedTask::task)
+                .map(Task::getCsvStorageFields)
+                .toList();
     }
 
     /**
@@ -106,6 +176,33 @@ public class TaskList {
         return indexedTasks.stream()
                 .map(IndexedTask::toDisplayString)
                 .collect(Collectors.joining("\n"));
+    }
+
+    /** Adds an indexed task without exposing indexing details to callers. */
+    private void addIndexedTask(int taskNumber, Task task) {
+        indexedTasks.add(new IndexedTask(taskNumber, task));
+    }
+
+    /** Renumbers the stored tasks sequentially after a collection mutation. */
+    private void renumberTasks() {
+        IntStream.range(0, indexedTasks.size())
+                .forEach(index -> {
+                    IndexedTask indexedTask = indexedTasks.get(index);
+                    indexedTasks.set(
+                            index,
+                            new IndexedTask(
+                                    index + 1,
+                                    indexedTask.task()));
+                });
+    }
+
+    /** Converts and validates a one-based task number into a list index. */
+    private int getTaskIndex(int taskNumber) {
+        int taskIndex = taskNumber - 1;
+        if (taskIndex < 0 || taskIndex >= indexedTasks.size()) {
+            throw new IllegalArgumentException("Invalid task number.");
+        }
+        return taskIndex;
     }
 
     /**
