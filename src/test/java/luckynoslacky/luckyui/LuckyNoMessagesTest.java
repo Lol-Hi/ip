@@ -97,8 +97,12 @@ class LuckyNoMessagesTest {
     /** Verifies that task-list messages use the relevant search header. */
     @Test
     void listTasksMessage_dateSearch_usesDateHeaderAndTaskLines() {
-        TaskList taskList = new TaskList(LocalDate.of(2026, 8, 26));
-        taskList.addTask(2, new TodoTask("read book"));
+        TodoTask readBook = new TodoTask("read book");
+        TaskList allTasks = new TaskList();
+        allTasks.addTask(new TodoTask("ignored task"));
+        allTasks.addTask(readBook);
+        TaskList taskList = allTasks.createView(
+                LocalDate.of(2026, 8, 26), task -> task == readBook);
 
         assertEquals(
                 "Nah, all these things you need to do on: Aug 26 2026\n"

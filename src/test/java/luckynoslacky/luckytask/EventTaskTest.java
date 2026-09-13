@@ -28,6 +28,7 @@ class EventTaskTest {
         assertEquals(List.of("E", "0", "project meeting",
                         "2026-08-06 14:00", "2026-08-06 16:00"),
                 task.getCsvStorageFields());
+        assertEquals(TaskTimes.makeEventTimes(start, end), task.getTaskTimes());
     }
 
     /** Verifies that an event ending before it starts is rejected. */
@@ -54,6 +55,20 @@ class EventTaskTest {
         assertEquals(LocalDateTime.of(2026, 8, 6, 18, 0), task.getEndTime());
     }
 
+    /** Verifies that an end-time schedule preserves the event start time. */
+    @Test
+    void reschedule_newEndTimeOnly_preservesEventStart() {
+        LocalDateTime start = LocalDateTime.of(2026, 8, 6, 14, 0);
+        EventTask task = new EventTask(
+                "project meeting", start, LocalDateTime.of(2026, 8, 6, 16, 0));
+        LocalDateTime newEnd = LocalDateTime.of(2026, 8, 6, 18, 0);
+
+        task.reschedule(TaskTimes.makeEventTimes(start, newEnd));
+
+        assertEquals(start, task.getStartTime());
+        assertEquals(newEnd, task.getEndTime());
+    }
+
     /** Verifies that event rescheduling updates both times together. */
     @Test
     void reschedule_validTimes_updatesStartAndEnd() {
@@ -64,7 +79,7 @@ class EventTaskTest {
         LocalDateTime newStart = LocalDateTime.of(2026, 8, 7, 10, 0);
         LocalDateTime newEnd = LocalDateTime.of(2026, 8, 7, 11, 0);
 
-        task.reschedule(newStart, newEnd);
+        task.reschedule(TaskTimes.makeEventTimes(newStart, newEnd));
 
         assertEquals(newStart, task.getStartTime());
         assertEquals(newEnd, task.getEndTime());
@@ -78,11 +93,22 @@ class EventTaskTest {
         EventTask task = new EventTask("project meeting", start, end);
 
         assertThrows(IllegalArgumentException.class, () -> task.reschedule(
-                LocalDateTime.of(2026, 8, 7, 16, 0),
-                LocalDateTime.of(2026, 8, 7, 14, 0)));
+                TaskTimes.makeEventTimes(
+                        LocalDateTime.of(2026, 8, 7, 16, 0),
+                        LocalDateTime.of(2026, 8, 7, 14, 0))));
 
         assertEquals(start, task.getStartTime());
         assertEquals(end, task.getEndTime());
+    }
+
+    /** Verifies that an event rejects deadline-only timing information. */
+    @Test
+    void construct_deadlineTimes_throwsIllegalArgumentException() {
+        TaskTimes deadlineTimes = TaskTimes.makeDeadlineTimes(
+                LocalDateTime.of(2026, 8, 26, 13, 0));
+
+        assertThrows(IllegalArgumentException.class, () ->
+                new EventTask("project meeting", deadlineTimes));
     }
 
 }

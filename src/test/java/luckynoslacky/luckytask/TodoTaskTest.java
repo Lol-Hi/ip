@@ -2,11 +2,17 @@ package luckynoslacky.luckytask;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+
+import luckynoslacky.luckyparser.DurationPeriod;
 
 /**
  * Tests the ToDo task subclass and the common task state behavior it inherits.
@@ -48,5 +54,32 @@ class TodoTaskTest {
         assertFalse(task.isDone());
         assertEquals(" ", task.getStatusIcon());
         assertEquals("[T][ ] read book", task.toString());
+    }
+
+    /** Verifies that snoozing a ToDo is rejected. */
+    @Test
+    void snoozeBy_todoTask_throwsIllegalArgumentException() {
+        TodoTask task = new TodoTask("read book");
+
+        assertThrows(IllegalArgumentException.class, () ->
+                task.snoozeBy(new DurationPeriod(Period.ZERO, Duration.ofHours(1))));
+    }
+
+    /** Verifies that replacing a ToDo ending time is rejected. */
+    @Test
+    void reschedule_todoTask_throwsIllegalArgumentException() {
+        TodoTask task = new TodoTask("read book");
+
+        assertThrows(IllegalArgumentException.class, () ->
+                task.reschedule(TaskTimes.makeDeadlineTimes(
+                        LocalDateTime.of(2026, 8, 26, 14, 0))));
+    }
+
+    /** Verifies that requesting a ToDo ending time is rejected. */
+    @Test
+    void getEndTime_todoTask_throwsIllegalArgumentException() {
+        TodoTask task = new TodoTask("read book");
+
+        assertThrows(IllegalArgumentException.class, task::getEndTime);
     }
 }

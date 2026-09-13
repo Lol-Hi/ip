@@ -1,6 +1,7 @@
 package luckynoslacky.luckytask;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,6 +23,8 @@ class DeadlineTaskTest {
 
         assertEquals("[D][ ] return book (by: Tue Oct 15 2019, 2.15pm)",
                 task.toString());
+        assertEquals(deadline, task.getEndTime());
+        assertEquals(TaskTimes.makeDeadlineTimes(deadline), task.getTaskTimes());
         assertEquals(List.of("D", "0", "return book", "", "2019-10-15 14:15"),
                 task.getCsvStorageFields());
     }
@@ -40,14 +43,25 @@ class DeadlineTaskTest {
 
     /** Verifies that rescheduling replaces the deadline. */
     @Test
-    void rescheduleTo_newTime_replacesDeadline() {
+    void reschedule_newDeadlineTimes_replacesDeadline() {
         DeadlineTask task = new DeadlineTask(
                 "return book", LocalDateTime.of(2026, 8, 26, 14, 0));
         LocalDateTime newDeadline = LocalDateTime.of(2026, 8, 27, 10, 0);
 
-        task.rescheduleTo(newDeadline);
+        task.reschedule(TaskTimes.makeDeadlineTimes(newDeadline));
 
         assertEquals(newDeadline, task.getByTime());
+    }
+
+    /** Verifies that a deadline rejects timing information with a start time. */
+    @Test
+    void construct_eventTimes_throwsIllegalArgumentException() {
+        TaskTimes eventTimes = TaskTimes.makeEventTimes(
+                LocalDateTime.of(2026, 8, 26, 12, 0),
+                LocalDateTime.of(2026, 8, 26, 13, 0));
+
+        assertThrows(IllegalArgumentException.class, () ->
+                new DeadlineTask("return book", eventTimes));
     }
 
 }

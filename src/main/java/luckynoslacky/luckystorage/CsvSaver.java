@@ -22,7 +22,8 @@ import luckynoslacky.luckyparser.DateTimeParser;
 import luckynoslacky.luckytask.DeadlineTask;
 import luckynoslacky.luckytask.EventTask;
 import luckynoslacky.luckytask.Task;
-import luckynoslacky.luckytask.TaskMaster;
+import luckynoslacky.luckytask.TaskList;
+import luckynoslacky.luckytask.TaskTimes;
 import luckynoslacky.luckytask.TodoTask;
 
 /**
@@ -65,18 +66,18 @@ public class CsvSaver {
     /**
      * Rewrites the CSV file with the current task list.
      *
-     * @param taskMaster task list to save
+     * @param taskList task list to save
      */
-    public void save(TaskMaster taskMaster) {
-        if (taskMaster == null) {
-            throw new IllegalArgumentException("Task master cannot be null.");
+    public void save(TaskList taskList) {
+        if (taskList == null) {
+            throw new IllegalArgumentException("Task list cannot be null.");
         }
 
         Path temporaryFile = null;
         try {
             createParentDirectory();
             temporaryFile = createTemporaryFile();
-            writeCsvFile(taskMaster, temporaryFile);
+            writeCsvFile(taskList, temporaryFile);
             replaceDataFile(temporaryFile);
         } catch (IOException | IllegalArgumentException exception) {
             throw new LuckyNoStorageException(
@@ -116,18 +117,18 @@ public class CsvSaver {
     /**
      * Writes the CSV header and task records to a temporary file.
      *
-     * @param taskMaster task list to serialize
+     * @param taskList task list to serialize
      * @param outputFile temporary output file
      * @throws IOException if writing the file fails
      */
-    private void writeCsvFile(TaskMaster taskMaster, Path outputFile)
+    private void writeCsvFile(TaskList taskList, Path outputFile)
             throws IOException {
         try (BufferedWriter writer = Files.newBufferedWriter(
                 outputFile, StandardCharsets.UTF_8);
              CSVPrinter printer = new CSVPrinter(writer, CSVFormat.DEFAULT)) {
             printer.printRecord(CSV_HEADER);
 
-            for (List<String> record : taskMaster.getCsvStorageRecords()) {
+            for (List<String> record : taskList.getCsvStorageRecords()) {
                 assert record.size() == EXPECTED_FIELD_COUNT
                         : "Unexpected CSV field count: " + record.size();
                 printer.printRecord(record);
@@ -246,15 +247,12 @@ public class CsvSaver {
 
         Task task;
         try {
+            TaskTimes times = createTaskTimes(
+                    taskType, startTimeText, endTimeText);
             task = switch (taskType) {
                 case "T" -> new TodoTask(description);
-                case "D" -> new DeadlineTask(
-                        description,
-                        DateTimeParser.parseFromStorage(endTimeText));
-                case "E" -> new EventTask(
-                        description,
-                        DateTimeParser.parseFromStorage(startTimeText),
-                        DateTimeParser.parseFromStorage(endTimeText));
+                case "D" -> new DeadlineTask(description, times);
+                case "E" -> new EventTask(description, times);
                 default -> throw invalidRecord(record, "unknown task type");
             };
         } catch (IllegalArgumentException exception) {
@@ -269,6 +267,30 @@ public class CsvSaver {
         }
 
         return task;
+    }
+
+    /**
+     * Converts the time columns of a CSV record into task timing information.
+     *
+     * @param taskType stored task type marker
+     * @param startTimeText stored start time
+     * @param endTimeText stored end time
+     * @return timing information represented by the record
+     */
+    private TaskTimes createTaskTimes(
+            String taskType,
+            String startTimeText,
+        String endTimeText) {
+        return switch (taskType) {
+            case "T" -> TaskTimes.none();
+            case "D" -> TaskTimes.makeDeadlineTimes(
+                    DateTimeParser.parseFromStorage(endTimeText));
+            case "E" -> TaskTimes.makeEventTimes(
+                    DateTimeParser.parseFromStorage(startTimeText),
+                    DateTimeParser.parseFromStorage(endTimeText));
+            default -> throw new IllegalArgumentException(
+                    "Unknown task type: " + taskType);
+        };
     }
 
     /**

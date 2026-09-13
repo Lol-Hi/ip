@@ -1,6 +1,5 @@
 package luckynoslacky.luckytask;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -10,8 +9,7 @@ import luckynoslacky.luckyparser.DurationPeriod;
  * Represents a task with a specified start and end time.
  */
 public class EventTask extends Task {
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private TaskTimes times;
 
     /**
      * Creates an incomplete event task.
@@ -21,17 +19,23 @@ public class EventTask extends Task {
      * @param endTime event end date and time
      */
     public EventTask(String description, LocalDateTime startTime, LocalDateTime endTime) {
+        this(description, TaskTimes.makeEventTimes(startTime, endTime));
+    }
+
+    /**
+     * Creates an incomplete event task from validated timing information.
+     *
+     * @param description task description
+     * @param times event timing information
+     * @throws IllegalArgumentException if the timing information is not an
+     *                                  event schedule
+     */
+    public EventTask(String description, TaskTimes times) {
         super(description);
 
-        if (startTime == null || endTime == null) {
-            throw new IllegalArgumentException("Event times cannot be empty.");
-        }
-        if (endTime.isBefore(startTime)) {
-            throw new IllegalArgumentException("Event end cannot be before its start.");
-        }
-
-        this.startTime = startTime;
-        this.endTime = endTime;
+        TaskTimes.verifyEventTimes(times);
+        this.times = TaskTimes.makeEventTimes(
+                times.getStartTime(), times.getEndTime());
     }
 
     /**
@@ -50,7 +54,7 @@ public class EventTask extends Task {
      * @return event start date and time
      */
     public LocalDateTime getStartTime() {
-        return startTime;
+        return times.getStartTime();
     }
 
     /**
@@ -59,7 +63,17 @@ public class EventTask extends Task {
      * @return event end date and time
      */
     public LocalDateTime getEndTime() {
-        return endTime;
+        return times.getEndTime();
+    }
+
+    /**
+     * Returns this event's timing information.
+     *
+     * @return event timing information
+     */
+    @Override
+    public TaskTimes getTaskTimes() {
+        return times;
     }
 
     /**
@@ -68,30 +82,27 @@ public class EventTask extends Task {
      * @param amount amount by which to extend the event
      * @throws IllegalArgumentException if {@code amount} is null
      */
+    @Override
     public void snoozeBy(DurationPeriod amount) {
         if (amount == null) {
             throw new IllegalArgumentException("Snooze amount cannot be null.");
         }
-        reschedule(startTime, amount.addTo(endTime));
+        reschedule(TaskTimes.makeEventTimes(
+                getStartTime(), amount.addTo(getEndTime())));
     }
 
     /**
-     * Replaces both event times after validating their ordering.
+     * Replaces both event times after validating the supplied schedule.
      *
-     * @param newStartTime replacement start time
-     * @param newEndTime replacement end time
-     * @throws IllegalArgumentException if either time is null or the end is
-     *                                  before the start
+     * @param newTimes replacement event timing information
+     * @throws IllegalArgumentException if the timing information is not an
+     *                                  event schedule
      */
-    public void reschedule(LocalDateTime newStartTime, LocalDateTime newEndTime) {
-        if (newStartTime == null || newEndTime == null) {
-            throw new IllegalArgumentException("Event times cannot be empty.");
-        }
-        if (newEndTime.isBefore(newStartTime)) {
-            throw new IllegalArgumentException("Event end cannot be before its start.");
-        }
-        startTime = newStartTime;
-        endTime = newEndTime;
+    @Override
+    public void reschedule(TaskTimes newTimes) {
+        TaskTimes.verifyEventTimes(newTimes);
+        times = TaskTimes.makeEventTimes(
+                newTimes.getStartTime(), newTimes.getEndTime());
     }
 
     /**
@@ -101,19 +112,8 @@ public class EventTask extends Task {
      */
     @Override
     public List<String> getCsvStorageFields() {
-        return createCsvStorageFields('E', startTime, endTime);
-    }
-
-    /**
-     * Checks whether the event spans the supplied date.
-     *
-     * @param date date to check
-     * @return true if the event occurs on the supplied date
-     */
-    @Override
-    public boolean occursOn(LocalDate date) {
-        return !date.isBefore(startTime.toLocalDate())
-                && !date.isAfter(endTime.toLocalDate());
+        return createCsvStorageFields(
+                'E', times.getStartTime(), times.getEndTime());
     }
 
     /**
@@ -124,7 +124,7 @@ public class EventTask extends Task {
     @Override
     public String toString() {
         return "[E]" + super.toString()
-                + " (from: " + Task.formatDateTime(startTime)
-                + " to: " + Task.formatDateTime(endTime) + ")";
+                + " (from: " + Task.formatDateTime(getStartTime())
+                + " to: " + Task.formatDateTime(getEndTime()) + ")";
     }
 }

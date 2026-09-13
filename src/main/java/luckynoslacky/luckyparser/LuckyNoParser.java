@@ -20,6 +20,7 @@ import luckynoslacky.luckytask.DeadlineTask;
 import luckynoslacky.luckytask.EventTask;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
+import luckynoslacky.luckytask.TaskTimes;
 import luckynoslacky.luckytask.TodoTask;
 import luckynoslacky.luckyui.LuckyNoMessages;
 
@@ -479,7 +480,10 @@ public class LuckyNoParser {
             if (endTime.isBefore(dateTimeParser.now())) {
                 throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
             }
-            return new LuckyNoReschedCommand(taskNumber, endTime, taskMaster);
+            return new LuckyNoReschedCommand(
+                    taskNumber,
+                    TaskTimes.makeDeadlineTimes(endTime),
+                    taskMaster);
         }
 
         if (taskType == Task.TaskType.EVENT) {
@@ -519,7 +523,9 @@ public class LuckyNoParser {
             throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
         }
         return new LuckyNoReschedCommand(
-                taskNumber, startTime, endTime, taskMaster);
+                taskNumber,
+                TaskTimes.makeEventTimes(startTime, endTime),
+                taskMaster);
     }
 
     /**

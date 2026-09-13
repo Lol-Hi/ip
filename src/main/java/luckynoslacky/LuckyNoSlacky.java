@@ -33,7 +33,7 @@ public class LuckyNoSlacky {
 
     private final TaskMaster taskMaster;
     private final LuckyNoParser parser;
-    private final boolean loadError;
+    private final boolean hasLoadError;
 
     /** Creates the chatbot using the system clock. */
     public LuckyNoSlacky() {
@@ -54,13 +54,13 @@ public class LuckyNoSlacky {
         CsvSaver csvSaver = new CsvSaver();
         taskMaster = new TaskMaster(csvSaver);
 
-        boolean failedToLoad = false;
+        boolean hasLoadFailure = false;
         try {
             taskMaster.loadTasksFromCsvStorageRecord(csvSaver.load());
         } catch (LuckyNoStorageException exception) {
-            failedToLoad = true;
+            hasLoadFailure = true;
         }
-        loadError = failedToLoad;
+        hasLoadError = hasLoadFailure;
 
         parser = new LuckyNoParser(dateTimeParser, taskMaster);
     }
@@ -115,7 +115,7 @@ public class LuckyNoSlacky {
      * @return true if task data could not be loaded
      */
     public boolean hasLoadError() {
-        return loadError;
+        return hasLoadError;
     }
 
     /**
@@ -128,7 +128,7 @@ public class LuckyNoSlacky {
         LuckyNoCli commandLineInterface = new LuckyNoCli();
         commandLineInterface.showGreeting();
 
-        if (chatbot.loadError) {
+        if (chatbot.hasLoadError()) {
             commandLineInterface.showLoadingError();
             return;
         }

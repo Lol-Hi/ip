@@ -24,7 +24,9 @@ import luckynoslacky.luckyparser.DurationPeriod;
 import luckynoslacky.luckytask.DeadlineTask;
 import luckynoslacky.luckytask.EventTask;
 import luckynoslacky.luckytask.Task;
+import luckynoslacky.luckytask.TaskList;
 import luckynoslacky.luckytask.TaskMaster;
+import luckynoslacky.luckytask.TaskTimes;
 import luckynoslacky.luckytask.TodoTask;
 import luckynoslacky.luckyui.LuckyNoMessages;
 
@@ -164,15 +166,17 @@ class CsvSaverTest {
 
     /** Verifies that a deadline reschedule is written and reloadable. */
     @Test
-    void rescheduleDeadline_newTime_writesUpdatedDeadlineToCsv() throws Exception {
+    void rescheduleTask_newDeadlineTime_writesUpdatedDeadlineToCsv() throws Exception {
         Path dataFile = temporaryDirectory.resolve("deadline-reschedule.csv");
         CsvSaver saver = new CsvSaver(dataFile);
         TaskMaster taskMaster = new TaskMaster(100, saver);
         taskMaster.addTask(new DeadlineTask(
                 "return book", LocalDateTime.of(2026, 8, 26, 12, 0)));
 
-        taskMaster.rescheduleDeadline(
-                1, LocalDateTime.of(2026, 9, 1, 9, 30));
+        taskMaster.rescheduleTask(
+                1,
+                TaskTimes.makeDeadlineTimes(
+                        LocalDateTime.of(2026, 9, 1, 9, 30)));
 
         assertCsvRecord(dataFile,
                 List.of("D", "0", "return book", "", "2026-09-01 09:30"));
@@ -183,7 +187,7 @@ class CsvSaverTest {
 
     /** Verifies that full event rescheduling writes both event times. */
     @Test
-    void rescheduleEvent_newTimes_writesBothEventTimesToCsv() throws Exception {
+    void rescheduleTask_newEventTimes_writesBothEventTimesToCsv() throws Exception {
         Path dataFile = temporaryDirectory.resolve("event-reschedule.csv");
         CsvSaver saver = new CsvSaver(dataFile);
         TaskMaster taskMaster = new TaskMaster(100, saver);
@@ -192,10 +196,11 @@ class CsvSaverTest {
                 LocalDateTime.of(2026, 8, 26, 14, 0),
                 LocalDateTime.of(2026, 8, 26, 16, 0)));
 
-        taskMaster.rescheduleEvent(
+        taskMaster.rescheduleTask(
                 1,
-                LocalDateTime.of(2026, 8, 28, 10, 0),
-                LocalDateTime.of(2026, 8, 28, 11, 0));
+                TaskTimes.makeEventTimes(
+                        LocalDateTime.of(2026, 8, 28, 10, 0),
+                        LocalDateTime.of(2026, 8, 28, 11, 0)));
 
         assertCsvRecord(dataFile,
                 List.of("E", "0", "project meeting",
@@ -211,7 +216,7 @@ class CsvSaverTest {
 
     /** Verifies that partial event updates retain the omitted time in CSV. */
     @Test
-    void rescheduleEvent_partialUpdates_writeRetainedTimes() throws Exception {
+    void rescheduleTask_partialEventTimes_writeRetainedTimes() throws Exception {
         Path dataFile = temporaryDirectory.resolve("partial-event-reschedule.csv");
         CsvSaver saver = new CsvSaver(dataFile);
         TaskMaster taskMaster = new TaskMaster(100, saver);
@@ -220,18 +225,20 @@ class CsvSaverTest {
                 LocalDateTime.of(2026, 8, 26, 14, 0),
                 LocalDateTime.of(2026, 8, 26, 16, 0)));
 
-        taskMaster.rescheduleEvent(
+        taskMaster.rescheduleTask(
                 1,
-                LocalDateTime.of(2026, 8, 26, 15, 0),
-                LocalDateTime.of(2026, 8, 26, 16, 0));
+                TaskTimes.makeEventTimes(
+                        LocalDateTime.of(2026, 8, 26, 15, 0),
+                        LocalDateTime.of(2026, 8, 26, 16, 0)));
         assertCsvRecord(dataFile,
                 List.of("E", "0", "project meeting",
                         "2026-08-26 15:00", "2026-08-26 16:00"));
 
-        taskMaster.rescheduleEvent(
+        taskMaster.rescheduleTask(
                 1,
-                LocalDateTime.of(2026, 8, 26, 15, 0),
-                LocalDateTime.of(2026, 8, 26, 18, 0));
+                TaskTimes.makeEventTimes(
+                        LocalDateTime.of(2026, 8, 26, 15, 0),
+                        LocalDateTime.of(2026, 8, 26, 18, 0)));
         assertCsvRecord(dataFile,
                 List.of("E", "0", "project meeting",
                         "2026-08-26 15:00", "2026-08-26 18:00"));
@@ -401,9 +408,9 @@ class CsvSaverTest {
         assertThrows(LuckyNoStorageException.class, saver::load);
     }
 
-    /** Verifies saving a null task master is rejected. */
+    /** Verifies saving a null task list is rejected. */
     @Test
-    void save_nullTaskMaster_throwsIllegalArgumentException() {
+    void save_nullTaskList_throwsIllegalArgumentException() {
         CsvSaver saver = new CsvSaver(temporaryDirectory.resolve("tasks.csv"));
 
         assertThrows(IllegalArgumentException.class, () -> saver.save(null));
@@ -424,7 +431,7 @@ class CsvSaverTest {
 
         assertThrows(LuckyNoStorageException.class, saver::load);
         assertThrows(LuckyNoStorageException.class, () ->
-                saver.save(new TaskMaster(100, saver)));
+                saver.save(new TaskList()));
     }
 
     /** Verifies loading beyond task capacity is rejected. */

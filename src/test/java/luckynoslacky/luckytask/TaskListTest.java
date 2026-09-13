@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -14,15 +15,65 @@ import org.junit.jupiter.api.Test;
  */
 class TaskListTest {
 
+    /** Verifies that tasks are stored and numbered sequentially. */
+    @Test
+    void addTask_multipleTasks_assignsSequentialNumbers() {
+        TaskList taskList = new TaskList();
+        Task firstTask = new TodoTask("first task");
+        Task secondTask = new TodoTask("second task");
+
+        taskList.addTask(firstTask);
+        taskList.addTask(secondTask);
+
+        assertEquals(2, taskList.size());
+        assertEquals(firstTask, taskList.getTask(1));
+        assertEquals(secondTask, taskList.getTask(2));
+    }
+
+    /** Verifies that removing a task renumbers the remaining tasks. */
+    @Test
+    void removeTask_middleTask_renumbersRemainingTasks() {
+        TaskList taskList = new TaskList();
+        taskList.addTask(new TodoTask("first task"));
+        taskList.addTask(new TodoTask("second task"));
+        taskList.addTask(new TodoTask("third task"));
+
+        assertEquals("[T][ ] second task", taskList.removeTask(2).toString());
+        assertEquals("1.[T][ ] first task\n2.[T][ ] third task",
+                taskList.toDisplayString());
+    }
+
+    /** Verifies that loaded tasks replace the existing canonical collection. */
+    @Test
+    void replaceTasks_loadedTasks_replacesExistingTasks() {
+        TaskList taskList = new TaskList();
+        taskList.addTask(new TodoTask("old task"));
+
+        taskList.replaceTasks(List.of(
+                new TodoTask("first loaded task"),
+                new TodoTask("second loaded task")));
+
+        assertEquals(2, taskList.size());
+        assertEquals("1.[T][ ] first loaded task\n2.[T][ ] second loaded task",
+                taskList.toDisplayString());
+    }
+
     /** Verifies that display formatting preserves original task numbers. */
     @Test
-    void toDisplayString_indexedTasks_preservesOriginalNumbers() {
+    void toDisplayString_filteredTasks_preservesOriginalNumbers() {
         TaskList taskList = new TaskList();
-        taskList.addTask(2, new TodoTask("read book"));
-        taskList.addTask(4, new TodoTask("buy bread"));
+        TodoTask readBook = new TodoTask("read book");
+        TodoTask buyBread = new TodoTask("buy bread");
+        taskList.addTask(new TodoTask("first task"));
+        taskList.addTask(readBook);
+        taskList.addTask(new TodoTask("second task"));
+        taskList.addTask(buyBread);
+
+        TaskList matchingTasks = taskList.createView(
+                null, task -> task == readBook || task == buyBread);
 
         assertEquals("2.[T][ ] read book\n4.[T][ ] buy bread",
-                taskList.toDisplayString());
+                matchingTasks.toDisplayString());
     }
 
     /** Verifies that a date-search result retains its search-date context. */
@@ -54,37 +105,66 @@ class TaskListTest {
     @Test
     void addTask_nullTask_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () ->
-                new TaskList().addTask(1, null));
+                new TaskList().addTask(null));
+    }
+
+    /** Verifies that an invalid task number is rejected by the task list. */
+    @Test
+    void getTask_invalidTaskNumber_throwsIllegalArgumentException() {
+        TaskList taskList = new TaskList();
+        taskList.addTask(new TodoTask("read book"));
+
+        assertThrows(IllegalArgumentException.class, () -> taskList.getTask(0));
+        assertThrows(IllegalArgumentException.class, () -> taskList.getTask(2));
+    }
+
+    /** Verifies that replacing with a null list is rejected safely. */
+    @Test
+    void replaceTasks_nullList_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new TaskList().replaceTasks(null));
+    }
+
+    /** Verifies that replacing with a null task preserves existing tasks. */
+    @Test
+    void replaceTasks_nullTask_preservesExistingTasks() {
+        TaskList taskList = new TaskList();
+        taskList.addTask(new TodoTask("existing task"));
+        List<Task> loadedTasks = new ArrayList<>();
+        loadedTasks.add(new TodoTask("new task"));
+        loadedTasks.add(null);
+
+        assertThrows(IllegalArgumentException.class, () ->
+                taskList.replaceTasks(loadedTasks));
+        assertEquals("1.[T][ ] existing task", taskList.toDisplayString());
     }
 
     /** Verifies that non-positive task numbers are rejected by IndexedTask. */
     @Test
-    void addTask_nonPositiveNumber_throwsIllegalArgumentException() {
+    void constructIndexedTask_nonPositiveNumber_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () ->
-                new TaskList().addTask(0, new TodoTask("read book")));
+                new TaskList.IndexedTask(0, new TodoTask("read book")));
     }
 
-    /** Verifies that a task list factory preserves original task numbers. */
+    /** Verifies that a task-list view preserves original task numbers. */
     @Test
-    void fromTasks_matchingPredicate_preservesOriginalTaskNumbers() {
-        List<Task> tasks = List.of(
-                new TodoTask("read book"),
-                new TodoTask("buy bread"),
-                new TodoTask("return book"));
+    void createView_matchingPredicate_preservesOriginalTaskNumbers() {
+        TaskList taskList = new TaskList();
+        taskList.addTask(new TodoTask("read book"));
+        taskList.addTask(new TodoTask("buy bread"));
+        taskList.addTask(new TodoTask("return book"));
 
-        TaskList result = TaskList.fromTasks(
-                tasks,
-                null,
-                task -> task.matchesDescription("book"));
+        TaskList result = taskList.createView(
+                null, task -> task.matchesDescription("book"));
 
         assertEquals("1.[T][ ] read book\n3.[T][ ] return book",
                 result.toDisplayString());
     }
 
-    /** Verifies that a null factory matcher is rejected. */
+    /** Verifies that a null view matcher is rejected. */
     @Test
-    void fromTasks_nullMatcher_throwsIllegalArgumentException() {
+    void createView_nullMatcher_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () ->
-                TaskList.fromTasks(List.of(new TodoTask("read book")), null, null));
+                new TaskList().createView(null, null));
     }
 }

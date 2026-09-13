@@ -1,9 +1,8 @@
 package luckynoslacky.luckycommand;
 
-import java.time.LocalDateTime;
-
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
+import luckynoslacky.luckytask.TaskTimes;
 import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
@@ -11,49 +10,25 @@ import luckynoslacky.luckyui.LuckyNoMessages;
  */
 public class LuckyNoReschedCommand extends LuckyNoCommand {
     private final int taskNumber;
-    private final LocalDateTime newStartTime;
-    private final LocalDateTime newEndTime;
+    private final TaskTimes newTimes;
     private final TaskMaster taskMaster;
 
     /**
-     * Creates a deadline rescheduling command.
+     * Creates a task rescheduling command.
      *
      * @param taskNumber one-based task number
-     * @param newEndTime replacement deadline
+     * @param newTimes replacement task timing information
      * @param taskMaster task master containing the task
      * @throws IllegalArgumentException if an argument is null
      */
     public LuckyNoReschedCommand(
-            int taskNumber, LocalDateTime newEndTime, TaskMaster taskMaster) {
-        if (newEndTime == null) {
-            throw new IllegalArgumentException("Rescheduled end time cannot be null.");
+            int taskNumber, TaskTimes newTimes, TaskMaster taskMaster) {
+        if (newTimes == null) {
+            throw new IllegalArgumentException(
+                    "Rescheduled task times cannot be null.");
         }
         this.taskNumber = taskNumber;
-        this.newStartTime = null;
-        this.newEndTime = newEndTime;
-        this.taskMaster = requireTaskMaster(taskMaster);
-    }
-
-    /**
-     * Creates an event rescheduling command.
-     *
-     * @param taskNumber one-based task number
-     * @param newStartTime replacement event start
-     * @param newEndTime replacement event end
-     * @param taskMaster task master containing the task
-     * @throws IllegalArgumentException if an argument is null
-     */
-    public LuckyNoReschedCommand(
-            int taskNumber,
-            LocalDateTime newStartTime,
-            LocalDateTime newEndTime,
-            TaskMaster taskMaster) {
-        if (newStartTime == null || newEndTime == null) {
-            throw new IllegalArgumentException("Rescheduled event times cannot be null.");
-        }
-        this.taskNumber = taskNumber;
-        this.newStartTime = newStartTime;
-        this.newEndTime = newEndTime;
+        this.newTimes = newTimes;
         this.taskMaster = requireTaskMaster(taskMaster);
     }
 
@@ -64,10 +39,8 @@ public class LuckyNoReschedCommand extends LuckyNoCommand {
      */
     @Override
     public String execute() {
-        Task updatedTask = newStartTime == null
-                ? taskMaster.rescheduleDeadline(taskNumber, newEndTime)
-                : taskMaster.rescheduleEvent(
-                        taskNumber, newStartTime, newEndTime);
+        Task updatedTask = taskMaster.rescheduleTask(
+                taskNumber, newTimes);
         return LuckyNoMessages.rescheduledTaskMessage(updatedTask);
     }
 }
