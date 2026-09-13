@@ -1,5 +1,52 @@
 # LuckyNoSlacky UI test plan
 
+## Test Case: Forgiving whitespace and trailing commentary
+
+- Aim: Verify that harmless whitespace, punctuation, and plain trailing
+  commentary are accepted, while marker-like slash text is rejected.
+
+### Input
+
+```text
+  deadline   report /by 26 Aug 2026 12pm please
+snooze 1 /by  1   hour see a/b results
+snooze 1 /by 1 hour /later
+bye
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Got one more thing to remember ah: 
+    [D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+  Now you got 1 tasks to settle.
+  ____________________________________________________________
+  ____________________________________________________________
+  Nah here's your snooze you lazy bum, don't slack too much hor!
+    [D][ ] report (by: Wed Aug 26 2026, 1.00pm)
+  ____________________________________________________________
+  ____________________________________________________________
+  Eh HELLO you know how to type command one anot? 
+  Lai lai let me teach you: `snooze <taskNumber> [/by <duration>] or <taskNumber> [/to <end date/time>]`
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
 ## Test execution information
 
 - Program: Java 25 with the compiled application classes and CSV runtime dependencies

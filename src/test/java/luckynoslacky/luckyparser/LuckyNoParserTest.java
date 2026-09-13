@@ -205,6 +205,20 @@ class LuckyNoParserTest {
                 command.execute());
     }
 
+    /** Verifies timed commands accept trailing commentary and flexible spacing. */
+    @Test
+    void parseCommand_timedInputWithTrailingCommentary_returnsCommands()
+            throws LuckyNoInputException {
+        assertInstanceOf(LuckyNoTaskCommand.class,
+                scanner.parseCommand(
+                        "  deadline   report /by 26 Aug 2026 12pm please  ", 0));
+        assertInstanceOf(LuckyNoTaskCommand.class,
+                scanner.parseCommand(
+                        "event   meeting /from 26 Aug 2026 2pm /to 3pm please", 0));
+        assertInstanceOf(LuckyNoFindCommand.class,
+                scanner.parseCommand("find report /on 26 Aug 2026 later", 0));
+    }
+
     /** Verifies empty and unknown commands are rejected. */
     @Test
     void parseCommand_emptyOrUnknownInput_throwsInputException() {
