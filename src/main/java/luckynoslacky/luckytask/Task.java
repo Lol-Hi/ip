@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Locale;
 
 import luckynoslacky.luckyparser.DateTimeParser;
+import luckynoslacky.luckyparser.DurationPeriod;
 
 /**
  * Represents the common state and behavior shared by all task types.
@@ -170,7 +171,42 @@ public abstract class Task {
      * @param date date to check
      * @return true if this task should appear in a date search
      */
-    public abstract boolean occursOn(LocalDate date);
+    public final boolean occursOn(LocalDate date) {
+        return getTaskTimes().occursOn(date);
+    }
+
+    /**
+     * Extends this task's ending time by the supplied duration.
+     *
+     * @param amount duration by which to extend the ending time
+     * @throws IllegalArgumentException if this task cannot be snoozed or the
+     *                                  duration is invalid
+     */
+    public abstract void snoozeBy(DurationPeriod amount);
+
+    /**
+     * Returns this task's current timing information.
+     *
+     * @return task timing information
+     */
+    public abstract TaskTimes getTaskTimes();
+
+    /**
+     * Replaces this task's schedule.
+     *
+     * @param newTimes replacement task timing information
+     * @throws IllegalArgumentException if the schedule is invalid for this
+     *                                  task type
+     */
+    public abstract void reschedule(TaskTimes newTimes);
+
+    /**
+     * Returns this task's ending time.
+     *
+     * @return ending time
+     * @throws IllegalArgumentException if this task has no ending time
+     */
+    public abstract LocalDateTime getEndTime();
 
     /**
      * Creates the common CSV fields for a concrete task type.

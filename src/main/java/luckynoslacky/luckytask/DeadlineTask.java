@@ -1,6 +1,5 @@
 package luckynoslacky.luckytask;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -10,7 +9,7 @@ import luckynoslacky.luckyparser.DurationPeriod;
  * Represents a task that must be completed by a specified time.
  */
 public class DeadlineTask extends Task {
-    private LocalDateTime byTime;
+    private TaskTimes times;
 
     /**
      * Creates an incomplete deadline task.
@@ -19,13 +18,22 @@ public class DeadlineTask extends Task {
      * @param byTime deadline date and time
      */
     public DeadlineTask(String description, LocalDateTime byTime) {
+        this(description, TaskTimes.makeDeadlineTimes(byTime));
+    }
+
+    /**
+     * Creates an incomplete deadline task from validated timing information.
+     *
+     * @param description task description
+     * @param times deadline timing information
+     * @throws IllegalArgumentException if the timing information is not a
+     *                                  deadline schedule
+     */
+    public DeadlineTask(String description, TaskTimes times) {
         super(description);
 
-        if (byTime == null) {
-            throw new IllegalArgumentException("Deadline cannot be empty.");
-        }
-
-        this.byTime = byTime;
+        TaskTimes.verifyDeadlineTimes(times);
+        this.times = times;
     }
 
     /**
@@ -44,7 +52,27 @@ public class DeadlineTask extends Task {
      * @return deadline date and time
      */
     public LocalDateTime getByTime() {
-        return byTime;
+        return times.getEndTime();
+    }
+
+    /**
+     * Returns the deadline through the common timed-task interface.
+     *
+     * @return deadline date and time
+     */
+    @Override
+    public LocalDateTime getEndTime() {
+        return times.getEndTime();
+    }
+
+    /**
+     * Returns this deadline's timing information.
+     *
+     * @return deadline timing information
+     */
+    @Override
+    public TaskTimes getTaskTimes() {
+        return times;
     }
 
     /**
@@ -53,24 +81,26 @@ public class DeadlineTask extends Task {
      * @param amount amount by which to extend the deadline
      * @throws IllegalArgumentException if {@code amount} is null
      */
+    @Override
     public void snoozeBy(DurationPeriod amount) {
         if (amount == null) {
             throw new IllegalArgumentException("Snooze amount cannot be null.");
         }
-        byTime = amount.addTo(byTime);
+        reschedule(TaskTimes.makeDeadlineTimes(
+                amount.addTo(getEndTime())));
     }
 
     /**
-     * Replaces the deadline.
+     * Replaces the deadline schedule.
      *
-     * @param newByTime replacement deadline
-     * @throws IllegalArgumentException if {@code newByTime} is null
+     * @param newTimes replacement deadline timing information
+     * @throws IllegalArgumentException if the timing information is not a
+     *                                  deadline schedule
      */
-    public void rescheduleTo(LocalDateTime newByTime) {
-        if (newByTime == null) {
-            throw new IllegalArgumentException("Deadline cannot be empty.");
-        }
-        byTime = newByTime;
+    @Override
+    public void reschedule(TaskTimes newTimes) {
+        TaskTimes.verifyDeadlineTimes(newTimes);
+        times = TaskTimes.makeDeadlineTimes(newTimes.getEndTime());
     }
 
     /**
@@ -80,18 +110,8 @@ public class DeadlineTask extends Task {
      */
     @Override
     public List<String> getCsvStorageFields() {
-        return createCsvStorageFields('D', null, byTime);
-    }
-
-    /**
-     * Checks whether the deadline falls on the supplied date.
-     *
-     * @param date date to check
-     * @return true if the deadline is on the supplied date
-     */
-    @Override
-    public boolean occursOn(LocalDate date) {
-        return byTime.toLocalDate().equals(date);
+        return createCsvStorageFields(
+                'D', times.getStartTime(), times.getEndTime());
     }
 
     /**
@@ -102,6 +122,6 @@ public class DeadlineTask extends Task {
     @Override
     public String toString() {
         return "[D]" + super.toString()
-                + " (by: " + Task.formatDateTime(byTime) + ")";
+                + " (by: " + Task.formatDateTime(getEndTime()) + ")";
     }
 }

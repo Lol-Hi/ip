@@ -23,6 +23,7 @@ import luckynoslacky.luckytask.DeadlineTask;
 import luckynoslacky.luckytask.EventTask;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskList;
+import luckynoslacky.luckytask.TaskTimes;
 import luckynoslacky.luckytask.TodoTask;
 
 /**
@@ -246,15 +247,12 @@ public class CsvSaver {
 
         Task task;
         try {
+            TaskTimes times = createTaskTimes(
+                    taskType, startTimeText, endTimeText);
             task = switch (taskType) {
                 case "T" -> new TodoTask(description);
-                case "D" -> new DeadlineTask(
-                        description,
-                        DateTimeParser.parseFromStorage(endTimeText));
-                case "E" -> new EventTask(
-                        description,
-                        DateTimeParser.parseFromStorage(startTimeText),
-                        DateTimeParser.parseFromStorage(endTimeText));
+                case "D" -> new DeadlineTask(description, times);
+                case "E" -> new EventTask(description, times);
                 default -> throw invalidRecord(record, "unknown task type");
             };
         } catch (IllegalArgumentException exception) {
@@ -269,6 +267,30 @@ public class CsvSaver {
         }
 
         return task;
+    }
+
+    /**
+     * Converts the time columns of a CSV record into task timing information.
+     *
+     * @param taskType stored task type marker
+     * @param startTimeText stored start time
+     * @param endTimeText stored end time
+     * @return timing information represented by the record
+     */
+    private TaskTimes createTaskTimes(
+            String taskType,
+            String startTimeText,
+        String endTimeText) {
+        return switch (taskType) {
+            case "T" -> TaskTimes.none();
+            case "D" -> TaskTimes.makeDeadlineTimes(
+                    DateTimeParser.parseFromStorage(endTimeText));
+            case "E" -> TaskTimes.makeEventTimes(
+                    DateTimeParser.parseFromStorage(startTimeText),
+                    DateTimeParser.parseFromStorage(endTimeText));
+            default -> throw new IllegalArgumentException(
+                    "Unknown task type: " + taskType);
+        };
     }
 
     /**

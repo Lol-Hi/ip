@@ -16,6 +16,7 @@ import luckynoslacky.luckystorage.CsvSaver;
 import luckynoslacky.luckytask.DeadlineTask;
 import luckynoslacky.luckytask.EventTask;
 import luckynoslacky.luckytask.TaskMaster;
+import luckynoslacky.luckytask.TaskTimes;
 import luckynoslacky.luckytask.TodoTask;
 import luckynoslacky.luckyui.LuckyNoMessages;
 
@@ -138,7 +139,7 @@ class LuckyNoCommandTest {
         LocalDateTime newStart = LocalDateTime.of(2026, 8, 27, 10, 0);
         LocalDateTime newEnd = LocalDateTime.of(2026, 8, 27, 11, 0);
         LuckyNoReschedCommand command = new LuckyNoReschedCommand(
-                1, newStart, newEnd, taskMaster);
+                1, TaskTimes.makeEventTimes(newStart, newEnd), taskMaster);
 
         String reply = command.execute();
 

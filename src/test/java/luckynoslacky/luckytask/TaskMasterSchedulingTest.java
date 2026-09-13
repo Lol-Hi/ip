@@ -54,6 +54,33 @@ class TaskMasterSchedulingTest {
         assertEquals(EVENT_END.plusHours(2), task.getEndTime());
     }
 
+    /** Verifies that an explicit event snooze changes only its end time. */
+    @Test
+    void snoozeTaskTo_eventEndTime_preservesEventStart() {
+        TaskMaster taskMaster = createTaskMaster();
+        EventTask task = new EventTask("project meeting", EVENT_START, EVENT_END);
+        taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
+        LocalDateTime newEnd = LocalDateTime.of(2026, 8, 6, 18, 0);
+
+        taskMaster.snoozeTaskTo(1, newEnd);
+
+        assertEquals(EVENT_START, task.getStartTime());
+        assertEquals(newEnd, task.getEndTime());
+    }
+
+    /** Verifies that an explicit deadline snooze replaces its deadline. */
+    @Test
+    void snoozeTaskTo_deadlineEndTime_updatesDeadline() {
+        TaskMaster taskMaster = createTaskMaster();
+        DeadlineTask task = new DeadlineTask("return book", DEADLINE);
+        taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
+        LocalDateTime newDeadline = LocalDateTime.of(2026, 12, 7, 10, 0);
+
+        taskMaster.snoozeTaskTo(1, newDeadline);
+
+        assertEquals(newDeadline, task.getEndTime());
+    }
+
     /** Verifies that a combined snooze is persisted with task status. */
     @Test
     void snoozeTaskBy_combinedDuration_persistsUpdatedTimeAndStatus() {
@@ -78,27 +105,29 @@ class TaskMasterSchedulingTest {
 
     /** Verifies that explicit rescheduling replaces a deadline. */
     @Test
-    void rescheduleDeadline_newTime_replacesDeadline() {
+    void rescheduleTask_newDeadlineTimes_replacesDeadline() {
         TaskMaster taskMaster = createTaskMaster();
         DeadlineTask task = new DeadlineTask("return book", DEADLINE);
         taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
         LocalDateTime newDeadline = LocalDateTime.of(2026, 12, 7, 10, 0);
 
-        taskMaster.rescheduleDeadline(1, newDeadline);
+        taskMaster.rescheduleTask(
+                1, TaskTimes.makeDeadlineTimes(newDeadline));
 
         assertEquals(newDeadline, task.getByTime());
     }
 
     /** Verifies that explicit event rescheduling replaces both event times. */
     @Test
-    void rescheduleEvent_validTimes_replacesBothEventTimes() {
+    void rescheduleTask_validEventTimes_replacesBothEventTimes() {
         TaskMaster taskMaster = createTaskMaster();
         EventTask task = new EventTask("project meeting", EVENT_START, EVENT_END);
         taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
         LocalDateTime newStart = LocalDateTime.of(2026, 8, 7, 10, 0);
         LocalDateTime newEnd = LocalDateTime.of(2026, 8, 7, 11, 0);
 
-        taskMaster.rescheduleEvent(1, newStart, newEnd);
+        taskMaster.rescheduleTask(
+                1, TaskTimes.makeEventTimes(newStart, newEnd));
 
         assertEquals(newStart, task.getStartTime());
         assertEquals(newEnd, task.getEndTime());
@@ -112,7 +141,8 @@ class TaskMasterSchedulingTest {
 
         assertThrows(IllegalArgumentException.class, () ->
                 taskMaster.snoozeTaskBy(1, new DurationPeriod(Period.ZERO, Duration.ofHours(1))));
-        assertThrows(IllegalArgumentException.class, () -> taskMaster.rescheduleDeadline(1, DEADLINE));
+        assertThrows(IllegalArgumentException.class, () -> taskMaster.rescheduleTask(
+                1, TaskTimes.makeDeadlineTimes(DEADLINE)));
     }
 
     /** Verifies that a failed snooze save restores the original event times. */
@@ -129,9 +159,24 @@ class TaskMasterSchedulingTest {
         assertEquals(EVENT_END, task.getEndTime());
     }
 
+    /** Verifies that a failed explicit snooze restores the original end time. */
+    @Test
+    void snoozeTaskTo_saveFailure_restoresOriginalEventEnd() {
+        TaskMaster taskMaster = new TaskMaster(100, new FailingSaver());
+        EventTask task = new EventTask("project meeting", EVENT_START, EVENT_END);
+        taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
+        LocalDateTime newEnd = LocalDateTime.of(2026, 8, 6, 18, 0);
+
+        assertThrows(LuckyNoStorageException.class, () ->
+                taskMaster.snoozeTaskTo(1, newEnd));
+
+        assertEquals(EVENT_START, task.getStartTime());
+        assertEquals(EVENT_END, task.getEndTime());
+    }
+
     /** Verifies that a failed event rescheduling save restores both times. */
     @Test
-    void rescheduleEvent_saveFailure_restoresOriginalEventTimes() {
+    void rescheduleTask_saveFailure_restoresOriginalEventTimes() {
         TaskMaster taskMaster = new TaskMaster(100, new FailingSaver());
         EventTask task = new EventTask("project meeting", EVENT_START, EVENT_END);
         taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
@@ -139,7 +184,8 @@ class TaskMasterSchedulingTest {
         LocalDateTime newEnd = LocalDateTime.of(2026, 8, 7, 11, 0);
 
         assertThrows(LuckyNoStorageException.class, () ->
-                taskMaster.rescheduleEvent(1, newStart, newEnd));
+                taskMaster.rescheduleTask(
+                        1, TaskTimes.makeEventTimes(newStart, newEnd)));
 
         assertEquals(EVENT_START, task.getStartTime());
         assertEquals(EVENT_END, task.getEndTime());

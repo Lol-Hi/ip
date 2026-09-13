@@ -1,7 +1,9 @@
 package luckynoslacky.luckytask;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+
+import luckynoslacky.luckyparser.DurationPeriod;
 
 /**
  * Represents a task without any date or time information.
@@ -38,14 +40,49 @@ public class TodoTask extends Task {
     }
 
     /**
-     * ToDos do not occur on a date because they have no date or time.
+     * Rejects snoozing because a ToDo has no ending time.
      *
-     * @param date date to check
-     * @return always false
+     * @param amount duration by which to extend the ending time
+     * @throws IllegalArgumentException always, because ToDos cannot be
+     *                                  snoozed
      */
     @Override
-    public boolean occursOn(LocalDate date) {
-        return false;
+    public void snoozeBy(DurationPeriod amount) {
+        throw new IllegalArgumentException("ToDos cannot be snoozed.");
+    }
+
+    /**
+     * Returns the absence of timing information for this ToDo.
+     *
+     * @return timing information without a start or end time
+     */
+    @Override
+    public TaskTimes getTaskTimes() {
+        return TaskTimes.none();
+    }
+
+    /**
+     * Rejects schedule replacement because a ToDo has no timing information.
+     *
+     * @param newTimes replacement task timing information
+     * @throws IllegalArgumentException always, because ToDos cannot be
+     *                                  rescheduled
+     */
+    @Override
+    public void reschedule(TaskTimes newTimes) {
+        throw new IllegalArgumentException("ToDos cannot be rescheduled.");
+    }
+
+    /**
+     * Rejects ending-time access because a ToDo has no ending time.
+     *
+     * @return never returns normally
+     * @throws IllegalArgumentException always, because ToDos have no ending
+     *                                  time
+     */
+    @Override
+    public LocalDateTime getEndTime() {
+        throw new IllegalArgumentException("Task has no ending time.");
     }
 
     /**
