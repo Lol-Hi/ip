@@ -14,7 +14,8 @@
   alignment.
 - Test: `DialogueBoxTest.dialogueBox_userMessage_displaysBlueLabelOnRight`
 - Expected result: The row is right-aligned, displays `You said:`, preserves
-  the message text, and applies the user dialogue CSS style.
+  the message text, applies the user dialogue CSS style, and uses the unified
+  handwritten interface font.
 
 ## Test Case: DialogueBox displays chatbot messages
 
@@ -22,7 +23,16 @@
   alignment.
 - Test: `DialogueBoxTest.dialogueBox_chatbotMessage_displaysGreenLabelOnLeft`
 - Expected result: The row is left-aligned, displays `LuckyNoSlacky said:`,
-  preserves the message text, and applies the chatbot dialogue CSS style.
+  preserves the message text, applies the chatbot dialogue CSS style, and uses
+  the unified handwritten interface font.
+
+## Test Case: DialogueBox styles task lines as code
+
+- Aim: Verify that task display lines remain easy to scan using monospace text.
+- Test: `DialogueBoxTest.dialogueBox_taskLine_usesMonospaceTaskStyle`
+- Actions: Create a chatbot dialogue containing `[T] [ ] read book`.
+- Expected result: The task line receives the `task-content` style, uses the
+  bundled monospace font, and appears in a dark code-style block.
 
 ## Test Case: Main window displays a conversation
 
@@ -67,11 +77,11 @@
 
 ## Test Case: GUI resources are packaged
 
-- Aim: Verify that the FXML layout, CSS stylesheets, and both avatar images are
-  available from the application classpath.
+- Aim: Verify that the FXML layout, CSS stylesheets, avatar images, and bundled
+  fonts are available from the application classpath.
 - Test: `LuckyNoGuiTest.luckyNoGui_resourcePaths_areAvailable`
-- Expected result: The layout, both CSS stylesheets, chatbot avatar, and user
-  avatar resources are all found.
+- Expected result: The layout, both CSS stylesheets, both avatar resources, and
+  both font resources are all found.
 
 ## Test Case: Main window preserves usable minimum dimensions
 

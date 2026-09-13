@@ -36,12 +36,15 @@ public class DialogueBox extends HBox {
         Label speakerNameLabel = new Label(speakerLabel);
         speakerNameLabel.getStyleClass().add("speaker-label");
 
-        Label messageLabel = new Label(message);
-        messageLabel.getStyleClass().add("message-content");
-        messageLabel.setWrapText(true);
-        messageLabel.setMaxWidth(280.0);
-
-        VBox messageContainer = new VBox(2.0, speakerNameLabel, messageLabel);
+        VBox messageContainer = new VBox(2.0, speakerNameLabel);
+        for (String messageLine : message.split("\\R", -1)) {
+            Label messageLabel = new Label(messageLine);
+            messageLabel.getStyleClass().add(isTaskLine(messageLine)
+                    ? "task-content" : "message-content");
+            messageLabel.setWrapText(true);
+            messageLabel.setMaxWidth(280.0);
+            messageContainer.getChildren().add(messageLabel);
+        }
 
         ImageView imageView = new ImageView(avatar);
         imageView.setFitWidth(45.0);
@@ -59,5 +62,15 @@ public class DialogueBox extends HBox {
         } else {
             getChildren().addAll(imageView, messageContainer);
         }
+    }
+
+    /**
+     * Identifies task-display lines that should use monospace styling.
+     *
+     * @param messageLine one line from a chatbot response
+     * @return true when the line starts with a supported task marker
+     */
+    private boolean isTaskLine(String messageLine) {
+        return messageLine.trim().matches("\\[[TDE]\\] \\[[ X]\\].*");
     }
 }

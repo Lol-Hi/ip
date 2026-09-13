@@ -15,6 +15,8 @@
 }
 
 .message-content {
+    -fx-font-family: "Patrick Hand";
+    -fx-font-size: 16px;
     -fx-padding: 8px;
     -fx-background-radius: 8px;
     -fx-border-radius: 8px;
@@ -29,6 +31,15 @@
 .chatbot-dialogue .message-content {
     -fx-background-color: #e8f5e9;
     -fx-border-color: #a5d6a7;
+}
+
+.task-content {
+    -fx-background-color: #302b28;
+    -fx-background-radius: 6px;
+    -fx-font-family: "Roboto Mono";
+    -fx-font-size: 13px;
+    -fx-padding: 8px;
+    -fx-text-fill: #ffe5a3;
 }
 
 .avatar {

@@ -82,4 +82,26 @@ class DialogueBoxTest {
             assertTrue(messageLabel.getStyleClass().contains("message-content"));
         });
     }
+
+    /** Verifies that task lines use the monospace task style. */
+    @Test
+    void dialogueBox_taskLine_usesMonospaceTaskStyle(FxRobot robot) {
+        robot.interact(() -> {
+            WritableImage avatar = new WritableImage(45, 45);
+            DialogueBox dialogue = new DialogueBox(
+                    "LuckyNoSlacky said:",
+                    "Got one more thing to remember ah:\n  [T] [ ] read book",
+                    avatar,
+                    Pos.CENTER_LEFT,
+                    DialogueBox.CHATBOT_DIALOGUE_STYLE);
+            stage.setScene(new Scene(dialogue));
+            stage.show();
+
+            VBox messageContainer = (VBox) dialogue.getChildren().get(1);
+            Label taskLabel = (Label) messageContainer.getChildren().get(2);
+
+            assertEquals("  [T] [ ] read book", taskLabel.getText());
+            assertTrue(taskLabel.getStyleClass().contains("task-content"));
+        });
+    }
 }

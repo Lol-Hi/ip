@@ -44,5 +44,7 @@ class LuckyNoGuiTest {
         assertNotNull(LuckyNoGui.class.getResource("/css/dialogue-box.css"));
         assertNotNull(LuckyNoGui.class.getResource("/images/luckynoslacky.jpg"));
         assertNotNull(LuckyNoGui.class.getResource("/images/user.png"));
+        assertNotNull(LuckyNoGui.class.getResource("/fonts/PatrickHand-Regular.ttf"));
+        assertNotNull(LuckyNoGui.class.getResource("/fonts/RobotoMono-Regular.ttf"));
     }
 }
