@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -105,6 +106,37 @@ class TaskListTest {
     void addTask_nullTask_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () ->
                 new TaskList().addTask(null));
+    }
+
+    /** Verifies that an invalid task number is rejected by the task list. */
+    @Test
+    void getTask_invalidTaskNumber_throwsIllegalArgumentException() {
+        TaskList taskList = new TaskList();
+        taskList.addTask(new TodoTask("read book"));
+
+        assertThrows(IllegalArgumentException.class, () -> taskList.getTask(0));
+        assertThrows(IllegalArgumentException.class, () -> taskList.getTask(2));
+    }
+
+    /** Verifies that replacing with a null list is rejected safely. */
+    @Test
+    void replaceTasks_nullList_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new TaskList().replaceTasks(null));
+    }
+
+    /** Verifies that replacing with a null task preserves existing tasks. */
+    @Test
+    void replaceTasks_nullTask_preservesExistingTasks() {
+        TaskList taskList = new TaskList();
+        taskList.addTask(new TodoTask("existing task"));
+        List<Task> loadedTasks = new ArrayList<>();
+        loadedTasks.add(new TodoTask("new task"));
+        loadedTasks.add(null);
+
+        assertThrows(IllegalArgumentException.class, () ->
+                taskList.replaceTasks(loadedTasks));
+        assertEquals("1.[T][ ] existing task", taskList.toDisplayString());
     }
 
     /** Verifies that non-positive task numbers are rejected by IndexedTask. */
