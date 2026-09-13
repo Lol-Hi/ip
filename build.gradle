@@ -14,6 +14,7 @@ dependencies {
 
     String junitVersion = '5.14.4'
     testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.14.4'
     testImplementation 'org.testfx:testfx-junit5:4.0.18'
@@ -66,6 +67,7 @@ def configureJavaFxTest = { Test testTask ->
 test {
     configureJavaFxTest(it)
     enableAssertions = true
+    exclude '**/CliIntegrationTest.class'
 
     testLogging {
         events 'passed', 'skipped', 'failed'
@@ -75,6 +77,32 @@ test {
         showStackTraces = true
         showStandardStreams = false
     }
+}
+
+tasks.register('clitest', Test) {
+    group = 'verification'
+    description = 'Runs the documented command-line regression tests.'
+    dependsOn testClasses
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    failFast = true
+    configureJavaFxTest(it)
+    enableAssertions = true
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        showExceptions = true
+        exceptionFormat = 'full'
+        showCauses = true
+        showStackTraces = true
+        showStandardStreams = true
+    }
+    filter {
+        includeTestsMatching 'luckynoslacky.luckyui.CliIntegrationTest'
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('clitest')
 }
 
 tasks.register('guiTest', Test) {

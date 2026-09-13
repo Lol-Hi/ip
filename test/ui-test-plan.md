@@ -5,9 +5,19 @@
 - Program: Java 25 with the compiled application classes and CSV runtime dependencies
 - Main class: `luckynoslacky.LuckyNoSlacky`
 - Working directory: project root
+- Automated command: `./gradlew clitest` (also included by `./gradlew check`)
+- Each case is represented by a Java fixture in
+  `src/test/java/luckynoslacky/luckyui/CliTestCaseFixtures.java` and links to
+  its corresponding test-plan section.
 - Data isolation: reset `data/luckyNoSlacky.csv` before each test case
+- Automated cases run in isolated temporary working directories, so the
+  repository's data file is not modified.
 - Deterministic clock: run with
   `-Dluckynoslacky.fixedNow=2026-08-25T10:00:00Z` so relative dates are stable
+- CLI tests do not impose an artificial timeout; each case must terminate with
+  `bye` or end-of-file.
+- Date output comparison normalizes line endings and localized day, month, and
+  meridiem names while preserving all other formatting.
 - Storage failure cases are covered by unit tests using prepared data files
 - Compact `HHMM` fallback and date-dependent resolution are covered by
   `DateTimeParserTest` with a fixed clock
