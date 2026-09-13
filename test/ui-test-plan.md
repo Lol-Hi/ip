@@ -173,7 +173,8 @@ bye
 ## Test Case: Invalid decimal and combined snooze durations
 
 - Aim: Verify decimal calendar units, duplicate units, non-canonical order,
-  abbreviations, extra markers, and negative components are rejected.
+  abbreviations, extra markers, negative components, and arithmetic overflow
+  are rejected.
 
 ### Input
 
@@ -186,6 +187,7 @@ snooze 1 /by 1m
 snooze 1 /by 1h30min
 snooze 1 /by 1 hour /to tomorrow
 snooze 1 /by -30 minutes
+snooze 1 /by 1000000000 years
 list
 bye
 ```
@@ -231,6 +233,9 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Siao ah time where got negative one
+  ____________________________________________________________
+  ____________________________________________________________
+  Siao ah delay so long, by that time your great grandson also die already la! Can be more reasonable anot!
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:

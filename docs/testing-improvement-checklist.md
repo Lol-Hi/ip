@@ -26,8 +26,8 @@
 - [x] Run JUnit, `clitest`, GUI tests, Checkstyle, Javadoc, `check`, and the 25-case UI plan.
 - [x] Keep arbitrary repeated `next` modifiers supported, subject to date-time limits.
 - [x] Define the approved dedicated message for arithmetic snooze overflow.
-- [ ] Implement and test the arithmetic snooze-overflow message in a separate production commit.
-- [ ] Review and commit the completed improvement after the production follow-up.
+- [x] Implement and test the arithmetic snooze-overflow message in a separate production commit.
+- [x] Review and commit the completed improvement after the production follow-up.
 
 ## Improvement 3: Task-model invariants
 
