@@ -26,7 +26,7 @@
             <content>
                 <VBox fx:id="dialogContainer"
                       id="dialogContainer"
-                      spacing="10.0"
+                      spacing="12.0"
                       fillWidth="true"
                       styleClass="dialog-container" />
             </content>

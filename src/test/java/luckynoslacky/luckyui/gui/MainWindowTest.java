@@ -22,6 +22,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import luckynoslacky.LuckyNoSlacky;
+import luckynoslacky.luckyui.LuckyNoMessages;
 
 /** Tests observable interactions in the main JavaFX window. */
 @ExtendWith(ApplicationExtension.class)
@@ -41,7 +42,7 @@ class MainWindowTest {
 
     /** Verifies that the window displays a user input and chatbot reply. */
     @Test
-    void mainWindow_unknownCommand_displaysBothSpeakerMessages(FxRobot robot) {
+    void mainWindow_unknownCommand_displaysUserAndWarningMessages(FxRobot robot) {
         TextField inputField = robot.lookup("#userInput").query();
         robot.clickOn(inputField).write("unknown").push(KeyCode.ENTER);
 
@@ -51,8 +52,14 @@ class MainWindowTest {
                 (DialogueBox) dialogueContainer.getChildren().get(1);
         DialogueBox chatbotDialogue =
                 (DialogueBox) dialogueContainer.getChildren().get(2);
-        assertEquals("You said:", getSpeakerLabel(userDialogue, 0));
-        assertEquals("LuckyNoSlacky said:", getSpeakerLabel(chatbotDialogue, 1));
+        assertEquals("unknown", getMessageText(userDialogue, 0));
+        assertEquals(
+                LuckyNoMessages.unknownCommandMessage(),
+                getMessageText(chatbotDialogue, 1));
+        assertTrue(userDialogue.getStyleClass().contains(
+                DialogueBox.USER_DIALOGUE_STYLE));
+        assertTrue(chatbotDialogue.getStyleClass().contains(
+                DialogueBox.WARNING_DIALOGUE_STYLE));
     }
 
     /** Verifies that the input control remains enabled after a non-exit command. */
@@ -95,8 +102,8 @@ class MainWindowTest {
                 controller.setChatbot(null));
     }
 
-    /** Returns the speaker label from a dialogue row's text container. */
-    private String getSpeakerLabel(DialogueBox dialogue, int dialogueIndex) {
+    /** Returns the message text from a dialogue row's text container. */
+    private String getMessageText(DialogueBox dialogue, int dialogueIndex) {
         VBox messageContainer = (VBox) dialogue.getChildren().get(dialogueIndex);
         return ((Label) messageContainer.getChildren().get(0)).getText();
     }

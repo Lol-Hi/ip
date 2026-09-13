@@ -10,28 +10,35 @@
 
 ## Test Case: DialogueBox displays user messages
 
-- Aim: Verify that user messages use the blue speaker label and right-side
-  alignment.
-- Test: `DialogueBoxTest.dialogueBox_userMessage_displaysBlueLabelOnRight`
-- Expected result: The row is right-aligned, displays `You said:`, preserves
-  the message text, and applies the user dialogue CSS style.
+- Aim: Verify that user messages use a compact right-aligned bubble and
+  circular user avatar.
+- Test: `DialogueBoxTest.dialogueBox_userMessage_displaysCircularAvatarOnRight`
+- Expected result: The row is right-aligned, displays only the raw message
+  text, applies the user dialogue CSS style, and clips the avatar circularly.
 
 ## Test Case: DialogueBox displays chatbot messages
 
-- Aim: Verify that chatbot messages use the green speaker label and left-side
-  alignment.
-- Test: `DialogueBoxTest.dialogueBox_chatbotMessage_displaysGreenLabelOnLeft`
-- Expected result: The row is left-aligned, displays `LuckyNoSlacky said:`,
-  preserves the message text, and applies the chatbot dialogue CSS style.
+- Aim: Verify that application messages use a wider left-aligned bubble.
+- Test: `DialogueBoxTest.dialogueBox_chatbotMessage_displaysBubbleOnLeft`
+- Expected result: The row is left-aligned, preserves the application message
+  text, and applies the chatbot dialogue CSS style.
+
+## Test Case: DialogueBox displays warning messages
+
+- Aim: Verify that application warnings use a distinct visual style.
+- Test: `DialogueBoxTest.dialogueBox_warningMessage_appliesWarningStyle`
+- Expected result: The warning is left-aligned and applies the warning
+  dialogue CSS style.
 
 ## Test Case: Main window displays a conversation
 
-- Aim: Verify that entering a command creates both a user dialogue row and a
-  chatbot response row.
-- Test: `MainWindowTest.mainWindow_unknownCommand_displaysBothSpeakerMessages`
+- Aim: Verify that entering an unrecognised command creates a user row and a
+  warning response row.
+- Test: `MainWindowTest.mainWindow_unknownCommand_displaysUserAndWarningMessages`
 - Actions: Enter `unknown` in the command field and submit it.
-- Expected result: The conversation contains the greeting, a `You said:` row,
-  and a `LuckyNoSlacky said:` row.
+- Expected result: The conversation contains the greeting, a right-aligned
+  user row containing `unknown`, and a left-aligned warning row containing the
+  actual unknown-command response. The user row does not contain `You said:`.
 
 ## Test Case: Main window remains usable after a normal command
 
@@ -87,8 +94,28 @@
   bottom control row.
 - Test: Manual acceptance check
 - Actions: Resize the window horizontally and vertically.
-- Expected result: The input field expands with the window, while the Send
-  button remains at the bottom-right with a stable width.
+- Expected result: The input field expands with the window, the Send button
+  remains at the bottom-right with a stable width, and message bubbles wrap
+  without clipping or horizontal scrolling.
+
+## Test Case: Sample task conversation uses actual chatbot responses
+
+- Aim: Verify that the GUI presents real LuckyNoSlacky task-management
+  responses rather than invented assistant copy.
+- Test: Manual acceptance check
+- Actions: Enter the following commands in order:
+
+  ```text
+  todo buy groceries
+  deadline submit report /by 20 Sep 2026 12pm
+  list
+  snooze 1 /by 2 days
+  ```
+
+- Expected result: The GUI displays the actual task confirmations, task list,
+  and the warning `Eh mr blur sotong this task don't even have time for you to
+  snooze la`. It does not display `Got it — I'll help you stay on track` or
+  `You said:`.
 
 ## Acceptance checks beyond `guiTest`
 
@@ -100,4 +127,5 @@ may require a desktop automation capability or manual verification:
 - Enter enough commands to verify that the conversation scrolls to the latest
   message.
 - Resize the window and verify that message text and avatars remain readable.
+- Verify that both existing avatar assets are displayed as circular images.
 - Add a task, close the GUI, relaunch it, and verify that the task persists.

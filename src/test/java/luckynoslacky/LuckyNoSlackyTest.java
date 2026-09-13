@@ -17,11 +17,15 @@ class LuckyNoSlackyTest {
     @Test
     void getResponse_unknownCommand_returnsUnknownCommandMessage() {
         LuckyNoSlacky chatbot = new LuckyNoSlacky();
+        LuckyNoSlacky.ChatResponse response = chatbot.getResponse("unknown command");
 
         assertEquals(
                 LuckyNoMessages.unknownCommandMessage(),
-                chatbot.getResponse("unknown command").message());
-        assertFalse(chatbot.getResponse("unknown command").shouldExit());
+                response.message());
+        assertFalse(response.shouldExit());
+        assertEquals(
+                LuckyNoSlacky.ResponseSeverity.WARNING,
+                response.severity());
     }
 
     /** Verifies that the bye command returns an exit signal to the GUI. */
@@ -33,6 +37,9 @@ class LuckyNoSlackyTest {
 
         assertEquals(LuckyNoMessages.goodbye(), response.message());
         assertTrue(response.shouldExit());
+        assertEquals(
+                LuckyNoSlacky.ResponseSeverity.NORMAL,
+                response.severity());
     }
 
     /** Verifies that the chatbot rejects a missing date/time parser. */

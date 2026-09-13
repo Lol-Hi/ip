@@ -12,8 +12,10 @@ import org.testfx.framework.junit5.Start;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 
 /** Tests the reusable JavaFX dialogue message component. */
@@ -27,59 +29,69 @@ class DialogueBoxTest {
         this.stage = stage;
     }
 
-    /** Verifies that user dialogue is right-aligned and blue. */
+    /** Verifies that user dialogue is right-aligned with a circular avatar. */
     @Test
-    void dialogueBox_userMessage_displaysBlueLabelOnRight(FxRobot robot) {
+    void dialogueBox_userMessage_displaysCircularAvatarOnRight(FxRobot robot) {
         robot.interact(() -> {
             WritableImage avatar = new WritableImage(45, 45);
             DialogueBox dialogue = new DialogueBox(
-                    "You said:",
                     "todo read book",
                     avatar,
-                    Pos.CENTER_RIGHT,
-                    DialogueBox.USER_DIALOGUE_STYLE);
+                    DialogueBox.DialogueType.USER);
             stage.setScene(new Scene(dialogue));
             stage.show();
 
             VBox messageContainer = (VBox) dialogue.getChildren().get(0);
-            Label speakerLabel = (Label) messageContainer.getChildren().get(0);
-            Label messageLabel = (Label) messageContainer.getChildren().get(1);
+            Label messageLabel = (Label) messageContainer.getChildren().get(0);
+            ImageView imageView = (ImageView) dialogue.getChildren().get(1);
 
             assertEquals(Pos.CENTER_RIGHT, dialogue.getAlignment());
-            assertEquals("You said:", speakerLabel.getText());
             assertEquals("todo read book", messageLabel.getText());
             assertTrue(dialogue.getStyleClass().contains(
-                    DialogueBox.USER_DIALOGUE_STYLE));
-            assertTrue(speakerLabel.getStyleClass().contains("speaker-label"));
+                DialogueBox.USER_DIALOGUE_STYLE));
             assertTrue(messageLabel.getStyleClass().contains("message-content"));
+            assertTrue(imageView.getClip() instanceof Circle);
         });
     }
 
-    /** Verifies that chatbot dialogue is left-aligned and green. */
+    /** Verifies that chatbot dialogue is left-aligned with its response bubble. */
     @Test
-    void dialogueBox_chatbotMessage_displaysGreenLabelOnLeft(FxRobot robot) {
+    void dialogueBox_chatbotMessage_displaysBubbleOnLeft(FxRobot robot) {
         robot.interact(() -> {
             WritableImage avatar = new WritableImage(45, 45);
             DialogueBox dialogue = new DialogueBox(
-                    "LuckyNoSlacky said:",
                     "Got it.",
                     avatar,
-                    Pos.CENTER_LEFT,
-                    DialogueBox.CHATBOT_DIALOGUE_STYLE);
+                    DialogueBox.DialogueType.CHATBOT);
             stage.setScene(new Scene(dialogue));
             stage.show();
 
             VBox messageContainer = (VBox) dialogue.getChildren().get(1);
-            Label speakerLabel = (Label) messageContainer.getChildren().get(0);
-            Label messageLabel = (Label) messageContainer.getChildren().get(1);
+            Label messageLabel = (Label) messageContainer.getChildren().get(0);
 
             assertEquals(Pos.CENTER_LEFT, dialogue.getAlignment());
-            assertEquals("LuckyNoSlacky said:", speakerLabel.getText());
             assertEquals("Got it.", messageLabel.getText());
             assertTrue(dialogue.getStyleClass().contains(
-                    DialogueBox.CHATBOT_DIALOGUE_STYLE));
-            assertTrue(speakerLabel.getStyleClass().contains("speaker-label"));
+                DialogueBox.CHATBOT_DIALOGUE_STYLE));
             assertTrue(messageLabel.getStyleClass().contains("message-content"));
+        });
+    }
+
+    /** Verifies that warning dialogue uses the distinct warning style. */
+    @Test
+    void dialogueBox_warningMessage_appliesWarningStyle(FxRobot robot) {
+        robot.interact(() -> {
+            WritableImage avatar = new WritableImage(45, 45);
+            DialogueBox dialogue = new DialogueBox(
+                    "That command needs more detail.",
+                    avatar,
+                    DialogueBox.DialogueType.WARNING);
+            stage.setScene(new Scene(dialogue));
+            stage.show();
+
+            assertEquals(Pos.CENTER_LEFT, dialogue.getAlignment());
+            assertTrue(dialogue.getStyleClass().contains(
+                    DialogueBox.WARNING_DIALOGUE_STYLE));
         });
     }
 }

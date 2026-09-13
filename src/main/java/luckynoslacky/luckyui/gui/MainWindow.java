@@ -3,7 +3,6 @@ package luckynoslacky.luckyui.gui;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -62,10 +61,14 @@ public class MainWindow {
             throw new IllegalArgumentException("Chatbot cannot be null.");
         }
         this.chatbot = chatbot;
-        addChatbotMessage(LuckyNoMessages.greeting());
+        addChatbotMessage(
+                LuckyNoMessages.greeting(),
+                DialogueBox.DialogueType.CHATBOT);
 
         if (chatbot.hasLoadError()) {
-            addChatbotMessage(LuckyNoMessages.loadErrorMessage());
+            addChatbotMessage(
+                    LuckyNoMessages.loadErrorMessage(),
+                    DialogueBox.DialogueType.WARNING);
         }
     }
 
@@ -81,7 +84,11 @@ public class MainWindow {
 
         addUserMessage(userInputText);
         LuckyNoSlacky.ChatResponse response = chatbot.getResponse(userInputText);
-        addChatbotMessage(response.message());
+        DialogueBox.DialogueType dialogueType = response.severity()
+                == LuckyNoSlacky.ResponseSeverity.WARNING
+                ? DialogueBox.DialogueType.WARNING
+                : DialogueBox.DialogueType.CHATBOT;
+        addChatbotMessage(response.message(), dialogueType);
         userInput.clear();
 
         if (response.shouldExit()) {
@@ -102,25 +109,24 @@ public class MainWindow {
     private void addUserMessage(String message) {
         dialogContainer.getChildren().add(
                 new DialogueBox(
-                        "You said:",
                         message,
                         userImage,
-                        Pos.CENTER_RIGHT,
-                        DialogueBox.USER_DIALOGUE_STYLE));
+                        DialogueBox.DialogueType.USER));
     }
 
     /**
-     * Adds a chatbot message aligned to the left.
+     * Adds an application message using the appropriate visual role.
      *
      * @param message chatbot response
+     * @param dialogueType visual role for the response
      */
-    private void addChatbotMessage(String message) {
+    private void addChatbotMessage(
+            String message,
+            DialogueBox.DialogueType dialogueType) {
         dialogContainer.getChildren().add(
                 new DialogueBox(
-                        "LuckyNoSlacky said:",
                         message,
                         chatbotImage,
-                        Pos.CENTER_LEFT,
-                        DialogueBox.CHATBOT_DIALOGUE_STYLE));
+                        dialogueType));
     }
 }
