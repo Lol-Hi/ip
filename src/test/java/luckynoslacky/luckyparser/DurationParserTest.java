@@ -6,8 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import luckynoslacky.luckyexception.LuckyNoInputException;
 
@@ -15,6 +19,14 @@ import luckynoslacky.luckyexception.LuckyNoInputException;
  * Tests the duration formats accepted by the snooze command.
  */
 class DurationParserTest {
+    private static final String INVALID_DURATION_PREFIX =
+            "Eh can you be more specific anot, what do you mean by \"";
+    private static final String INVALID_DURATION_SUFFIX = "\" sia?";
+    private static final String NEGATIVE_DURATION_MESSAGE =
+            "Siao ah time where got negative one";
+    private static final String DECIMAL_CALENDAR_DURATION_MESSAGE =
+            "Paiseh bro... i cannot settle decimal values for years and months yet...";
+
     /** Verifies decimal fixed-length units become clock amounts. */
     @Test
     void parse_decimalFixedLengthUnits_returnsClockAmounts()
@@ -38,7 +50,7 @@ class DurationParserTest {
                         "1.5 years"));
 
         assertEquals(
-                "Paiseh bro... i cannot settle decimal values for years and months yet...",
+                DECIMAL_CALENDAR_DURATION_MESSAGE,
                 monthException.getMessage());
         assertEquals(monthException.getMessage(), yearException.getMessage());
     }
@@ -146,7 +158,7 @@ class DurationParserTest {
                         "half an yr"));
 
         assertEquals(
-                "Paiseh bro... i cannot settle decimal values for years and months yet...",
+                DECIMAL_CALENDAR_DURATION_MESSAGE,
                 monthException.getMessage());
         assertEquals(monthException.getMessage(), yearException.getMessage());
     }
@@ -203,38 +215,57 @@ class DurationParserTest {
                 LuckyNoInputException.class, () -> DurationParser.parse(
                         "1 hour -2 minutes"));
 
-        assertEquals("Siao ah time where got negative one", exception.getMessage());
+        assertEquals(NEGATIVE_DURATION_MESSAGE, exception.getMessage());
     }
 
-    /** Verifies unsupported, repeated, and incorrectly ordered components fail. */
+    /** Verifies malformed duration forms display their exact generic message. */
     @Test
-    void parse_unsupportedComponents_throwsInputException() {
-        assertThrows(LuckyNoInputException.class, () ->
-                DurationParser.parse("1.5 months"));
-        assertThrows(LuckyNoInputException.class, () ->
-                DurationParser.parse("1.5 years"));
-        assertThrows(LuckyNoInputException.class, () ->
-                DurationParser.parse("1.5mo"));
-        assertThrows(LuckyNoInputException.class, () ->
-                DurationParser.parse("1.5yr"));
-        assertThrows(LuckyNoInputException.class, () ->
-                DurationParser.parse("1.5 weeks"));
-        assertThrows(LuckyNoInputException.class, () ->
-                DurationParser.parse("half"));
-        assertThrows(LuckyNoInputException.class, () ->
-                DurationParser.parse("one and a half hours"));
-        assertThrows(LuckyNoInputException.class, () ->
-                DurationParser.parse("1 hour 2 hours"));
-        assertThrows(LuckyNoInputException.class, () ->
-                DurationParser.parse("2 days 1 month"));
-        assertThrows(LuckyNoInputException.class, () ->
-                DurationParser.parse("1m"));
-        assertThrows(LuckyNoInputException.class, () ->
-                DurationParser.parse("1h30min"));
-        assertThrows(LuckyNoInputException.class, () ->
-                DurationParser.parse("2 fortnights"));
-        assertThrows(LuckyNoInputException.class, () ->
-                DurationParser.parse("1 hour /to tomorrow"));
+    void parse_malformedDurationForms_throwsExactInputException() {
+        assertInvalidDuration("1.5 weeks");
+        assertInvalidDuration("half");
+        assertInvalidDuration("one and a half hours");
+        assertInvalidDuration("1 hour 2 hours");
+        assertInvalidDuration("2 days 1 month");
+        assertInvalidDuration("1m");
+        assertInvalidDuration("1h30min");
+        assertInvalidDuration("2 fortnights");
+        assertInvalidDuration("1 hour /to tomorrow");
+    }
+
+    /**
+     * Verifies blank, malformed, and oversized values use their exact messages.
+     *
+     * @param description identifies the invalid input in the test output
+     * @param durationText represents the duration text to parse
+     * @param expectedMessage represents the complete expected error message
+     */
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidDurationInputs")
+    void parse_invalidDurationInput_throwsExactInputException(
+            String description,
+            String durationText,
+            String expectedMessage) {
+        LuckyNoInputException exception = assertThrows(
+                LuckyNoInputException.class, () -> DurationParser.parse(durationText));
+
+        assertEquals(expectedMessage, exception.getMessage());
+    }
+
+    /**
+     * Supplies malformed inputs and the full error text visible to the user.
+     *
+     * @return named malformed inputs and their complete error messages
+     */
+    private static Stream<Arguments> invalidDurationInputs() {
+        return Stream.of(
+                Arguments.of("null input", null, invalidDurationMessage("null")),
+                Arguments.of("empty input", "", invalidDurationMessage("")),
+                Arguments.of("whitespace input", "   ", invalidDurationMessage("   ")),
+                Arguments.of("numeric remainder", "1 hour 2", invalidDurationMessage("1 hour 2")),
+                Arguments.of("year integer overflow", "2147483648 years",
+                        invalidDurationMessage("2147483648 years")),
+                Arguments.of("clock conversion overflow", "999999999999 hours",
+                        invalidDurationMessage("999999999999 hours")));
     }
 
     /** Verifies invalid duration errors include the original duration text. */
@@ -244,7 +275,29 @@ class DurationParserTest {
                 LuckyNoInputException.class, () -> DurationParser.parse("1h30min"));
 
         assertEquals(
-                "Eh can you be more specific anot, what do you mean by \"1h30min\" sia?",
+                invalidDurationMessage("1h30min"),
                 exception.getMessage());
+    }
+
+    /**
+     * Asserts malformed duration text produces its full user-facing message.
+     *
+     * @param durationText represents the malformed duration text
+     */
+    private void assertInvalidDuration(String durationText) {
+        LuckyNoInputException exception = assertThrows(
+                LuckyNoInputException.class, () -> DurationParser.parse(durationText));
+
+        assertEquals(invalidDurationMessage(durationText), exception.getMessage());
+    }
+
+    /**
+     * Returns the full generic duration error independently from production code.
+     *
+     * @param durationText represents the invalid duration text quoted in the message
+     * @return the full user-facing generic error message
+     */
+    private static String invalidDurationMessage(String durationText) {
+        return INVALID_DURATION_PREFIX + durationText + INVALID_DURATION_SUFFIX;
     }
 }

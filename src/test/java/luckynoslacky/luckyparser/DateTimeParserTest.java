@@ -9,14 +9,20 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /** Tests supported date/time formats, relative resolution, and invalid input. */
 class DateTimeParserTest {
+    private static final String INVALID_DATE_TIME_MESSAGE =
+            "Eh mr smart alec you tell me your calendar and clock got tell you "
+                    + "time like this one meh?";
     private static final Clock TEST_CLOCK = Clock.fixed(
             Instant.parse("2026-08-25T10:00:00Z"), ZoneId.of("UTC"));
     private final DateTimeParser parser =
@@ -194,6 +200,8 @@ class DateTimeParserTest {
                 parser.parseStartDateTime("next Wednesday").dateTime());
         assertEquals(LocalDateTime.of(2026, 9, 7, 0, 0),
                 parser.parseStartDateTime("next next Monday").dateTime());
+        assertEquals(LocalDateTime.of(2026, 9, 14, 0, 0),
+                parser.parseStartDateTime("next next next Monday").dateTime());
         assertEquals(LocalDateTime.of(2026, 9, 9, 0, 0),
                 parser.parseStartDateTime("the following Wednesday").dateTime());
         assertEquals(LocalDateTime.of(2026, 8, 26, 0, 0),
@@ -256,6 +264,34 @@ class DateTimeParserTest {
         assertInvalid("this is completely random plaintext");
     }
 
+    /**
+     * Verifies additional date and time boundaries use the exact error message.
+     *
+     * @param description identifies the boundary case in the test output
+     * @param dateTimeText represents the invalid input to parse
+     */
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidBoundaryInputs")
+    void parseStartDateTime_invalidBoundaryInput_throwsExactInputException(
+            String description,
+            String dateTimeText) {
+        assertInvalid(dateTimeText);
+    }
+
+    /**
+     * Supplies date and time inputs that must not be interpreted as valid values.
+     *
+     * @return named invalid date and time inputs
+     */
+    private static Stream<Arguments> invalidBoundaryInputs() {
+        return Stream.of(
+                Arguments.of("day zero", "2030-01-00"),
+                Arguments.of("non-leap-year February 29", "2030-02-29"),
+                Arguments.of("minute above range", "23:61"),
+                Arguments.of("midday suffix without hour", "pm"),
+                Arguments.of("unsupported relative modifier", "previous Tuesday"));
+    }
+
     /** Verifies storage formatting round-trips through the CSV parser. */
     @Test
     void formatForStorage_validDateTime_roundTripsThroughStorageParser() {
@@ -283,10 +319,14 @@ class DateTimeParserTest {
                 parser.parseEndDateTime("4pm", null));
     }
 
-    /** Asserts that an input produces the standard date/time error. */
+    /**
+     * Asserts that an input produces the standard date/time error.
+     *
+     * @param dateTimeText represents the invalid input to parse
+     */
     private void assertInvalid(String dateTimeText) {
         LuckyNoInputException exception = assertThrows(
                 LuckyNoInputException.class, () -> parser.parseStartDateTime(dateTimeText));
-        assertEquals(LuckyNoMessages.invalidDateTimeMessage(), exception.getMessage());
+        assertEquals(INVALID_DATE_TIME_MESSAGE, exception.getMessage());
     }
 }

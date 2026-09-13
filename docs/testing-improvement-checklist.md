@@ -19,9 +19,15 @@
 
 ## Improvement 2: Parser and duration edge cases
 
-- [ ] Add parser edge-case coverage.
-- [ ] Add duration validation and overflow coverage.
-- [ ] Add date/time boundary coverage.
+- [x] Review command-parser, task-number, and parser-to-command coverage against the specification.
+- [x] Add exact-message coverage for malformed duration inputs and parser-level numeric overflow.
+- [x] Add fixed-clock date/time boundary coverage with named parameterized cases.
+- [x] Verify duration arithmetic's calendar-first behavior at month-end and leap-year boundaries.
+- [x] Run JUnit, `clitest`, GUI tests, Checkstyle, Javadoc, `check`, and the 25-case UI plan.
+- [x] Keep arbitrary repeated `next` modifiers supported, subject to date-time limits.
+- [x] Define the approved dedicated message for arithmetic snooze overflow.
+- [ ] Implement and test the arithmetic snooze-overflow message in a separate production commit.
+- [ ] Review and commit the completed improvement after the production follow-up.
 
 ## Improvement 3: Task-model invariants
 
