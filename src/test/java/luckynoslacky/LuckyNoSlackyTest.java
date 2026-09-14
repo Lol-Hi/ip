@@ -120,9 +120,58 @@ class LuckyNoSlackyTest {
         assertTrue(saver.wasSaveCalled());
     }
 
+    /** Verifies every task-creation command receives the capacity message. */
+    @Test
+    void getResponse_fullTaskList_rejectsAllCreationCommands() {
+        List<String> commands = List.of(
+                "todo overflow",
+                "deadline overflow /by 26 Aug 2099",
+                "event overflow /from 26 Aug 2099 /to 27 Aug 2099");
+
+        for (String command : commands) {
+            LoadFailingSaver saver = new LoadFailingSaver();
+            LuckyNoSlacky chatbot = new LuckyNoSlacky(
+                    new DateTimeParser(), saver);
+
+            for (int taskNumber = 0; taskNumber < 100; taskNumber++) {
+                chatbot.getResponse("todo task " + taskNumber);
+            }
+
+            LuckyNoSlacky.ChatResponse response = chatbot.getResponse(command);
+
+            assertEquals(
+                    LuckyNoMessages.taskLimitMessage(), response.message());
+            assertFalse(response.shouldExit());
+            assertEquals(100, saver.getSaveCount());
+        }
+    }
+
+    /** Verifies that the CLI remains active after a capacity error. */
+    @Test
+    void run_fullTaskList_continuesAfterCapacityError() {
+        StringBuilder input = new StringBuilder();
+        for (int taskNumber = 0; taskNumber < 100; taskNumber++) {
+            input.append("todo task ").append(taskNumber).append('\n');
+        }
+        input.append("todo overflow\nbye\n");
+        System.setIn(new java.io.ByteArrayInputStream(
+                input.toString().getBytes(StandardCharsets.UTF_8)));
+        LoadFailingSaver saver = new LoadFailingSaver();
+        LuckyNoSlacky chatbot = new LuckyNoSlacky(
+                new DateTimeParser(), saver);
+
+        LuckyNoSlacky.run(chatbot, new LuckyNoCli());
+
+        String output = capturedOutput.toString(StandardCharsets.UTF_8);
+        assertTrue(output.contains(LuckyNoMessages.taskLimitMessage()));
+        assertTrue(output.contains(LuckyNoMessages.goodbye()));
+        assertEquals(100, saver.getSaveCount());
+    }
+
     /** Simulates a storage source that cannot load but can save new tasks. */
     private static final class LoadFailingSaver extends CsvSaver {
         private boolean saveCalled;
+        private int saveCount;
 
         @Override
         public List<Task> load() {
@@ -132,11 +181,17 @@ class LuckyNoSlackyTest {
         @Override
         public void save(TaskList taskList) {
             saveCalled = true;
+            saveCount++;
         }
 
         /** Returns whether a task mutation attempted to save. */
         boolean wasSaveCalled() {
             return saveCalled;
+        }
+
+        /** Returns the number of save attempts made by the chatbot. */
+        int getSaveCount() {
+            return saveCount;
         }
     }
 }

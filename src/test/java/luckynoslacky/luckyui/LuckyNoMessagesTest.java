@@ -144,4 +144,13 @@ class LuckyNoMessagesTest {
                 "Honggan la your system abit rabs ah, I cannot save your task",
                 LuckyNoMessages.saveErrorMessage());
     }
+
+    /** Verifies the configured task-capacity error message. */
+    @Test
+    void taskLimitMessage_noArguments_returnsConfiguredMessage() {
+        assertEquals(
+                "Eh your task list too full already lah! Finish or delete "
+                        + "some tasks before adding more.",
+                LuckyNoMessages.taskLimitMessage());
+    }
 }

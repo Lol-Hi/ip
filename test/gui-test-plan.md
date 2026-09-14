@@ -67,6 +67,16 @@
   the input field and Send button remain enabled, and the `list` command adds
   the normal user and chatbot dialogue rows.
 
+## Test Case: Main window remains usable after a capacity error
+
+- Aim: Verify that rejecting a task because the task list is full does not
+  disable the GUI.
+- Test: `MainWindowTest.mainWindow_taskLimit_keepsControlsEnabled`
+- Actions: Launch the main window with a full-list chatbot, then submit
+  `todo overflow`.
+- Expected result: The approved task-limit message is displayed, the rejected
+  task is not added, and the input field and Send button remain enabled.
+
 ## Test Case: JavaFX application starts correctly
 
 - Aim: Verify that the production JavaFX application creates the expected

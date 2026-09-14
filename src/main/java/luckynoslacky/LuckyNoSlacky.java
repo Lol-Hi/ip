@@ -8,6 +8,7 @@ import java.time.format.DateTimeParseException;
 import luckynoslacky.luckycommand.LuckyNoCommand;
 import luckynoslacky.luckyexception.LuckyNoInputException;
 import luckynoslacky.luckyexception.LuckyNoStorageException;
+import luckynoslacky.luckyexception.LuckyNoTaskLimitException;
 import luckynoslacky.luckyparser.DateTimeParser;
 import luckynoslacky.luckyparser.LuckyNoParser;
 import luckynoslacky.luckystorage.CsvSaver;
@@ -94,6 +95,9 @@ public class LuckyNoSlacky {
                 }
             } catch (LuckyNoInputException exception) {
                 commandLineInterface.showReply(exception.getMessage());
+            } catch (LuckyNoTaskLimitException exception) {
+                commandLineInterface.showReply(
+                        LuckyNoMessages.taskLimitMessage());
             } catch (LuckyNoStorageException exception) {
                 commandLineInterface.showSavingError();
             }
@@ -115,6 +119,10 @@ public class LuckyNoSlacky {
                     command.shouldExit());
         } catch (LuckyNoInputException exception) {
             return new ChatResponse(exception.getMessage(), false);
+        } catch (LuckyNoTaskLimitException exception) {
+            return new ChatResponse(
+                    LuckyNoMessages.taskLimitMessage(),
+                    false);
         } catch (LuckyNoStorageException exception) {
             return new ChatResponse(
                     LuckyNoMessages.saveErrorMessage(),

@@ -242,6 +242,16 @@ public final class LuckyNoMessages {
     }
 
     /**
+     * Returns the message shown when the task list is full.
+     *
+     * @return task-capacity error message
+     */
+    public static String taskLimitMessage() {
+        return "Eh your task list too full already lah! Finish or delete "
+                + "some tasks before adding more.";
+    }
+
+    /**
      * Returns the message shown for an invalid date or time.
      *
      * @return invalid date/time message

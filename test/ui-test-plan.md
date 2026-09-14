@@ -63,6 +63,9 @@ bye
 - Startup load failures are covered deterministically by
   `LuckyNoSlackyTest`; the CLI continues in degraded empty-list mode after
   displaying the loading warning, and normal saves remain available.
+- Task-capacity overflow is covered deterministically by
+  `LuckyNoSlackyTest`; the CLI displays the task-limit message and continues
+  accepting commands after the list reaches its maximum size.
 
 ## Test Case: Start and exit
 

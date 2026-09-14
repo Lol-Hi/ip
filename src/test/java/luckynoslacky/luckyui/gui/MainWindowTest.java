@@ -23,6 +23,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import luckynoslacky.LuckyNoSlacky;
+import luckynoslacky.luckyui.LuckyNoMessages;
 
 /** Tests observable interactions in the main JavaFX window. */
 @ExtendWith(ApplicationExtension.class)
@@ -121,6 +122,40 @@ class MainWindowTest {
         assertEquals(4, dialogueContainer.getChildren().size());
     }
 
+    /** Verifies that a capacity error remains recoverable in the GUI. */
+    @Test
+    void mainWindow_taskLimit_keepsControlsEnabled(FxRobot robot) {
+        robot.interact(() -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(
+                        MainWindow.class.getResource("/view/MainWindow.fxml"));
+                Parent root = loader.load();
+                MainWindow controller = loader.getController();
+                controller.setChatbot(new CapacityFullChatbot());
+                stage.setScene(new Scene(root));
+                stage.show();
+            } catch (IOException exception) {
+                throw new IllegalStateException(
+                        "Unable to load the test window.", exception);
+            }
+        });
+
+        TextField inputField = robot.lookup("#userInput").query();
+        Button sendButton = robot.lookup("#sendButton").query();
+        VBox dialogueContainer = robot.lookup("#dialogContainer").query();
+
+        robot.clickOn(inputField).write("todo overflow").push(KeyCode.ENTER);
+
+        assertFalse(inputField.isDisabled());
+        assertFalse(sendButton.isDisabled());
+        assertEquals(3, dialogueContainer.getChildren().size());
+        DialogueBox chatbotDialogue =
+                (DialogueBox) dialogueContainer.getChildren().get(2);
+        assertEquals(
+                LuckyNoMessages.taskLimitMessage(),
+                getMessageText(chatbotDialogue, 1));
+    }
+
     /** Verifies that the main window rejects a missing chatbot dependency. */
     @Test
     void setChatbot_nullChatbot_throwsIllegalArgumentException() {
@@ -136,11 +171,31 @@ class MainWindowTest {
         return ((Label) messageContainer.getChildren().get(0)).getText();
     }
 
+    /** Returns the message text from a dialogue row. */
+    private String getMessageText(DialogueBox dialogue, int dialogueIndex) {
+        VBox messageContainer = (VBox) dialogue.getChildren().get(dialogueIndex);
+        return ((Label) messageContainer.getChildren().get(1)).getText();
+    }
+
     /** Simulates a chatbot whose task data could not be loaded. */
     private static final class LoadFailingChatbot extends LuckyNoSlacky {
         @Override
         public boolean hasLoadError() {
             return true;
+        }
+    }
+
+    /** Simulates a full task list for a capacity-error GUI test. */
+    private static final class CapacityFullChatbot extends LuckyNoSlacky {
+        @Override
+        public boolean hasLoadError() {
+            return false;
+        }
+
+        @Override
+        public ChatResponse getResponse(String userInput) {
+            return new ChatResponse(
+                    LuckyNoMessages.taskLimitMessage(), false);
         }
     }
 }
