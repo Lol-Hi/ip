@@ -2,6 +2,7 @@ package luckynoslacky.luckyui.gui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
+import luckynoslacky.ResponseTone;
 
 /** Tests the reusable JavaFX dialogue message component. */
 @ExtendWith(ApplicationExtension.class)
@@ -81,6 +83,36 @@ class DialogueBoxTest {
         });
     }
 
+    /** Verifies that successful chatbot dialogue uses the clover style. */
+    @Test
+    void dialogueBox_successMessage_displaysCloverMarker(FxRobot robot) {
+        robot.interact(() -> {
+            DialogueBox dialogue = createChatbotDialogue(
+                    "Task added.", ResponseTone.SUCCESS);
+            Label messageLabel = getMessageLabel(dialogue);
+
+            assertTrue(dialogue.getStyleClass().contains(
+                    DialogueBox.SUCCESS_DIALOGUE_STYLE));
+            assertEquals("🍀", ((Label) messageLabel.getGraphic()).getText());
+            assertEquals("LuckyNoSlacky: Task added.", dialogue.getAccessibleText());
+        });
+    }
+
+    /** Verifies that informational chatbot dialogue uses the info style. */
+    @Test
+    void dialogueBox_infoMessage_appliesInfoStyle(FxRobot robot) {
+        robot.interact(() -> {
+            DialogueBox dialogue = createChatbotDialogue(
+                    "Here are your tasks.", ResponseTone.INFO);
+
+            assertTrue(dialogue.getStyleClass().contains(
+                    DialogueBox.INFO_DIALOGUE_STYLE));
+            assertEquals("LuckyNoSlacky: Here are your tasks.",
+                    dialogue.getAccessibleText());
+            assertNull(getMessageLabel(dialogue).getGraphic());
+        });
+    }
+
     /** Verifies that warning dialogue uses the distinct warning style. */
     @Test
     void dialogueBox_warningMessage_appliesWarningStyle(FxRobot robot) {
@@ -89,7 +121,8 @@ class DialogueBoxTest {
             DialogueBox dialogue = new DialogueBox(
                     "That command needs more detail.",
                     avatar,
-                    DialogueBox.DialogueType.WARNING);
+                    DialogueBox.DialogueType.CHATBOT,
+                    ResponseTone.WARNING);
             stage.setScene(new Scene(dialogue));
             stage.show();
 
@@ -104,5 +137,38 @@ class DialogueBoxTest {
                     .getChildren().get(0);
             assertEquals("⚠", ((Label) messageLabel.getGraphic()).getText());
         });
+    }
+
+    /** Verifies that system errors use a distinct marker and style. */
+    @Test
+    void dialogueBox_systemErrorMessage_displaysErrorMarker(FxRobot robot) {
+        robot.interact(() -> {
+            DialogueBox dialogue = createChatbotDialogue(
+                    "Unable to save tasks.", ResponseTone.SYSTEM_ERROR);
+            Label messageLabel = getMessageLabel(dialogue);
+
+            assertTrue(dialogue.getStyleClass().contains(
+                    DialogueBox.SYSTEM_ERROR_DIALOGUE_STYLE));
+            assertEquals("⛔", ((Label) messageLabel.getGraphic()).getText());
+            assertEquals("LuckyNoSlacky: Unable to save tasks.",
+                    dialogue.getAccessibleText());
+        });
+    }
+
+    /** Creates a chatbot dialogue for tone-specific component assertions. */
+    private DialogueBox createChatbotDialogue(
+            String message,
+            ResponseTone responseTone) {
+        return new DialogueBox(
+                message,
+                new WritableImage(45, 45),
+                DialogueBox.DialogueType.CHATBOT,
+                responseTone);
+    }
+
+    /** Returns the message label from a chatbot dialogue. */
+    private Label getMessageLabel(DialogueBox dialogue) {
+        return (Label) ((VBox) dialogue.getChildren().get(1))
+                .getChildren().get(0);
     }
 }

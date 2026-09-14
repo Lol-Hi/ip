@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
 
+import luckynoslacky.ResponseTone;
 import luckynoslacky.luckyparser.DurationPeriod;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
@@ -79,5 +80,15 @@ public class LuckyNoSnoozeCommand extends LuckyNoCommand {
                 ? taskMaster.snoozeTaskBy(taskNumber, delayAmount)
                 : taskMaster.snoozeTaskTo(taskNumber, targetEndTime);
         return LuckyNoMessages.snoozedTaskMessage(updatedTask);
+    }
+
+    /**
+     * Returns the success tone for the snooze response.
+     *
+     * @return success response tone
+     */
+    @Override
+    public ResponseTone getResponseTone() {
+        return ResponseTone.SUCCESS;
     }
 }

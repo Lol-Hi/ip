@@ -1,5 +1,6 @@
 package luckynoslacky.luckycommand;
 
+import luckynoslacky.ResponseTone;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
 import luckynoslacky.luckyui.LuckyNoMessages;
@@ -36,5 +37,15 @@ public class LuckyNoTaskCommand extends LuckyNoCommand {
         this.taskMaster.addTask(task);
         return LuckyNoMessages.addedTaskMessage(
                 task, this.taskMaster.getTaskCount());
+    }
+
+    /**
+     * Returns the success tone for the task-creation response.
+     *
+     * @return success response tone
+     */
+    @Override
+    public ResponseTone getResponseTone() {
+        return ResponseTone.SUCCESS;
     }
 }

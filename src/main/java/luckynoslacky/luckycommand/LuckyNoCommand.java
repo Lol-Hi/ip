@@ -1,5 +1,6 @@
 package luckynoslacky.luckycommand;
 
+import luckynoslacky.ResponseTone;
 import luckynoslacky.luckytask.TaskMaster;
 
 /**
@@ -32,6 +33,13 @@ public abstract class LuckyNoCommand {
      * @return reply produced by the command
      */
     public abstract String execute();
+
+    /**
+     * Returns the semantic tone for a successful execution of this command.
+     *
+     * @return response tone for the command's reply
+     */
+    public abstract ResponseTone getResponseTone();
 
     /**
      * Indicates whether the chat loop should terminate after execution.

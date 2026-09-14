@@ -1,5 +1,6 @@
 package luckynoslacky.luckycommand;
 
+import luckynoslacky.ResponseTone;
 import luckynoslacky.luckytask.TaskMaster;
 import luckynoslacky.luckyui.LuckyNoMessages;
 
@@ -28,5 +29,15 @@ public class LuckyNoListCommand extends LuckyNoCommand {
     @Override
     public String execute() {
         return LuckyNoMessages.listTasksMessage(taskMaster.listTasks());
+    }
+
+    /**
+     * Returns the information tone for the task-list response.
+     *
+     * @return information response tone
+     */
+    @Override
+    public ResponseTone getResponseTone() {
+        return ResponseTone.INFO;
     }
 }

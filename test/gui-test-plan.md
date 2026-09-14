@@ -34,6 +34,29 @@
   dialogue CSS style, exposes the drafted warning accessible text, and shows a
   visible warning marker.
 
+## Test Case: DialogueBox displays successful responses
+
+- Aim: Verify that successful task changes use a clover-green chatbot bubble.
+- Test: `DialogueBoxTest.dialogueBox_successMessage_displaysCloverMarker`
+- Expected result: The response remains left-aligned, applies the success
+  dialogue CSS style, and shows a visible `🍀` marker without changing the
+  response text.
+
+## Test Case: DialogueBox displays information responses
+
+- Aim: Verify that task lists and search results use the information tone.
+- Test: `DialogueBoxTest.dialogueBox_infoMessage_appliesInfoStyle`
+- Expected result: The response remains left-aligned, applies the information
+  dialogue CSS style, and does not add a tone prefix or marker to the message.
+
+## Test Case: DialogueBox displays system errors
+
+- Aim: Verify that storage failures use a stronger non-warning error style.
+- Test: `DialogueBoxTest.dialogueBox_systemErrorMessage_displaysErrorMarker`
+- Expected result: The response remains left-aligned, applies the system-error
+  dialogue CSS style, and shows a visible `⛔` marker without changing the
+  response text.
+
 ## Test Case: Main window exposes accessible labels
 
 - Aim: Verify that the conversation history, command field, and Send button
@@ -78,6 +101,13 @@
 - Expected result: The conversation contains the greeting, a right-aligned
   user row containing `unknown`, and a left-aligned warning row containing the
   actual unknown-command response. The user row does not contain `You said:`.
+
+## Test Case: Main window assigns response tones
+
+- Aim: Verify that the GUI receives semantic response tones from the chatbot.
+- Test: `MainWindowTest.mainWindow_unknownCommand_displaysUserAndWarningMessages`
+- Expected result: Invalid input uses the warning style while task changes,
+  lists, and searches use their corresponding success or information styles.
 
 ## Test Case: Main window remains usable after a normal command
 

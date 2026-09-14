@@ -23,36 +23,26 @@ public class LuckyNoSlacky {
             "luckynoslacky.fixedNow";
 
     /**
-     * Describes how a graphical interface should present a chatbot response.
-     */
-    public enum ResponseSeverity {
-        /** A normal greeting, successful result, or farewell. */
-        NORMAL,
-        /** A user-input or storage problem that needs visual emphasis. */
-        WARNING
-    }
-
-    /**
      * Contains a chatbot reply, its requested follow-up action, and its
-     * presentation severity.
+     * presentation tone.
      *
      * @param message user-facing reply
      * @param shouldExit whether the interface should close
-     * @param severity presentation severity for the reply
+     * @param tone semantic tone for presenting the reply
      */
     public record ChatResponse(
             String message,
             boolean shouldExit,
-            ResponseSeverity severity) {
+            ResponseTone tone) {
         /**
-         * Creates a normal response for callers that do not need to specify a
-         * presentation severity.
+         * Creates a neutral response for callers that do not need to specify a
+         * presentation tone.
          *
          * @param message user-facing reply
          * @param shouldExit whether the interface should close
          */
         public ChatResponse(String message, boolean shouldExit) {
-            this(message, shouldExit, ResponseSeverity.NORMAL);
+            this(message, shouldExit, ResponseTone.NEUTRAL);
         }
     }
 
@@ -125,17 +115,17 @@ public class LuckyNoSlacky {
             return new ChatResponse(
                     command.execute(),
                     command.shouldExit(),
-                    ResponseSeverity.NORMAL);
+                    command.getResponseTone());
         } catch (LuckyNoInputException exception) {
             return new ChatResponse(
                     exception.getMessage(),
                     false,
-                    ResponseSeverity.WARNING);
+                    ResponseTone.WARNING);
         } catch (LuckyNoStorageException exception) {
             return new ChatResponse(
                     LuckyNoMessages.saveErrorMessage(),
                     false,
-                    ResponseSeverity.WARNING);
+                    ResponseTone.SYSTEM_ERROR);
         }
     }
 

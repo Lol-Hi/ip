@@ -1,5 +1,6 @@
 package luckynoslacky.luckycommand;
 
+import luckynoslacky.ResponseTone;
 import luckynoslacky.luckytask.TaskMaster;
 import luckynoslacky.luckyui.LuckyNoMessages;
 
@@ -40,5 +41,15 @@ public class LuckyNoMarkCommand extends LuckyNoCommand {
         return shouldMarkDone
                 ? LuckyNoMessages.markedTaskMessage(formattedTask)
                 : LuckyNoMessages.unmarkedTaskMessage(formattedTask);
+    }
+
+    /**
+     * Returns the success tone for the task-status response.
+     *
+     * @return success response tone
+     */
+    @Override
+    public ResponseTone getResponseTone() {
+        return ResponseTone.SUCCESS;
     }
 }

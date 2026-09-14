@@ -13,6 +13,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import luckynoslacky.LuckyNoSlacky;
+import luckynoslacky.ResponseTone;
 import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
@@ -72,12 +73,12 @@ public class MainWindow {
         this.chatbot = chatbot;
         addChatbotMessage(
                 LuckyNoMessages.greeting(),
-                DialogueBox.DialogueType.CHATBOT);
+                ResponseTone.NEUTRAL);
 
         if (chatbot.hasLoadError()) {
             addChatbotMessage(
                     LuckyNoMessages.loadErrorMessage(),
-                    DialogueBox.DialogueType.WARNING);
+                    ResponseTone.SYSTEM_ERROR);
         }
     }
 
@@ -94,11 +95,7 @@ public class MainWindow {
 
         addUserMessage(userInputText);
         LuckyNoSlacky.ChatResponse response = chatbot.getResponse(userInputText);
-        DialogueBox.DialogueType dialogueType = response.severity()
-                == LuckyNoSlacky.ResponseSeverity.WARNING
-                ? DialogueBox.DialogueType.WARNING
-                : DialogueBox.DialogueType.CHATBOT;
-        addChatbotMessage(response.message(), dialogueType);
+        addChatbotMessage(response.message(), response.tone());
         userInput.clear();
 
         if (response.shouldExit()) {
@@ -136,12 +133,13 @@ public class MainWindow {
      */
     private void addChatbotMessage(
             String message,
-            DialogueBox.DialogueType dialogueType) {
+            ResponseTone responseTone) {
         dialogContainer.getChildren().add(
                 new DialogueBox(
                         message,
                         chatbotImage,
-                        dialogueType));
+                        DialogueBox.DialogueType.CHATBOT,
+                        responseTone));
     }
 
     /** Configures keyboard traversal for the main interactive controls. */

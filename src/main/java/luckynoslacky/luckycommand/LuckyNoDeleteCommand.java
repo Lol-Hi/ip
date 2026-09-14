@@ -1,5 +1,6 @@
 package luckynoslacky.luckycommand;
 
+import luckynoslacky.ResponseTone;
 import luckynoslacky.luckytask.TaskMaster;
 import luckynoslacky.luckyui.LuckyNoMessages;
 
@@ -32,5 +33,15 @@ public class LuckyNoDeleteCommand extends LuckyNoCommand {
         String deletedTask = this.taskMaster.deleteTask(taskNumber);
         return LuckyNoMessages.deletedTaskMessage(
                 deletedTask, this.taskMaster.getTaskCount());
+    }
+
+    /**
+     * Returns the success tone for the task-deletion response.
+     *
+     * @return success response tone
+     */
+    @Override
+    public ResponseTone getResponseTone() {
+        return ResponseTone.SUCCESS;
     }
 }

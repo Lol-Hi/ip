@@ -9,6 +9,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
+import luckynoslacky.ResponseTone;
 
 /**
  * Displays one speaker's message in the conversation.
@@ -23,6 +24,16 @@ public class DialogueBox extends HBox {
     /** CSS style applied to warning dialogue rows. */
     public static final String WARNING_DIALOGUE_STYLE = "warning-dialogue";
 
+    /** CSS style applied to successful chatbot dialogue rows. */
+    public static final String SUCCESS_DIALOGUE_STYLE = "success-dialogue";
+
+    /** CSS style applied to informational chatbot dialogue rows. */
+    public static final String INFO_DIALOGUE_STYLE = "info-dialogue";
+
+    /** CSS style applied to system-error dialogue rows. */
+    public static final String SYSTEM_ERROR_DIALOGUE_STYLE =
+            "system-error-dialogue";
+
     private static final double AVATAR_SIZE = 45.0;
     private static final double CHATBOT_BUBBLE_WIDTH_FRACTION = 0.86;
     private static final double USER_BUBBLE_WIDTH_FRACTION = 0.70;
@@ -34,12 +45,10 @@ public class DialogueBox extends HBox {
 
     /** Identifies the speaker and visual treatment of a dialogue row. */
     public enum DialogueType {
-        /** A normal LuckyNoSlacky response. */
+        /** A LuckyNoSlacky response. */
         CHATBOT,
         /** A command entered by the user. */
-        USER,
-        /** A LuckyNoSlacky warning caused by invalid input or storage. */
-        WARNING
+        USER
     }
 
     /**
@@ -53,17 +62,29 @@ public class DialogueBox extends HBox {
             String message,
             Image avatar,
             DialogueType dialogueType) {
+        this(message, avatar, dialogueType, ResponseTone.NEUTRAL);
+    }
+
+    /**
+     * Creates a responsive dialogue row with a circular avatar and response
+     * tone.
+     *
+     * @param message message content
+     * @param avatar speaker profile image
+     * @param dialogueType speaker role of the message
+     * @param responseTone semantic tone of a chatbot response
+     */
+    public DialogueBox(
+            String message,
+            Image avatar,
+            DialogueType dialogueType,
+            ResponseTone responseTone) {
         Label messageLabel = new Label(message);
         messageLabel.getStyleClass().add("message-content");
         messageLabel.setWrapText(true);
 
-        if (dialogueType == DialogueType.WARNING) {
-            Label warningMarker = new Label("⚠");
-            warningMarker.getStyleClass().add("warning-marker");
-            warningMarker.setAccessibleText("");
-            warningMarker.setFocusTraversable(false);
-            messageLabel.setGraphic(warningMarker);
-            messageLabel.setGraphicTextGap(6.0);
+        if (dialogueType == DialogueType.CHATBOT) {
+            addToneMarker(messageLabel, responseTone);
         }
 
         VBox messageContainer = new VBox(messageLabel);
@@ -83,13 +104,16 @@ public class DialogueBox extends HBox {
 
         setMaxWidth(Double.MAX_VALUE);
         setAccessibleRole(AccessibleRole.TEXT);
-        setAccessibleText(getAccessibleText(message, dialogueType));
+        setAccessibleText(getAccessibleText(message, dialogueType, responseTone));
         setFocusTraversable(false);
         setAlignment(dialogueType == DialogueType.USER
                 ? Pos.CENTER_RIGHT
                 : Pos.CENTER_LEFT);
         setSpacing(DIALOGUE_SPACING);
-        getStyleClass().addAll("dialogue-box", getDialogueStyle(dialogueType));
+        getStyleClass().addAll(
+                "dialogue-box",
+                getDialogueStyle(dialogueType),
+                getToneStyle(dialogueType, responseTone));
 
         double bubbleWidthFraction = dialogueType == DialogueType.USER
                 ? USER_BUBBLE_WIDTH_FRACTION
@@ -119,27 +143,85 @@ public class DialogueBox extends HBox {
      * @return CSS style class for the role
      */
     private static String getDialogueStyle(DialogueType dialogueType) {
-        return switch (dialogueType) {
-            case CHATBOT -> CHATBOT_DIALOGUE_STYLE;
-            case USER -> USER_DIALOGUE_STYLE;
+        return dialogueType == DialogueType.USER
+                ? USER_DIALOGUE_STYLE
+                : CHATBOT_DIALOGUE_STYLE;
+    }
+
+    /**
+     * Returns the CSS style for a chatbot response tone.
+     *
+     * @param dialogueType dialogue role
+     * @param responseTone response tone
+     * @return CSS style class for the tone, or an empty string for user rows
+     */
+    private static String getToneStyle(
+            DialogueType dialogueType,
+            ResponseTone responseTone) {
+        if (dialogueType == DialogueType.USER) {
+            return "";
+        }
+        return switch (responseTone) {
+            case NEUTRAL -> "";
+            case SUCCESS -> SUCCESS_DIALOGUE_STYLE;
+            case INFO -> INFO_DIALOGUE_STYLE;
             case WARNING -> WARNING_DIALOGUE_STYLE;
+            case SYSTEM_ERROR -> SYSTEM_ERROR_DIALOGUE_STYLE;
+        };
+    }
+
+    /** Adds a non-colour marker for tones that require extra emphasis. */
+    private static void addToneMarker(
+            Label messageLabel,
+            ResponseTone responseTone) {
+        String markerText = switch (responseTone) {
+            case SUCCESS -> "🍀";
+            case WARNING -> "⚠";
+            case SYSTEM_ERROR -> "⛔";
+            case NEUTRAL, INFO -> "";
+        };
+        if (!markerText.isEmpty()) {
+            Label marker = new Label(markerText);
+            marker.getStyleClass().add(getMarkerStyle(responseTone));
+            marker.setAccessibleText("");
+            marker.setFocusTraversable(false);
+            messageLabel.setGraphic(marker);
+            messageLabel.setGraphicTextGap(6.0);
+        }
+    }
+
+    /**
+     * Returns the marker style for an emphasized response tone.
+     *
+     * @param responseTone response tone
+     * @return marker CSS style class
+     */
+    private static String getMarkerStyle(ResponseTone responseTone) {
+        return switch (responseTone) {
+            case SUCCESS -> "success-marker";
+            case SYSTEM_ERROR -> "system-error-marker";
+            case WARNING -> "warning-marker";
+            case NEUTRAL, INFO -> "";
         };
     }
 
     /**
-     * Returns the screen-reader text for a dialogue role.
+     * Returns the screen-reader text for a dialogue role and response tone.
      *
      * @param message message content
      * @param dialogueType dialogue role
+     * @param responseTone response tone
      * @return role-aware accessible message
      */
     private static String getAccessibleText(
             String message,
-            DialogueType dialogueType) {
-        return switch (dialogueType) {
-            case CHATBOT -> CHATBOT_ACCESSIBLE_PREFIX + message;
-            case USER -> USER_ACCESSIBLE_PREFIX + message;
-            case WARNING -> WARNING_ACCESSIBLE_PREFIX + message;
-        };
+            DialogueType dialogueType,
+            ResponseTone responseTone) {
+        if (dialogueType == DialogueType.USER) {
+            return USER_ACCESSIBLE_PREFIX + message;
+        }
+        return responseTone == ResponseTone.WARNING
+                ? WARNING_ACCESSIBLE_PREFIX + message
+                : CHATBOT_ACCESSIBLE_PREFIX + message;
     }
 }

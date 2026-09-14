@@ -17,15 +17,17 @@ Last updated: 2026-09-14
 
 ## Verification completed
 
-- [x] Add and update unit tests for response severity and GUI behavior.
+- [x] Add and update unit tests for response tones and GUI behavior.
 - [x] Run the Java 25 JUnit suite.
-- [x] Run a fresh JavaFX GUI regression suite (14 of 14 tests passed).
+- [x] Run a fresh JavaFX GUI regression suite (18 of 18 tests passed).
 - [x] Run Checkstyle and Javadoc validation.
 - [x] Run all 25 documented CLI UI test cases with isolated task data.
 - [x] Build and launch a fresh GUI fat JAR successfully.
 - [x] Verify task persistence across packaged application restarts in an
   isolated data directory.
 - [x] Implement the accessibility labels and keyboard-navigation specification.
+- [x] Separate chatbot speaker roles from semantic response tones.
+- [x] Add neutral, success, information, warning, and system-error GUI tones.
 
 ## Manual acceptance checks passed
 
@@ -38,5 +40,3 @@ Last updated: 2026-09-14
 ## Possible future improvements
 
 - [ ] Perform a screen-reader review of the implemented accessible labels.
-- [ ] Consider whether the backend response severity and GUI dialogue type should
-  be consolidated after the interface requirements stabilize.
