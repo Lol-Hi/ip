@@ -19,20 +19,42 @@
 
 ## Test Case: DialogueBox displays chatbot messages
 
-- Aim: Verify that chatbot messages use the green speaker label and left-side
-  alignment.
-- Test: `DialogueBoxTest.dialogueBox_chatbotMessage_displaysGreenLabelOnLeft`
+- Aim: Verify that neutral chatbot messages use the pineapple-yellow palette
+  and left-side alignment.
+- Test: `DialogueBoxTest.dialogueBox_neutralChatbotMessage_displaysPineappleLabelOnLeft`
 - Expected result: The row is left-aligned, displays `LuckyNoSlacky said:`,
-  preserves the message text, applies the chatbot dialogue CSS style, and uses
-  the unified handwritten interface font.
+  preserves the message text, applies the neutral chatbot dialogue CSS style,
+  and uses the unified handwritten interface font.
+
+## Test Case: DialogueBox applies semantic response tones
+
+- Aim: Verify that a successful task response can use the lucky green visual
+  treatment independently from its text.
+- Test: `DialogueBoxTest.dialogueBox_successTone_addsSuccessDialogueStyle`
+- Actions: Create a chatbot dialogue with the `success-dialogue` style.
+- Expected result: The dialogue retains its chatbot layout and includes the
+  `success-dialogue` CSS class for the green success palette.
 
 ## Test Case: DialogueBox styles task lines as code
 
-- Aim: Verify that task display lines remain easy to scan using monospace text.
+- Aim: Verify that task display lines remain easy to scan using monospace text
+  inside a shared dark task-list panel.
 - Test: `DialogueBoxTest.dialogueBox_taskLine_usesMonospaceTaskStyle`
-- Actions: Create a chatbot dialogue containing `[T] [ ] read book`.
+- Actions: Create a chatbot dialogue containing `[T][ ] read book`.
 - Expected result: The task line receives the `task-content` style, uses the
-  bundled monospace font, and appears in a dark code-style block.
+  bundled monospace font, and appears in a dark code-style block. The task
+  panel is contained within one outer dialogue bubble.
+
+## Test Case: DialogueBox groups numbered task lists
+
+- Aim: Verify that numbered task lines and their introduction remain in one
+  chatbot bubble while the task lines share one dark panel.
+- Test: `DialogueBoxTest.dialogueBox_numberedTaskList_groupsAdjacentLinesInOnePanel`
+- Actions: Create a chatbot dialogue containing prose followed by numbered
+  `[T]` and `[D]` task lines.
+- Expected result: The prose uses the handwritten content style, all adjacent
+  task lines are grouped into one `task-list` container, and the complete
+  response remains one outer dialogue row.
 
 ## Test Case: Main window displays a conversation
 
@@ -41,7 +63,9 @@
 - Test: `MainWindowTest.mainWindow_unknownCommand_displaysBothSpeakerMessages`
 - Actions: Enter `unknown` in the command field and submit it.
 - Expected result: The conversation contains the greeting, a `You said:` row,
-  and a `LuckyNoSlacky said:` row.
+  and a `LuckyNoSlacky said:` row. User messages use light blue, while chatbot
+  response tones use their configured neutral, success, information, warning,
+  or system-error palettes.
 
 ## Test Case: Main window remains usable after a normal command
 

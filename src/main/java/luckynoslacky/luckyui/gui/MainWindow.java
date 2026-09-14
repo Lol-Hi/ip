@@ -17,6 +17,11 @@ import luckynoslacky.luckyui.LuckyNoMessages;
  */
 public class MainWindow {
     private static final double EXIT_DELAY_SECONDS = 1.5;
+    private static final String NEUTRAL_DIALOGUE_STYLE = "neutral-dialogue";
+    private static final String SUCCESS_DIALOGUE_STYLE = "success-dialogue";
+    private static final String INFORMATION_DIALOGUE_STYLE = "information-dialogue";
+    private static final String WARNING_DIALOGUE_STYLE = "warning-dialogue";
+    private static final String SYSTEM_ERROR_DIALOGUE_STYLE = "system-error-dialogue";
 
     @FXML
     private ScrollPane scrollPane;
@@ -62,10 +67,14 @@ public class MainWindow {
             throw new IllegalArgumentException("Chatbot cannot be null.");
         }
         this.chatbot = chatbot;
-        addChatbotMessage(LuckyNoMessages.greeting());
+        addChatbotMessage(
+                LuckyNoMessages.greeting(),
+                LuckyNoSlacky.ResponseTone.NEUTRAL);
 
         if (chatbot.hasLoadError()) {
-            addChatbotMessage(LuckyNoMessages.loadErrorMessage());
+            addChatbotMessage(
+                    LuckyNoMessages.loadErrorMessage(),
+                    LuckyNoSlacky.ResponseTone.SYSTEM_ERROR);
         }
     }
 
@@ -81,7 +90,7 @@ public class MainWindow {
 
         addUserMessage(userInputText);
         LuckyNoSlacky.ChatResponse response = chatbot.getResponse(userInputText);
-        addChatbotMessage(response.message());
+        addChatbotMessage(response.message(), response.tone());
         userInput.clear();
 
         if (response.shouldExit()) {
@@ -114,13 +123,43 @@ public class MainWindow {
      *
      * @param message chatbot response
      */
-    private void addChatbotMessage(String message) {
+    private void addChatbotMessage(
+            String message, LuckyNoSlacky.ResponseTone responseTone) {
         dialogContainer.getChildren().add(
                 new DialogueBox(
-                        "LuckyNoSlacky said:",
+                        getChatbotSpeakerLabel(responseTone),
                         message,
                         chatbotImage,
                         Pos.CENTER_LEFT,
-                        DialogueBox.CHATBOT_DIALOGUE_STYLE));
+                        DialogueBox.CHATBOT_DIALOGUE_STYLE,
+                        getToneStyle(responseTone)));
+    }
+
+    /**
+     * Returns the chatbot speaker label for the supplied response tone.
+     *
+     * @param responseTone visual tone of the chatbot response
+     * @return speaker label displayed above the chatbot message
+     */
+    private String getChatbotSpeakerLabel(LuckyNoSlacky.ResponseTone responseTone) {
+        return responseTone == LuckyNoSlacky.ResponseTone.SUCCESS
+                ? "🍀 LuckyNoSlacky said:"
+                : "LuckyNoSlacky said:";
+    }
+
+    /**
+     * Maps a response tone to the CSS class used by the dialogue row.
+     *
+     * @param responseTone visual tone of the chatbot response
+     * @return CSS class corresponding to the supplied tone
+     */
+    private String getToneStyle(LuckyNoSlacky.ResponseTone responseTone) {
+        return switch (responseTone) {
+            case NEUTRAL -> NEUTRAL_DIALOGUE_STYLE;
+            case SUCCESS -> SUCCESS_DIALOGUE_STYLE;
+            case INFORMATION -> INFORMATION_DIALOGUE_STYLE;
+            case WARNING -> WARNING_DIALOGUE_STYLE;
+            case SYSTEM_ERROR -> SYSTEM_ERROR_DIALOGUE_STYLE;
+        };
     }
 }

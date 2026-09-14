@@ -53,6 +53,7 @@ class MainWindowTest {
                 (DialogueBox) dialogueContainer.getChildren().get(2);
         assertEquals("You said:", getSpeakerLabel(userDialogue, 0));
         assertEquals("LuckyNoSlacky said:", getSpeakerLabel(chatbotDialogue, 1));
+        assertTrue(chatbotDialogue.getStyleClass().contains("warning-dialogue"));
     }
 
     /** Verifies that the input control remains enabled after a non-exit command. */

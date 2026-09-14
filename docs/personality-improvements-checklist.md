@@ -15,7 +15,13 @@ This checklist tracks the planned GUI and response-personality improvements.
 
 ## Future improvements
 
-- [ ] Strengthen the brand palette using warmer yellow/orange accents.
+- [x] Strengthen the brand palette with pineapple yellow, clover green, and
+  blue accents for the user and Send button.
+- [x] Add semantic response tones for neutral, success, information, warning,
+  and system-error chatbot messages.
+- [x] Keep each LuckyNoSlacky response in one outer message bubble while
+  rendering contiguous task output in a single dark Roboto Mono panel with
+  warm pale-yellow text. See `docs/task-list-rendering-specification.md`.
 - [ ] Add a branded header or title area with the avatar and a tagline.
 - [ ] Improve the user avatar and add stronger chatbot avatar treatment.
 - [ ] Review response wording for grammar and voice consistency.
@@ -26,5 +32,6 @@ This checklist tracks the planned GUI and response-personality improvements.
 ## Notes
 
 Task-line styling currently recognizes the existing `[T]`, `[D]`, and `[E]`
-display markers. If task formatting changes later, centralize that display
-format before updating the GUI detector.
+display markers. The next task-list rendering improvement must extend this to
+optional numeric prefixes and group adjacent task lines before applying the
+Roboto Mono styling.

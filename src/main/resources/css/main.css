@@ -1,7 +1,7 @@
 @import "dialogue-box.css";
 
 .root {
-    -fx-background-color: #fff8e7;
+    -fx-background-color: #fffbe7;
     -fx-font-family: "Patrick Hand";
     -fx-font-size: 16px;
 }
@@ -19,17 +19,18 @@
     -fx-font-family: "Patrick Hand";
     -fx-font-size: 16px;
     -fx-background-radius: 4px;
-    -fx-border-color: #cccccc;
+    -fx-background-color: #fffef3;
+    -fx-border-color: #d8c26a;
     -fx-border-radius: 4px;
     -fx-border-width: 1px;
 }
 
 .text-field:focused {
-    -fx-border-color: #1976d2;
+    -fx-border-color: #d38b08;
 }
 
 .button {
-    -fx-background-color: #1976d2;
+    -fx-background-color: #174ea6;
     -fx-background-radius: 4px;
     -fx-font-family: "Patrick Hand";
     -fx-font-size: 16px;
@@ -37,9 +38,9 @@
 }
 
 .button:hover {
-    -fx-background-color: #1565c0;
+    -fx-background-color: #123b82;
 }
 
 .button:pressed {
-    -fx-background-color: #0d47a1;
+    -fx-background-color: #0f3069;
 }
