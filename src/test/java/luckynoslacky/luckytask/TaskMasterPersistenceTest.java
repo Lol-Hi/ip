@@ -46,15 +46,39 @@ class TaskMasterPersistenceTest {
         taskMaster.addTask(new TodoTask("first"));
         taskMaster.addTask(new TodoTask("second"));
 
-        assertThrows(IllegalStateException.class, () ->
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
                 taskMaster.addTask(new TodoTask("third")));
+
+        assertEquals("The task list is full.", exception.getMessage());
+        assertEquals(2, taskMaster.getTaskCount());
+    }
+
+    /** Verifies small capacities reject the first task beyond their limit. */
+    @Test
+    void addTask_smallCapacities_preserveStateAfterOverflow() {
+        for (int capacity : new int[] {1, 2, 3}) {
+            TaskMaster taskMaster = createTaskMaster(capacity);
+            for (int taskNumber = 1; taskNumber <= capacity; taskNumber++) {
+                taskMaster.addTask(new TodoTask("task " + taskNumber));
+            }
+
+            IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
+                    taskMaster.addTask(new TodoTask("overflow task")));
+
+            assertEquals("The task list is full.", exception.getMessage());
+            assertEquals(capacity, taskMaster.getTaskCount());
+        }
     }
 
     /** Verifies that non-positive capacities are rejected. */
     @Test
     void taskMaster_nonPositiveCapacity_throwsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () -> new TaskMaster(0));
-        assertThrows(IllegalArgumentException.class, () -> new TaskMaster(-1));
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class, () -> new TaskMaster(0));
+        assertEquals("Maximum tasks must be positive.", exception.getMessage());
+        exception = assertThrows(
+                IllegalArgumentException.class, () -> new TaskMaster(-1));
+        assertEquals("Maximum tasks must be positive.", exception.getMessage());
     }
 
     /** Verifies that a failed save rolls back an added task. */

@@ -104,8 +104,10 @@ class TaskListTest {
     /** Verifies that adding a null task is rejected. */
     @Test
     void addTask_nullTask_throwsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () ->
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 new TaskList().addTask(null));
+
+        assertEquals("Task cannot be null.", exception.getMessage());
     }
 
     /** Verifies that an invalid task number is rejected by the task list. */
@@ -114,15 +116,21 @@ class TaskListTest {
         TaskList taskList = new TaskList();
         taskList.addTask(new TodoTask("read book"));
 
-        assertThrows(IllegalArgumentException.class, () -> taskList.getTask(0));
-        assertThrows(IllegalArgumentException.class, () -> taskList.getTask(2));
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class, () -> taskList.getTask(0));
+        assertEquals("Invalid task number.", exception.getMessage());
+        exception = assertThrows(
+                IllegalArgumentException.class, () -> taskList.getTask(2));
+        assertEquals("Invalid task number.", exception.getMessage());
     }
 
     /** Verifies that replacing with a null list is rejected safely. */
     @Test
     void replaceTasks_nullList_throwsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () ->
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 new TaskList().replaceTasks(null));
+
+        assertEquals("Tasks cannot be null.", exception.getMessage());
     }
 
     /** Verifies that replacing with a null task preserves existing tasks. */
@@ -134,16 +142,23 @@ class TaskListTest {
         loadedTasks.add(new TodoTask("new task"));
         loadedTasks.add(null);
 
-        assertThrows(IllegalArgumentException.class, () ->
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 taskList.replaceTasks(loadedTasks));
+        assertEquals("Task cannot be null.", exception.getMessage());
         assertEquals("1.[T][ ] existing task", taskList.toDisplayString());
     }
 
     /** Verifies that non-positive task numbers are rejected by IndexedTask. */
     @Test
     void constructIndexedTask_nonPositiveNumber_throwsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () ->
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 new TaskList.IndexedTask(0, new TodoTask("read book")));
+
+        assertEquals("Task number must be positive.", exception.getMessage());
+        exception = assertThrows(IllegalArgumentException.class, () ->
+                new TaskList.IndexedTask(1, null));
+
+        assertEquals("Task cannot be null.", exception.getMessage());
     }
 
     /** Verifies that a task-list view preserves original task numbers. */
@@ -164,7 +179,63 @@ class TaskListTest {
     /** Verifies that a null view matcher is rejected. */
     @Test
     void createView_nullMatcher_throwsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () ->
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 new TaskList().createView(null, null));
+
+        assertEquals("Matcher cannot be null.", exception.getMessage());
+    }
+
+    /** Verifies inserting tasks at each valid position preserves task order. */
+    @Test
+    void insertTask_validPositions_renumbersTasksSequentially() {
+        TaskList taskList = new TaskList();
+        Task firstTask = new TodoTask("first task");
+        Task middleTask = new TodoTask("middle task");
+        Task lastTask = new TodoTask("last task");
+
+        taskList.addTask(firstTask);
+        taskList.addTask(lastTask);
+        taskList.insertTask(2, middleTask);
+        taskList.insertTask(1, new TodoTask("new first task"));
+        taskList.insertTask(5, new TodoTask("new last task"));
+
+        assertEquals(5, taskList.size());
+        assertEquals("1.[T][ ] new first task\n"
+                        + "2.[T][ ] first task\n"
+                        + "3.[T][ ] middle task\n"
+                        + "4.[T][ ] last task\n"
+                        + "5.[T][ ] new last task",
+                taskList.toDisplayString());
+        assertEquals(lastTask, taskList.getTask(4));
+    }
+
+    /** Verifies invalid insertion positions use the exact validation message. */
+    @Test
+    void insertTask_invalidPosition_throwsExactException() {
+        TaskList taskList = new TaskList();
+        taskList.addTask(new TodoTask("existing task"));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                taskList.insertTask(0, new TodoTask("invalid task")));
+        assertEquals("Invalid task number.", exception.getMessage());
+        exception = assertThrows(IllegalArgumentException.class, () ->
+                taskList.insertTask(3, new TodoTask("invalid task")));
+        assertEquals("Invalid task number.", exception.getMessage());
+        assertEquals("1.[T][ ] existing task", taskList.toDisplayString());
+    }
+
+    /** Verifies a view retains its indexed entries after the source list changes. */
+    @Test
+    void createView_sourceListMutation_preservesExistingView() {
+        TaskList taskList = new TaskList();
+        taskList.addTask(new TodoTask("first task"));
+        taskList.addTask(new TodoTask("second task"));
+
+        TaskList view = taskList.createView(null, task -> true);
+        taskList.removeTask(1);
+
+        assertEquals("1.[T][ ] first task\n2.[T][ ] second task",
+                view.toDisplayString());
+        assertEquals("1.[T][ ] second task", taskList.toDisplayString());
     }
 }

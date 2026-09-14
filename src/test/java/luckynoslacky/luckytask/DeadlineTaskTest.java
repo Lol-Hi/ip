@@ -41,6 +41,18 @@ class DeadlineTaskTest {
         assertEquals(LocalDateTime.of(2026, 8, 26, 16, 0), task.getByTime());
     }
 
+    /** Verifies a null snooze amount uses the exact validation message. */
+    @Test
+    void snoozeBy_nullAmount_throwsExactException() {
+        DeadlineTask task = new DeadlineTask(
+                "return book", LocalDateTime.of(2026, 8, 26, 14, 0));
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class, () -> task.snoozeBy(null));
+
+        assertEquals("Snooze amount cannot be null.", exception.getMessage());
+    }
+
     /** Verifies that rescheduling replaces the deadline. */
     @Test
     void reschedule_newDeadlineTimes_replacesDeadline() {
@@ -53,6 +65,18 @@ class DeadlineTaskTest {
         assertEquals(newDeadline, task.getByTime());
     }
 
+    /** Verifies an invalid deadline replacement uses the exact message. */
+    @Test
+    void reschedule_nullTimes_throwsExactException() {
+        DeadlineTask task = new DeadlineTask(
+                "return book", LocalDateTime.of(2026, 8, 26, 14, 0));
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class, () -> task.reschedule(null));
+
+        assertEquals("Invalid deadline times.", exception.getMessage());
+    }
+
     /** Verifies that a deadline rejects timing information with a start time. */
     @Test
     void construct_eventTimes_throwsIllegalArgumentException() {
@@ -60,8 +84,10 @@ class DeadlineTaskTest {
                 LocalDateTime.of(2026, 8, 26, 12, 0),
                 LocalDateTime.of(2026, 8, 26, 13, 0));
 
-        assertThrows(IllegalArgumentException.class, () ->
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 new DeadlineTask("return book", eventTimes));
+
+        assertEquals("Invalid deadline times.", exception.getMessage());
     }
 
 }

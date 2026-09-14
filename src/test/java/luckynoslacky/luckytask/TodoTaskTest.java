@@ -31,6 +31,17 @@ class TodoTaskTest {
                 task.getCsvStorageFields());
     }
 
+    /** Verifies null and blank descriptions use the exact validation message. */
+    @Test
+    void todoTask_nullOrBlankDescription_throwsExactException() {
+        for (String description : new String[] {null, "", "   "}) {
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class, () -> new TodoTask(description));
+
+            assertEquals("Task description cannot be empty.", exception.getMessage());
+        }
+    }
+
     /** Verifies that marking an incomplete ToDo sets it to done. */
     @Test
     void markAsDone_incompleteTask_isDone() {
@@ -61,8 +72,10 @@ class TodoTaskTest {
     void snoozeBy_todoTask_throwsIllegalArgumentException() {
         TodoTask task = new TodoTask("read book");
 
-        assertThrows(IllegalArgumentException.class, () ->
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 task.snoozeBy(new DurationPeriod(Period.ZERO, Duration.ofHours(1))));
+
+        assertEquals("ToDos cannot be snoozed.", exception.getMessage());
     }
 
     /** Verifies that replacing a ToDo ending time is rejected. */
@@ -70,9 +83,11 @@ class TodoTaskTest {
     void reschedule_todoTask_throwsIllegalArgumentException() {
         TodoTask task = new TodoTask("read book");
 
-        assertThrows(IllegalArgumentException.class, () ->
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 task.reschedule(TaskTimes.makeDeadlineTimes(
                         LocalDateTime.of(2026, 8, 26, 14, 0))));
+
+        assertEquals("ToDos cannot be rescheduled.", exception.getMessage());
     }
 
     /** Verifies that requesting a ToDo ending time is rejected. */
@@ -80,6 +95,9 @@ class TodoTaskTest {
     void getEndTime_todoTask_throwsIllegalArgumentException() {
         TodoTask task = new TodoTask("read book");
 
-        assertThrows(IllegalArgumentException.class, task::getEndTime);
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class, task::getEndTime);
+
+        assertEquals("Task has no ending time.", exception.getMessage());
     }
 }

@@ -15,7 +15,7 @@
 - [x] Update `test/ui-test-plan.md`.
 - [x] Run all 25 documented CLI cases successfully.
 - [x] Run unit tests, GUI tests, Checkstyle, and Javadoc successfully.
-- [ ] Review and commit the completed improvement.
+- [x] Review and commit the completed improvement.
 
 ## Improvement 2: Parser and duration edge cases
 
@@ -31,9 +31,12 @@
 
 ## Improvement 3: Task-model invariants
 
-- [ ] Expand `TaskTimes` invariant coverage.
-- [ ] Expand task status-transition coverage.
-- [ ] Expand capacity and invalid-index coverage.
+- [x] Expand `TaskTimes` invariant coverage.
+- [x] Expand task status-transition coverage.
+- [x] Expand capacity and invalid-index coverage.
+- [x] Assert exact exception messages for task-model validation failures.
+- [x] Apply the clarified implicit-trimming policy outside whitespace-focused tests.
+- [x] Run JUnit, `clitest`, GUI tests, Checkstyle, Javadoc, `check`, and the 25-case UI plan.
 
 ## Improvement 4: Persistence and rollback
 
