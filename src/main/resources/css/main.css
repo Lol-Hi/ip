@@ -44,6 +44,17 @@
     -fx-background-color: transparent;
 }
 
+.conversation-background {
+    -fx-background-color: #eaf7e7;
+}
+
+.conversation-background .viewport {
+    -fx-background-color: #eaf7e7;
+    -fx-background-image: url("../images/clover-pattern.png");
+    -fx-background-position: 0 0;
+    -fx-background-repeat: repeat;
+}
+
 .text-field {
     -fx-font-family: "Patrick Hand";
     -fx-font-size: 16px;

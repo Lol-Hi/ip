@@ -18,6 +18,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -104,6 +105,15 @@ class MainWindowTest {
         assertNotNull(avatar.getImage());
         assertTrue(avatar.getImage().getWidth() > 0);
         assertTrue(avatar.getImage().getHeight() > 0);
+    }
+
+    /** Verifies that the conversation viewport has the clover background layer. */
+    @Test
+    void mainWindow_conversationBackground_usesConfiguredPattern(FxRobot robot) {
+        ScrollPane scrollPane = robot.lookup("#scrollPane").query();
+
+        assertTrue(scrollPane.getStyleClass().contains("conversation-background"));
+        assertNotNull(scrollPane.lookup(".viewport"));
     }
 
     /** Verifies that the main window rejects a missing chatbot dependency. */

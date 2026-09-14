@@ -37,8 +37,9 @@ header-specific shade; the existing `#D38B08` primary pineapple remains an
 accent colour for text and focus states.
 
 A future background-focused increment may introduce a custom green-based
-background with a repeating `🍀` pattern. That pattern is explicitly out of
-scope for this header increment.
+background with a repeating `🍀` pattern. See
+`docs/clover-pattern-background-specification.md`. That pattern is explicitly
+out of scope for this header increment.
 
 ## Functional requirements
 

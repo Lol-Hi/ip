@@ -24,7 +24,10 @@ This checklist tracks the planned GUI and response-personality improvements.
   warm pale-yellow text. See `docs/task-list-rendering-specification.md`.
 - [x] Add a branded header or title area with the avatar and a tagline. See
   `docs/branded-header-specification.md`.
-- [ ] Explore a custom green-based background with a repeating `🍀` pattern.
+- [x] Add a custom green-based background with a repeating `🍀` pattern.
+  See `docs/clover-pattern-background-specification.md`. The approved mockup
+  covers the background treatment only; the rest of the current chatbot UI
+  remains unchanged. Manual visual acceptance remains after automated checks.
 - [ ] Improve the user avatar and add stronger chatbot avatar treatment.
 - [ ] Review response wording for grammar and voice consistency.
 - [ ] Keep teasing and error messages friendly and non-hostile.

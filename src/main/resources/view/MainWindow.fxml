@@ -60,6 +60,7 @@
         </HBox>
 
         <ScrollPane fx:id="scrollPane"
+                    styleClass="conversation-background"
                     fitToWidth="true"
                     hbarPolicy="NEVER"
                     prefHeight="557.0"

@@ -78,6 +78,17 @@
   The header has the `brand-header` style and is outside the conversation
   container.
 
+## Test Case: Main window displays the clover conversation background
+
+- Aim: Verify that the conversation viewport exposes the non-interactive
+  background layer used for the repeating clover pattern.
+- Test: `MainWindowTest.mainWindow_conversationBackground_usesConfiguredPattern`
+- Actions: Launch the main window and inspect the conversation ScrollPane.
+- Expected result: The ScrollPane has the `conversation-background` style class
+  and contains its standard viewport behind the transparent dialogue container.
+  The bundled clover pattern resource is verified by
+  `LuckyNoGuiTest.luckyNoGui_resourcePaths_areAvailable`.
+
 ## Test Case: Main window remains usable after a normal command
 
 - Aim: Verify that a non-exit command clears the input field without disabling
@@ -115,8 +126,8 @@
 - Aim: Verify that the FXML layout, CSS stylesheets, avatar images, and bundled
   fonts are available from the application classpath.
 - Test: `LuckyNoGuiTest.luckyNoGui_resourcePaths_areAvailable`
-- Expected result: The layout, both CSS stylesheets, both avatar resources, and
-  both font resources are all found.
+- Expected result: The layout, both CSS stylesheets, the two avatar resources,
+  the clover pattern resource, and both font resources are all found.
 
 ## Test Case: Main window preserves usable minimum dimensions
 
