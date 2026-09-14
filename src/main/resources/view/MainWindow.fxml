@@ -15,7 +15,9 @@
             fx:controller="luckynoslacky.luckyui.gui.MainWindow">
     <children>
         <ScrollPane fx:id="scrollPane"
+                    accessibleText="Here you see the whole chat history! Just use your arrow or page keys to scroll up scroll down can liao"
                     fitToWidth="true"
+                    focusTraversable="true"
                     hbarPolicy="NEVER"
                     prefHeight="557.0"
                     prefWidth="400.0"
@@ -37,13 +39,18 @@
               AnchorPane.rightAnchor="8.0"
               AnchorPane.bottomAnchor="8.0">
             <TextField fx:id="userInput"
+                       accessibleText="Lai tell me what you want me to do, then click Send"
+                       accessibleHelp="You can also press Enter to send the command without using the mouse."
                        id="userInput"
                        prefHeight="41.0"
                        promptText="Enter command..."
                        onAction="#handleUserInput"
                        HBox.hgrow="ALWAYS" />
 
-            <Button id="sendButton"
+            <Button fx:id="sendButton"
+                    accessibleText="Send command"
+                    accessibleHelp="Sends the command currently entered in the command field."
+                    id="sendButton"
                     text="Send"
                     prefHeight="41.0"
                     prefWidth="70.0"

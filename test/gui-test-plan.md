@@ -14,21 +14,60 @@
   circular user avatar.
 - Test: `DialogueBoxTest.dialogueBox_userMessage_displaysCircularAvatarOnRight`
 - Expected result: The row is right-aligned, displays only the raw message
-  text, applies the user dialogue CSS style, and clips the avatar circularly.
+  text, applies the user dialogue CSS style, clips the avatar circularly, and
+  exposes the accessible text `You: <message>` without making the avatar
+  keyboard-focusable.
 
 ## Test Case: DialogueBox displays chatbot messages
 
 - Aim: Verify that application messages use a wider left-aligned bubble.
 - Test: `DialogueBoxTest.dialogueBox_chatbotMessage_displaysBubbleOnLeft`
 - Expected result: The row is left-aligned, preserves the application message
-  text, and applies the chatbot dialogue CSS style.
+  text, applies the chatbot dialogue CSS style, and exposes the accessible text
+  `LuckyNoSlacky: <message>`.
 
 ## Test Case: DialogueBox displays warning messages
 
 - Aim: Verify that application warnings use a distinct visual style.
 - Test: `DialogueBoxTest.dialogueBox_warningMessage_appliesWarningStyle`
 - Expected result: The warning is left-aligned and applies the warning
-  dialogue CSS style.
+  dialogue CSS style, exposes the drafted warning accessible text, and shows a
+  visible warning marker.
+
+## Test Case: Main window exposes accessible labels
+
+- Aim: Verify that the conversation history, command field, and Send button
+  expose the drafted labels from the accessibility specification.
+- Test: `MainWindowTest.mainWindow_controls_exposeAccessibleLabels`
+- Expected result: Each control exposes its configured accessible text and the
+  command field and Send button expose their keyboard-use help text.
+
+## Test Case: Main window focuses the command field on startup
+
+- Aim: Verify that keyboard users can start typing immediately.
+- Test: `MainWindowTest.mainWindow_startApplication_focusesCommandInput`
+- Expected result: The command field has focus after the window opens.
+
+## Test Case: Main window supports forward keyboard traversal
+
+- Aim: Verify that Tab follows the specified focus order.
+- Test: `MainWindowTest.mainWindow_tabTraversal_movesForwardThroughControls`
+- Expected result: Focus moves from command input to Send, then conversation
+  history, then back to command input.
+
+## Test Case: Main window supports reverse keyboard traversal
+
+- Aim: Verify that Shift+Tab reverses the specified focus order.
+- Test: `MainWindowTest.mainWindow_tabTraversal_movesBackwardThroughControls`
+- Expected result: Focus moves from conversation history to Send, then back to
+  command input.
+
+## Test Case: Send-button submission restores focus
+
+- Aim: Verify that keyboard users can continue typing after using Send.
+- Test: `MainWindowTest.mainWindow_sendButtonSubmission_returnsFocusToCommandInput`
+- Expected result: Focus returns to the command field after a Send-button
+  submission.
 
 ## Test Case: Main window displays a conversation
 
@@ -129,3 +168,7 @@ may require a desktop automation capability or manual verification:
 - Resize the window and verify that message text and avatars remain readable.
 - Verify that both existing avatar assets are displayed as circular images.
 - Add a task, close the GUI, relaunch it, and verify that the task persists.
+- Use a screen reader to confirm that the drafted labels and message roles are
+  announced meaningfully.
+- Enter `bye` and verify that both command controls become unavailable while
+  the farewell remains visible before the delayed exit.

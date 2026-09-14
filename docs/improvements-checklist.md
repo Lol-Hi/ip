@@ -19,21 +19,24 @@ Last updated: 2026-09-14
 
 - [x] Add and update unit tests for response severity and GUI behavior.
 - [x] Run the Java 25 JUnit suite.
-- [x] Run the JavaFX GUI regression suite.
+- [x] Run a fresh JavaFX GUI regression suite (14 of 14 tests passed).
 - [x] Run Checkstyle and Javadoc validation.
-- [x] Run all 25 documented CLI UI test cases.
-- [x] Build and launch the GUI fat JAR successfully.
+- [x] Run all 25 documented CLI UI test cases with isolated task data.
+- [x] Build and launch a fresh GUI fat JAR successfully.
+- [x] Verify task persistence across packaged application restarts in an
+  isolated data directory.
+- [x] Implement the accessibility labels and keyboard-navigation specification.
 
-## Remaining manual acceptance checks
+## Manual acceptance checks passed
 
-- [ ] Verify the GUI visually at the 320 x 480 minimum size.
-- [ ] Resize the window and confirm that bubbles, text, and avatars remain readable.
-- [ ] Confirm that the conversation scrolls to the newest message after many commands.
-- [ ] Enter `bye` and confirm that the farewell remains visible before delayed exit.
-- [ ] Add a task, close the GUI, relaunch it, and confirm persistence.
+- [x] Verify visually that the GUI remains readable at 320 x 480.
+- [x] Resize the window and confirm that bubbles, text, and avatars remain readable.
+- [x] Confirm that the conversation scrolls to the newest message after many commands.
+- [x] Enter `bye` and confirm that the GUI farewell remains visible before delayed exit.
+- [x] Add a task through the GUI, close it, relaunch it, and confirm persistence.
 
 ## Possible future improvements
 
-- [ ] Review accessibility labels and keyboard navigation for the final GUI.
+- [ ] Perform a screen-reader review of the implemented accessible labels.
 - [ ] Consider whether the backend response severity and GUI dialogue type should
   be consolidated after the interface requirements stabilize.

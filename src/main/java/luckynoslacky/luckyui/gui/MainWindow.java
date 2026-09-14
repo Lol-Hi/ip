@@ -3,9 +3,13 @@ package luckynoslacky.luckyui.gui;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import luckynoslacky.LuckyNoSlacky;
@@ -25,6 +29,9 @@ public class MainWindow {
 
     @FXML
     private TextField userInput;
+
+    @FXML
+    private Button sendButton;
 
     private LuckyNoSlacky chatbot;
 
@@ -48,6 +55,8 @@ public class MainWindow {
     private void initialize() {
         dialogContainer.heightProperty().addListener((observable, oldHeight, newHeight) ->
                         scrollPane.setVvalue(1.0));
+        configureKeyboardTraversal();
+        Platform.runLater(userInput::requestFocus);
     }
 
     /**
@@ -79,6 +88,7 @@ public class MainWindow {
     private void handleUserInput() {
         String userInputText = userInput.getText().trim();
         if (userInputText.isEmpty()) {
+            userInput.requestFocus();
             return;
         }
 
@@ -93,11 +103,15 @@ public class MainWindow {
 
         if (response.shouldExit()) {
             userInput.setDisable(true);
+            sendButton.setDisable(true);
+            scrollPane.requestFocus();
 
             PauseTransition pause = new PauseTransition(
                     Duration.seconds(EXIT_DELAY_SECONDS));
             pause.setOnFinished(event -> Platform.exit());
             pause.play();
+        } else {
+            userInput.requestFocus();
         }
     }
 
@@ -128,5 +142,32 @@ public class MainWindow {
                         message,
                         chatbotImage,
                         dialogueType));
+    }
+
+    /** Configures keyboard traversal for the main interactive controls. */
+    private void configureKeyboardTraversal() {
+        configureTraversal(userInput, sendButton, scrollPane);
+        configureTraversal(sendButton, scrollPane, userInput);
+        configureTraversal(scrollPane, userInput, sendButton);
+    }
+
+    /**
+     * Configures forward and reverse Tab traversal for one interactive node.
+     *
+     * @param currentNode node receiving the Tab key
+     * @param forwardNode node focused by Tab
+     * @param backwardNode node focused by Shift+Tab
+     */
+    private void configureTraversal(
+            Node currentNode,
+            Node forwardNode,
+            Node backwardNode) {
+        currentNode.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.TAB) {
+                Node nextNode = event.isShiftDown() ? backwardNode : forwardNode;
+                nextNode.requestFocus();
+                event.consume();
+            }
+        });
     }
 }

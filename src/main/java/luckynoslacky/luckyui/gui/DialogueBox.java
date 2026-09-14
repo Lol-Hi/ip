@@ -2,6 +2,7 @@ package luckynoslacky.luckyui.gui;
 
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Pos;
+import javafx.scene.AccessibleRole;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -26,6 +27,10 @@ public class DialogueBox extends HBox {
     private static final double CHATBOT_BUBBLE_WIDTH_FRACTION = 0.86;
     private static final double USER_BUBBLE_WIDTH_FRACTION = 0.70;
     private static final double DIALOGUE_SPACING = 8.0;
+    private static final String USER_ACCESSIBLE_PREFIX = "You: ";
+    private static final String CHATBOT_ACCESSIBLE_PREFIX = "LuckyNoSlacky: ";
+    private static final String WARNING_ACCESSIBLE_PREFIX =
+            "Bodoh sia like that also can kena warning ";
 
     /** Identifies the speaker and visual treatment of a dialogue row. */
     public enum DialogueType {
@@ -52,6 +57,15 @@ public class DialogueBox extends HBox {
         messageLabel.getStyleClass().add("message-content");
         messageLabel.setWrapText(true);
 
+        if (dialogueType == DialogueType.WARNING) {
+            Label warningMarker = new Label("⚠");
+            warningMarker.getStyleClass().add("warning-marker");
+            warningMarker.setAccessibleText("");
+            warningMarker.setFocusTraversable(false);
+            messageLabel.setGraphic(warningMarker);
+            messageLabel.setGraphicTextGap(6.0);
+        }
+
         VBox messageContainer = new VBox(messageLabel);
         messageContainer.setMinWidth(0.0);
 
@@ -63,9 +77,14 @@ public class DialogueBox extends HBox {
                 AVATAR_SIZE / 2.0,
                 AVATAR_SIZE / 2.0,
                 AVATAR_SIZE / 2.0));
+        imageView.setAccessibleText("");
+        imageView.setFocusTraversable(false);
         imageView.getStyleClass().add("avatar");
 
         setMaxWidth(Double.MAX_VALUE);
+        setAccessibleRole(AccessibleRole.TEXT);
+        setAccessibleText(getAccessibleText(message, dialogueType));
+        setFocusTraversable(false);
         setAlignment(dialogueType == DialogueType.USER
                 ? Pos.CENTER_RIGHT
                 : Pos.CENTER_LEFT);
@@ -104,6 +123,23 @@ public class DialogueBox extends HBox {
             case CHATBOT -> CHATBOT_DIALOGUE_STYLE;
             case USER -> USER_DIALOGUE_STYLE;
             case WARNING -> WARNING_DIALOGUE_STYLE;
+        };
+    }
+
+    /**
+     * Returns the screen-reader text for a dialogue role.
+     *
+     * @param message message content
+     * @param dialogueType dialogue role
+     * @return role-aware accessible message
+     */
+    private static String getAccessibleText(
+            String message,
+            DialogueType dialogueType) {
+        return switch (dialogueType) {
+            case CHATBOT -> CHATBOT_ACCESSIBLE_PREFIX + message;
+            case USER -> USER_ACCESSIBLE_PREFIX + message;
+            case WARNING -> WARNING_ACCESSIBLE_PREFIX + message;
         };
     }
 }

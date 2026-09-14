@@ -1,6 +1,7 @@
 package luckynoslacky.luckyui.gui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -51,6 +52,8 @@ class DialogueBoxTest {
                 DialogueBox.USER_DIALOGUE_STYLE));
             assertTrue(messageLabel.getStyleClass().contains("message-content"));
             assertTrue(imageView.getClip() instanceof Circle);
+            assertEquals("You: todo read book", dialogue.getAccessibleText());
+            assertFalse(imageView.isFocusTraversable());
         });
     }
 
@@ -74,6 +77,7 @@ class DialogueBoxTest {
             assertTrue(dialogue.getStyleClass().contains(
                 DialogueBox.CHATBOT_DIALOGUE_STYLE));
             assertTrue(messageLabel.getStyleClass().contains("message-content"));
+            assertEquals("LuckyNoSlacky: Got it.", dialogue.getAccessibleText());
         });
     }
 
@@ -92,6 +96,13 @@ class DialogueBoxTest {
             assertEquals(Pos.CENTER_LEFT, dialogue.getAlignment());
             assertTrue(dialogue.getStyleClass().contains(
                     DialogueBox.WARNING_DIALOGUE_STYLE));
+            assertEquals(
+                    "Bodoh sia like that also can kena warning "
+                            + "That command needs more detail.",
+                    dialogue.getAccessibleText());
+            Label messageLabel = (Label) ((VBox) dialogue.getChildren().get(1))
+                    .getChildren().get(0);
+            assertEquals("⚠", ((Label) messageLabel.getGraphic()).getText());
         });
     }
 }
