@@ -40,9 +40,14 @@
 
 ## Improvement 4: Persistence and rollback
 
-- [ ] Expand mutation rollback coverage for save failures.
-- [ ] Expand reload-after-save coverage.
-- [ ] Expand malformed and oversized CSV coverage.
+- [x] Expand mutation rollback coverage for save failures.
+- [x] Expand reload-after-save coverage.
+- [x] Expand malformed and oversized CSV coverage.
+- [x] Include syntactically malformed CSV and semantically invalid records.
+- [x] Compare persisted task records rather than raw file bytes.
+- [x] Add a bounded physically large CSV stress test.
+- [ ] Run JUnit, `clitest`, GUI tests, Checkstyle, Javadoc, `check`, and the 25-case UI plan.
+- [ ] Review and commit the completed improvement separately.
 
 ## Improvement 5: Chatbot startup and error paths
 

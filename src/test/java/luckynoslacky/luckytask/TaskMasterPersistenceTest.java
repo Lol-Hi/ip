@@ -3,11 +3,18 @@ package luckynoslacky.luckytask;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -86,8 +93,10 @@ class TaskMasterPersistenceTest {
     void addTask_saveFailure_removesTask() {
         TaskMaster taskMaster = new TaskMaster(100, new FailingSaver());
 
-        assertThrows(LuckyNoStorageException.class, () ->
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, () ->
                 taskMaster.addTask(new TodoTask("read book")));
+        assertEquals("simulated save failure", exception.getMessage());
         assertEquals(0, taskMaster.getTaskCount());
     }
 
@@ -98,8 +107,24 @@ class TaskMasterPersistenceTest {
         TodoTask task = new TodoTask("read book");
         taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
 
-        assertThrows(LuckyNoStorageException.class, () -> taskMaster.markTaskDone(1));
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, () -> taskMaster.markTaskDone(1));
+        assertEquals("simulated save failure", exception.getMessage());
         assertFalse(task.isDone());
+    }
+
+    /** Verifies that a failed save restores a completed task's status. */
+    @Test
+    void unmarkTaskUndone_saveFailure_restoresPreviousStatus() {
+        TaskMaster taskMaster = new TaskMaster(100, new FailingSaver());
+        TodoTask task = new TodoTask("read book");
+        task.markAsDone();
+        taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
+
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, () -> taskMaster.unmarkTaskUndone(1));
+        assertEquals("simulated save failure", exception.getMessage());
+        assertTrue(task.isDone());
     }
 
     /** Verifies that a failed save restores a deleted task. */
@@ -109,10 +134,89 @@ class TaskMasterPersistenceTest {
         TodoTask task = new TodoTask("read book");
         taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
 
-        assertThrows(LuckyNoStorageException.class, () -> taskMaster.deleteTask(1));
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, () -> taskMaster.deleteTask(1));
+        assertEquals("simulated save failure", exception.getMessage());
         assertEquals(1, taskMaster.getTaskCount());
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
                 LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
+    }
+
+    /** Verifies that a failed middle deletion restores the original ordering. */
+    @Test
+    void deleteTask_middleSaveFailure_restoresOriginalOrdering() {
+        TaskMaster taskMaster = new TaskMaster(100, new FailingSaver());
+        taskMaster.loadTasksFromCsvStorageRecord(List.of(
+                new TodoTask("first"),
+                new TodoTask("middle"),
+                new TodoTask("last")));
+
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, () -> taskMaster.deleteTask(2));
+        assertEquals("simulated save failure", exception.getMessage());
+
+        assertEquals("1.[T][ ] first\n"
+                        + "2.[T][ ] middle\n"
+                        + "3.[T][ ] last",
+                taskMaster.listTasks().toDisplayString());
+    }
+
+    /** Verifies that a failed mutation leaves the existing CSV records intact. */
+    @Test
+    void addTask_saveFailure_preservesExistingCsvRecords() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("existing-tasks.csv");
+        CsvSaver workingSaver = new CsvSaver(dataFile);
+        TaskMaster initialTaskMaster = new TaskMaster(100, workingSaver);
+        initialTaskMaster.addTask(new TodoTask("existing task"));
+        List<List<String>> recordsBefore = readCsvRecords(dataFile);
+
+        TaskMaster taskMaster = new TaskMaster(
+                100, new FailingSaver(dataFile));
+        taskMaster.loadTasksFromCsvStorageRecord(
+                List.of(new TodoTask("existing task")));
+
+        assertThrows(LuckyNoStorageException.class, () ->
+                taskMaster.addTask(new TodoTask("new task")));
+
+        assertEquals(recordsBefore, readCsvRecords(dataFile));
+        assertEquals("1.[T][ ] existing task",
+                taskMaster.listTasks().toDisplayString());
+    }
+
+    /** Verifies failed status and deletion mutations preserve persisted data. */
+    @Test
+    void statusAndDeleteMutation_saveFailure_preservesExistingCsvRecords()
+            throws Exception {
+        Path dataFile = temporaryDirectory.resolve("status-rollback.csv");
+        CsvSaver workingSaver = new CsvSaver(dataFile);
+        TaskMaster initialTaskMaster = new TaskMaster(100, workingSaver);
+        TodoTask completedTask = new TodoTask("completed task");
+        completedTask.markAsDone();
+        initialTaskMaster.loadTasksFromCsvStorageRecord(List.of(completedTask));
+        initialTaskMaster.addTask(new TodoTask("second task"));
+        List<List<String>> recordsBefore = readCsvRecords(dataFile);
+
+        TaskMaster taskMaster = new TaskMaster(
+                100, new FailingSaver(dataFile));
+        TodoTask loadedCompletedTask = new TodoTask("completed task");
+        loadedCompletedTask.markAsDone();
+        taskMaster.loadTasksFromCsvStorageRecord(List.of(
+                loadedCompletedTask, new TodoTask("second task")));
+
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, () -> taskMaster.markTaskDone(2));
+        assertEquals("simulated save failure", exception.getMessage());
+        exception = assertThrows(
+                LuckyNoStorageException.class, () -> taskMaster.unmarkTaskUndone(1));
+        assertEquals("simulated save failure", exception.getMessage());
+        exception = assertThrows(
+                LuckyNoStorageException.class, () -> taskMaster.deleteTask(2));
+        assertEquals("simulated save failure", exception.getMessage());
+
+        assertEquals(recordsBefore, readCsvRecords(dataFile));
+        assertEquals("1.[T][X] completed task\n"
+                        + "2.[T][ ] second task",
+                taskMaster.listTasks().toDisplayString());
     }
 
     /** Verifies that null or null-containing loaded lists are rejected. */
@@ -147,10 +251,24 @@ class TaskMasterPersistenceTest {
                 new CsvSaver(temporaryDirectory.resolve("tasks.csv")));
     }
 
+    /** Reads all CSV records from a persistence file. */
+    private List<List<String>> readCsvRecords(Path dataFile) throws Exception {
+        try (Reader reader = Files.newBufferedReader(dataFile, StandardCharsets.UTF_8);
+             CSVParser parser = CSVFormat.DEFAULT.parse(reader)) {
+            return parser.getRecords().stream()
+                    .map(CSVRecord::toList)
+                    .toList();
+        }
+    }
+
     /** A saver that fails every save attempt for rollback tests. */
     private static class FailingSaver extends CsvSaver {
         FailingSaver() {
-            super(Path.of("unused.csv"));
+            this(Path.of("unused.csv"));
+        }
+
+        FailingSaver(Path dataFile) {
+            super(dataFile);
         }
 
         /** Always throws to simulate a persistence failure. */

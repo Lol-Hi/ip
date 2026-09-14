@@ -152,9 +152,11 @@ class TaskMasterSchedulingTest {
         EventTask task = new EventTask("project meeting", EVENT_START, EVENT_END);
         taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
 
-        assertThrows(LuckyNoStorageException.class, () ->
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, () ->
                 taskMaster.snoozeTaskBy(1, new DurationPeriod(Period.ZERO, Duration.ofHours(2))));
 
+        assertEquals("simulated save failure", exception.getMessage());
         assertEquals(EVENT_START, task.getStartTime());
         assertEquals(EVENT_END, task.getEndTime());
     }
@@ -167,9 +169,11 @@ class TaskMasterSchedulingTest {
         taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
         LocalDateTime newEnd = LocalDateTime.of(2026, 8, 6, 18, 0);
 
-        assertThrows(LuckyNoStorageException.class, () ->
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, () ->
                 taskMaster.snoozeTaskTo(1, newEnd));
 
+        assertEquals("simulated save failure", exception.getMessage());
         assertEquals(EVENT_START, task.getStartTime());
         assertEquals(EVENT_END, task.getEndTime());
     }
@@ -183,10 +187,47 @@ class TaskMasterSchedulingTest {
         LocalDateTime newStart = LocalDateTime.of(2026, 8, 7, 10, 0);
         LocalDateTime newEnd = LocalDateTime.of(2026, 8, 7, 11, 0);
 
-        assertThrows(LuckyNoStorageException.class, () ->
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, () ->
                 taskMaster.rescheduleTask(
                         1, TaskTimes.makeEventTimes(newStart, newEnd)));
 
+        assertEquals("simulated save failure", exception.getMessage());
+        assertEquals(EVENT_START, task.getStartTime());
+        assertEquals(EVENT_END, task.getEndTime());
+    }
+
+    /** Verifies that failed schedule mutations preserve persisted task data. */
+    @Test
+    void scheduleMutation_saveFailure_preservesExistingCsvRecords() {
+        Path dataFile = temporaryDirectory.resolve("schedule-rollback.csv");
+        CsvSaver workingSaver = new CsvSaver(dataFile);
+        TaskMaster initialTaskMaster = new TaskMaster(100, workingSaver);
+        initialTaskMaster.addTask(new EventTask(
+                "project meeting", EVENT_START, EVENT_END));
+        List<List<String>> recordsBefore = readTaskRecords(dataFile);
+
+        TaskMaster taskMaster = new TaskMaster(
+                100, new FailingSaver(dataFile));
+        EventTask task = new EventTask("project meeting", EVENT_START, EVENT_END);
+        taskMaster.loadTasksFromCsvStorageRecord(List.of(task));
+
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, () -> taskMaster.snoozeTaskBy(
+                        1, new DurationPeriod(Period.ZERO, Duration.ofHours(2))));
+        assertEquals("simulated save failure", exception.getMessage());
+        exception = assertThrows(
+                LuckyNoStorageException.class, () -> taskMaster.snoozeTaskTo(
+                        1, LocalDateTime.of(2026, 8, 6, 18, 0)));
+        assertEquals("simulated save failure", exception.getMessage());
+        exception = assertThrows(
+                LuckyNoStorageException.class, () -> taskMaster.rescheduleTask(
+                        1, TaskTimes.makeEventTimes(
+                                LocalDateTime.of(2026, 8, 7, 10, 0),
+                                LocalDateTime.of(2026, 8, 7, 11, 0))));
+        assertEquals("simulated save failure", exception.getMessage());
+
+        assertEquals(recordsBefore, readTaskRecords(dataFile));
         assertEquals(EVENT_START, task.getStartTime());
         assertEquals(EVENT_END, task.getEndTime());
     }
@@ -196,10 +237,21 @@ class TaskMasterSchedulingTest {
         return new TaskMaster(new CsvSaver(temporaryDirectory.resolve("tasks.csv")));
     }
 
+    /** Reads parsed task records from a persistence file. */
+    private List<List<String>> readTaskRecords(Path dataFile) {
+        return new CsvSaver(dataFile).load().stream()
+                .map(Task::getCsvStorageFields)
+                .toList();
+    }
+
     /** A saver that fails every save attempt for rollback tests. */
     private static class FailingSaver extends CsvSaver {
         FailingSaver() {
-            super(Path.of("unused.csv"));
+            this(Path.of("unused.csv"));
+        }
+
+        FailingSaver(Path dataFile) {
+            super(dataFile);
         }
 
         /** Always throws to simulate a persistence failure. */
