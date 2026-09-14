@@ -1,17 +1,25 @@
 package luckynoslacky.luckystorage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -296,6 +304,98 @@ class CsvSaverTest {
         assertTrue(saver.load().isEmpty());
     }
 
+    /** Verifies load-side security failures retain their original cause. */
+    @Test
+    void load_securityFailures_throwStorageException() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("secured.csv");
+        Files.writeString(dataFile,
+                "Task type,isCompleted,Description,startTime,endTime\n",
+                StandardCharsets.UTF_8);
+        for (FileOperation operation : List.of(
+                FileOperation.NOT_EXISTS,
+                FileOperation.IS_REGULAR_FILE,
+                FileOperation.NEW_BUFFERED_READER)) {
+            CsvSaver saver = new CsvSaver(
+                    dataFile,
+                    new FaultInjectingFileOperations(Set.of(operation)));
+
+            LuckyNoStorageException exception = assertThrows(
+                    LuckyNoStorageException.class, saver::load);
+
+            assertEquals("Unable to load tasks.", exception.getMessage());
+            assertInstanceOf(SecurityException.class, exception.getCause());
+        }
+    }
+
+    /** Verifies save-side security failures consistently become storage errors. */
+    @Test
+    void save_securityFailures_throwStorageException() {
+        for (FileOperation operation : List.of(
+                FileOperation.CREATE_DIRECTORIES,
+                FileOperation.CREATE_TEMPORARY_FILE,
+                FileOperation.NEW_BUFFERED_WRITER,
+                FileOperation.MOVE_ATOMICALLY,
+                FileOperation.DELETE_IF_EXISTS)) {
+            CsvSaver saver = new CsvSaver(
+                    temporaryDirectory.resolve(operation.name() + ".csv"),
+                    new FaultInjectingFileOperations(Set.of(operation)));
+
+            LuckyNoStorageException exception = assertThrows(
+                    LuckyNoStorageException.class, () -> saver.save(createTaskList()));
+
+            assertEquals("Unable to save tasks.", exception.getMessage());
+            assertInstanceOf(SecurityException.class, exception.getCause());
+        }
+    }
+
+    /** Verifies fallback replacement security failures become storage errors. */
+    @Test
+    void save_nonAtomicMoveSecurityFailure_throwsStorageException() {
+        CsvSaver saver = new CsvSaver(
+                temporaryDirectory.resolve("fallback-move.csv"),
+                new FaultInjectingFileOperations(
+                        Set.of(FileOperation.MOVE_REPLACING), true));
+
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, () -> saver.save(createTaskList()));
+
+        assertEquals("Unable to save tasks.", exception.getMessage());
+        assertInstanceOf(SecurityException.class, exception.getCause());
+    }
+
+    /** Verifies a primary save failure retains a cleanup failure as suppressed. */
+    @Test
+    void save_primaryAndCleanupFailures_preservesPrimaryFailure() {
+        CsvSaver saver = new CsvSaver(
+                temporaryDirectory.resolve("multiple-failures.csv"),
+                new FaultInjectingFileOperations(Set.of(
+                        FileOperation.MOVE_ATOMICALLY,
+                        FileOperation.DELETE_IF_EXISTS)));
+
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, () -> saver.save(createTaskList()));
+
+        assertEquals("MOVE_ATOMICALLY", exception.getCause().getMessage());
+        assertEquals(1, exception.getSuppressed().length);
+        assertInstanceOf(
+                SecurityException.class,
+                exception.getSuppressed()[0].getCause());
+    }
+
+    /** Verifies a cleanup-only failure causes task mutations to roll back. */
+    @Test
+    void addTask_cleanupFailure_rollsBackTaskList() {
+        CsvSaver saver = new CsvSaver(
+                temporaryDirectory.resolve("cleanup-failure.csv"),
+                new FaultInjectingFileOperations(Set.of(FileOperation.DELETE_IF_EXISTS)));
+        TaskMaster taskMaster = new TaskMaster(100, saver);
+
+        assertThrows(LuckyNoStorageException.class, () ->
+                taskMaster.addTask(new TodoTask("read book")));
+
+        assertEquals(0, taskMaster.getTaskCount());
+    }
+
     /** Verifies saving creates a missing parent directory. */
     @Test
     void save_missingParentDirectory_createsDirectoryAndFile() {
@@ -445,6 +545,115 @@ class CsvSaverTest {
                 taskMaster.loadTasksFromCsvStorageRecord(List.of(
                         new TodoTask("first"),
                         new TodoTask("second"))));
+    }
+
+    /** Creates a task list containing one task for save-failure tests. */
+    private TaskList createTaskList() {
+        TaskList taskList = new TaskList();
+        taskList.addTask(new TodoTask("read book"));
+        return taskList;
+    }
+
+    /** Identifies a filesystem operation that can raise a security failure. */
+    private enum FileOperation {
+        NOT_EXISTS,
+        IS_REGULAR_FILE,
+        NEW_BUFFERED_READER,
+        CREATE_DIRECTORIES,
+        CREATE_TEMPORARY_FILE,
+        NEW_BUFFERED_WRITER,
+        MOVE_ATOMICALLY,
+        MOVE_REPLACING,
+        DELETE_IF_EXISTS
+    }
+
+    /** Provides real filesystem behavior with selected deterministic failures. */
+    private static final class FaultInjectingFileOperations
+            implements CsvSaver.FileOperations {
+        private final Set<FileOperation> failingOperations;
+        private final boolean doesNotSupportAtomicMove;
+
+        private FaultInjectingFileOperations(Set<FileOperation> failingOperations) {
+            this(failingOperations, false);
+        }
+
+        private FaultInjectingFileOperations(
+                Set<FileOperation> failingOperations,
+                boolean doesNotSupportAtomicMove) {
+            this.failingOperations = EnumSet.copyOf(failingOperations);
+            this.doesNotSupportAtomicMove = doesNotSupportAtomicMove;
+        }
+
+        @Override
+        public boolean notExists(Path path) {
+            failWhenConfigured(FileOperation.NOT_EXISTS);
+            return Files.notExists(path);
+        }
+
+        @Override
+        public boolean isRegularFile(Path path) {
+            failWhenConfigured(FileOperation.IS_REGULAR_FILE);
+            return Files.isRegularFile(path);
+        }
+
+        @Override
+        public BufferedReader newBufferedReader(Path path) throws IOException {
+            failWhenConfigured(FileOperation.NEW_BUFFERED_READER);
+            return Files.newBufferedReader(path, StandardCharsets.UTF_8);
+        }
+
+        @Override
+        public void createDirectories(Path directory) throws IOException {
+            failWhenConfigured(FileOperation.CREATE_DIRECTORIES);
+            Files.createDirectories(directory);
+        }
+
+        @Override
+        public Path createTemporaryFile(Path directory) throws IOException {
+            failWhenConfigured(FileOperation.CREATE_TEMPORARY_FILE);
+            return directory == null
+                    ? Files.createTempFile("luckyNoSlacky-", ".tmp")
+                    : Files.createTempFile(directory, "luckyNoSlacky-", ".tmp");
+        }
+
+        @Override
+        public BufferedWriter newBufferedWriter(Path path) throws IOException {
+            failWhenConfigured(FileOperation.NEW_BUFFERED_WRITER);
+            return Files.newBufferedWriter(path, StandardCharsets.UTF_8);
+        }
+
+        @Override
+        public void moveAtomically(Path source, Path destination) throws IOException {
+            failWhenConfigured(FileOperation.MOVE_ATOMICALLY);
+            if (doesNotSupportAtomicMove) {
+                throw new AtomicMoveNotSupportedException(
+                        source.toString(), destination.toString(), "Test fallback");
+            }
+            Files.move(
+                    source,
+                    destination,
+                    StandardCopyOption.REPLACE_EXISTING,
+                    StandardCopyOption.ATOMIC_MOVE);
+        }
+
+        @Override
+        public void moveReplacing(Path source, Path destination) throws IOException {
+            failWhenConfigured(FileOperation.MOVE_REPLACING);
+            Files.move(source, destination, StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        @Override
+        public boolean deleteIfExists(Path path) throws IOException {
+            failWhenConfigured(FileOperation.DELETE_IF_EXISTS);
+            return Files.deleteIfExists(path);
+        }
+
+        /** Throws a security exception when an operation was configured to fail. */
+        private void failWhenConfigured(FileOperation operation) {
+            if (failingOperations.contains(operation)) {
+                throw new SecurityException(operation.name());
+            }
+        }
     }
 
     /** Reads all records from a saved CSV file. */
