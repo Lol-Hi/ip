@@ -22,7 +22,9 @@ This checklist tracks the planned GUI and response-personality improvements.
 - [x] Keep each LuckyNoSlacky response in one outer message bubble while
   rendering contiguous task output in a single dark Roboto Mono panel with
   warm pale-yellow text. See `docs/task-list-rendering-specification.md`.
-- [ ] Add a branded header or title area with the avatar and a tagline.
+- [x] Add a branded header or title area with the avatar and a tagline. See
+  `docs/branded-header-specification.md`.
+- [ ] Explore a custom green-based background with a repeating `🍀` pattern.
 - [ ] Improve the user avatar and add stronger chatbot avatar treatment.
 - [ ] Review response wording for grammar and voice consistency.
 - [ ] Keep teasing and error messages friendly and non-hostile.

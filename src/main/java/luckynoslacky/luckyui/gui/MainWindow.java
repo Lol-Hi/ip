@@ -7,6 +7,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import luckynoslacky.LuckyNoSlacky;
@@ -32,6 +33,9 @@ public class MainWindow {
     @FXML
     private TextField userInput;
 
+    @FXML
+    private ImageView brandAvatar;
+
     private LuckyNoSlacky chatbot;
 
     private final Image chatbotImage = new Image(
@@ -52,6 +56,7 @@ public class MainWindow {
      */
     @FXML
     private void initialize() {
+        brandAvatar.setImage(chatbotImage);
         dialogContainer.heightProperty().addListener((observable, oldHeight, newHeight) ->
                         scrollPane.setVvalue(1.0));
     }

@@ -2,6 +2,7 @@ package luckynoslacky.luckyui.gui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -18,7 +19,9 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import luckynoslacky.LuckyNoSlacky;
@@ -85,6 +88,22 @@ class MainWindowTest {
         robot.clickOn("#sendButton");
 
         assertEquals(1, dialogueContainer.getChildren().size());
+    }
+
+    /** Verifies that the fixed header displays the approved brand content. */
+    @Test
+    void mainWindow_brandHeader_displaysConfiguredBranding(FxRobot robot) {
+        HBox brandHeader = robot.lookup("#brandHeader").query();
+        Label title = robot.lookup("#brandTitle").query();
+        Label tagline = robot.lookup("#brandTagline").query();
+        ImageView avatar = robot.lookup("#brandAvatar").query();
+
+        assertTrue(brandHeader.getStyleClass().contains("brand-header"));
+        assertEquals("LuckyNoSlacky", title.getText());
+        assertEquals("Your lucky task buddy", tagline.getText());
+        assertNotNull(avatar.getImage());
+        assertTrue(avatar.getImage().getWidth() > 0);
+        assertTrue(avatar.getImage().getHeight() > 0);
     }
 
     /** Verifies that the main window rejects a missing chatbot dependency. */

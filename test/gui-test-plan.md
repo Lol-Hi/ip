@@ -67,6 +67,17 @@
   response tones use their configured neutral, success, information, warning,
   or system-error palettes.
 
+## Test Case: Main window displays the branded header
+
+- Aim: Verify that the fixed header displays the approved LuckyNoSlacky
+  branding before the conversation.
+- Test: `MainWindowTest.mainWindow_brandHeader_displaysConfiguredBranding`
+- Actions: Launch the main window and inspect the branded header nodes.
+- Expected result: The header displays the supplied chatbot avatar,
+  `LuckyNoSlacky` as its title, and `Your lucky task buddy` as its tagline.
+  The header has the `brand-header` style and is outside the conversation
+  container.
+
 ## Test Case: Main window remains usable after a normal command
 
 - Aim: Verify that a non-exit command clears the input field without disabling
@@ -134,4 +145,6 @@ may require a desktop automation capability or manual verification:
 - Enter enough commands to verify that the conversation scrolls to the latest
   message.
 - Resize the window and verify that message text and avatars remain readable.
+- Verify that the branded header remains visible while the conversation
+  scrolls.
 - Add a task, close the GUI, relaunch it, and verify that the task persists.
