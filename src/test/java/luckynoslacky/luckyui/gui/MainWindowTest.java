@@ -16,6 +16,7 @@ import org.testfx.framework.junit5.Start;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -26,9 +27,12 @@ import luckynoslacky.LuckyNoSlacky;
 /** Tests observable interactions in the main JavaFX window. */
 @ExtendWith(ApplicationExtension.class)
 class MainWindowTest {
+    private Stage stage;
+
     /** Loads the production FXML window before each test. */
     @Start
     void start(Stage stage) throws IOException {
+        this.stage = stage;
         FXMLLoader loader = new FXMLLoader(
                 MainWindow.class.getResource("/view/MainWindow.fxml"));
         Parent root = loader.load();
@@ -86,6 +90,37 @@ class MainWindowTest {
         assertEquals(1, dialogueContainer.getChildren().size());
     }
 
+    /** Verifies that a load failure still leaves the GUI usable. */
+    @Test
+    void mainWindow_loadFailure_remainsInteractive(FxRobot robot) {
+        robot.interact(() -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(
+                        MainWindow.class.getResource("/view/MainWindow.fxml"));
+                Parent root = loader.load();
+                MainWindow controller = loader.getController();
+                controller.setChatbot(new LoadFailingChatbot());
+                stage.setScene(new Scene(root));
+                stage.show();
+            } catch (IOException exception) {
+                throw new IllegalStateException(
+                        "Unable to load the test window.", exception);
+            }
+        });
+
+        TextField inputField = robot.lookup("#userInput").query();
+        Button sendButton = robot.lookup("#sendButton").query();
+        VBox dialogueContainer = robot.lookup("#dialogContainer").query();
+
+        assertFalse(inputField.isDisabled());
+        assertFalse(sendButton.isDisabled());
+        assertEquals(2, dialogueContainer.getChildren().size());
+
+        robot.clickOn(inputField).write("list").push(KeyCode.ENTER);
+
+        assertEquals(4, dialogueContainer.getChildren().size());
+    }
+
     /** Verifies that the main window rejects a missing chatbot dependency. */
     @Test
     void setChatbot_nullChatbot_throwsIllegalArgumentException() {
@@ -99,5 +134,13 @@ class MainWindowTest {
     private String getSpeakerLabel(DialogueBox dialogue, int dialogueIndex) {
         VBox messageContainer = (VBox) dialogue.getChildren().get(dialogueIndex);
         return ((Label) messageContainer.getChildren().get(0)).getText();
+    }
+
+    /** Simulates a chatbot whose task data could not be loaded. */
+    private static final class LoadFailingChatbot extends LuckyNoSlacky {
+        @Override
+        public boolean hasLoadError() {
+            return true;
+        }
     }
 }

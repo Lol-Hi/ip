@@ -60,6 +60,9 @@ bye
   `DateTimeParserTest` with a fixed clock
 - Comparison: exact output, ignoring only line-ending differences and one final newline
 - Failure policy: stop immediately after the first failed test case
+- Startup load failures are covered deterministically by
+  `LuckyNoSlackyTest`; the CLI continues in degraded empty-list mode after
+  displaying the loading warning, and normal saves remain available.
 
 ## Test Case: Start and exit
 

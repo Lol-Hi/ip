@@ -56,6 +56,17 @@
 - Actions: Click `Send` without entering a command.
 - Expected result: The greeting remains the only dialogue row.
 
+## Test Case: Main window remains usable after a load failure
+
+- Aim: Verify that the GUI enters degraded empty-list mode when task data
+  cannot be loaded.
+- Test: `MainWindowTest.mainWindow_loadFailure_remainsInteractive`
+- Actions: Launch the main window with a chatbot reporting a startup load
+  failure, then enter `list` and submit it.
+- Expected result: The greeting and loading-error message are displayed once,
+  the input field and Send button remain enabled, and the `list` command adds
+  the normal user and chatbot dialogue rows.
+
 ## Test Case: JavaFX application starts correctly
 
 - Aim: Verify that the production JavaFX application creates the expected

@@ -47,11 +47,24 @@ public class LuckyNoSlacky {
      * @throws IllegalArgumentException if {@code dateTimeParser} is null
      */
     LuckyNoSlacky(DateTimeParser dateTimeParser) {
+        this(dateTimeParser, new CsvSaver());
+    }
+
+    /**
+     * Creates the chatbot with supplied parser and storage dependencies.
+     *
+     * @param dateTimeParser parser used to interpret date and time input
+     * @param csvSaver storage used to load and save tasks
+     * @throws IllegalArgumentException if either dependency is null
+     */
+    LuckyNoSlacky(DateTimeParser dateTimeParser, CsvSaver csvSaver) {
         if (dateTimeParser == null) {
             throw new IllegalArgumentException("Date-time parser cannot be null.");
         }
+        if (csvSaver == null) {
+            throw new IllegalArgumentException("CSV saver cannot be null.");
+        }
 
-        CsvSaver csvSaver = new CsvSaver();
         taskMaster = new TaskMaster(csvSaver);
 
         boolean hasLoadFailure = false;
@@ -126,11 +139,25 @@ public class LuckyNoSlacky {
     public static void main(String[] args) {
         LuckyNoSlacky chatbot = new LuckyNoSlacky(createDateTimeParser());
         LuckyNoCli commandLineInterface = new LuckyNoCli();
+        run(chatbot, commandLineInterface);
+    }
+
+    /**
+     * Runs the command-line interface for a supplied chatbot.
+     *
+     * <p>A load failure leaves the chatbot in a usable empty-list mode, so the
+     * loading warning is shown before the normal command loop begins.</p>
+     *
+     * @param chatbot chatbot to run
+     * @param commandLineInterface interface used for command-line interaction
+     */
+    static void run(
+            LuckyNoSlacky chatbot,
+            LuckyNoCli commandLineInterface) {
         commandLineInterface.showGreeting();
 
         if (chatbot.hasLoadError()) {
             commandLineInterface.showLoadingError();
-            return;
         }
 
         if (!chatbot.chatLoop(commandLineInterface)) {
