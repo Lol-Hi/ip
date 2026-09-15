@@ -27,6 +27,16 @@ The increment does not redesign:
 - dark Roboto Mono task-list panels;
 - avatars, fonts, or input controls.
 
+## Branch ownership boundary
+
+`branch-personality` owns the clover artwork, background colour tokens,
+scoped selectors, mockups, and visual acceptance criteria. It must not modify
+`MainWindow.fxml`, `MainWindow`, scrolling or input logic, shared semantic CSS,
+GUI behaviour, functional tests, or the canonical `test/gui-test-plan.md`.
+The BetterGUI integration owner will apply the background selector to the
+shared conversation viewport and perform the behavioural and GUI validation on
+`branch-BetterGui`.
+
 ## Recommended visual direction
 
 Use a pale green base with low-contrast clover marks:
@@ -130,7 +140,7 @@ Before implementation, choose one of these approaches:
 Whichever option is selected, keep the decorative layer separate from the
 conversation nodes so it cannot intercept input or interfere with scrolling.
 
-## Detailed implementation plan
+## Resource-package and integration plan
 
 ### Phase 1: Confirm the visual asset
 
@@ -143,19 +153,20 @@ conversation nodes so it cannot intercept input or interfere with scrolling.
 5. Add the final asset under the project's existing resource directory with a
    descriptive name such as `clover-pattern.png`.
 
-### Phase 2: Integrate the background into the current layout
+### Phase 2: Package the scoped visual resource
 
-1. Keep the existing fixed yellow header and bottom input row unchanged.
-2. Apply the green base and repeating tile to the `ScrollPane` viewport, not
-   to individual dialogue rows.
-3. Keep `dialogContainer` transparent so the viewport background remains
-   visible behind messages.
-4. Ensure the pattern belongs to the viewport layer, so it stays stationary
-   while the conversation content scrolls over it.
-5. Keep the background layer non-interactive and ensure it does not consume
-   mouse or keyboard events.
-6. Use CSS classes and resource URLs rather than embedding a large image in
+1. Keep the existing fixed yellow header and bottom input row as integration
+   constraints.
+2. Provide a scoped `.personality-background` selector that applies the green
+   base and repeating tile to the eventual conversation viewport.
+3. Document that the viewport background must remain behind the transparent
+   `dialogContainer` while messages scroll over it.
+4. Document that the background layer must be non-interactive and must not
+   consume mouse or keyboard events.
+5. Use CSS classes and resource URLs rather than embedding a large image in
    Java code.
+6. Do not modify the shared layout on `branch-personality`; hand the selector
+   and target-layer requirements to `branch-BetterGui`.
 
 ### Phase 3: Protect existing visual hierarchy
 
@@ -182,18 +193,19 @@ conversation nodes so it cannot intercept input or interfere with scrolling.
 6. Check neutral, success, information, warning, system-error, and user
    bubbles against the pattern.
 
-### Phase 5: Add regression coverage and documentation
+### Phase 5: Package verification and integration handoff
 
-1. Add a stable background ID or style class to the viewport/background node.
-2. Verify through GUI tests that the background resource is packaged and the
-   background layer is present behind the conversation.
-3. Keep assertions structural rather than pixel-based, since exact rendering
-   can vary between JavaFX environments.
-4. Review `test/gui-test-plan.md` and add the new background test case.
-5. Run the Java 25 unit tests, GUI tests, CLI UI tests, Checkstyle, Javadocs,
-   and code-quality review.
-6. Perform the manual resize, scrolling, contrast, and fallback checks before
-   marking the increment complete.
+1. Verify that the pattern resource and stylesheet are packaged and available.
+2. Provide the stable selector/ID contract for the BetterGUI owner to apply to
+   the viewport/background node.
+3. Keep any personality-side assertions resource-level and structural rather
+   than pixel-based.
+4. Do not modify `test/gui-test-plan.md` on this branch. The BetterGUI owner
+   adds the integrated background case during controlled integration.
+5. Full Java, GUI, CLI UI, Checkstyle, Javadocs, and code-quality validation
+   occurs after integration on `branch-BetterGui`.
+6. Perform the manual resize, scrolling, contrast, and fallback checks after
+   the shared integration is available.
 
 ### Phase 6: Handle asset failure safely
 
@@ -234,11 +246,15 @@ The background layer must be non-interactive and remain behind
 container so GUI tests can verify its presence without pixel-coordinate
 assertions.
 
-Suggested additions:
+Suggested personality-owned additions:
 
-- `.conversation-background`
-- `.clover-pattern`
-- optional `#conversationBackground`
+- `.personality-background`
+- `.personality-clover-pattern`
+- optional `#personalityBackground`
+
+The BetterGUI owner may apply these selectors to the shared viewport during
+integration. The personality stylesheet must not redefine a semantic
+BetterGUI class directly.
 
 ## Acceptance criteria
 
@@ -254,8 +270,9 @@ Suggested additions:
 - The app remains usable at both preferred and minimum window sizes.
 - A missing decorative asset falls back safely without preventing startup.
 - CLI output and chatbot behaviour remain unchanged.
-- GUI tests verify the background layer's structure and configured resources.
-- The GUI test plan records the new background behaviour.
+- Resource checks verify that the asset and scoped stylesheet are packaged.
+- The BetterGUI integration verifies the background layer and reconciles the
+  canonical GUI test plan.
 
 ## Implementation checklist
 
@@ -263,11 +280,13 @@ Suggested additions:
 - [x] Confirm the pattern density and visual opacity.
 - [x] Choose the deterministic clover illustration asset.
 - [x] Add the transparent tile to the bundled image resources.
-- [x] Apply the green base and tile to the conversation viewport.
-- [x] Keep the header, message bubbles, task panels, avatars, fonts, and
-  controls unchanged.
-- [x] Add structural GUI and resource regression coverage.
-- [x] Update the GUI test plan.
-- [x] Run Java 25 tests, GUI tests, CLI UI tests, Checkstyle, Javadocs, and
-  the code-quality review.
+- [ ] Add the scoped background selectors to the personality stylesheet.
+- [ ] Keep the header, message bubbles, task panels, avatars, fonts, and
+  controls out of this resource package.
+- [ ] Add resource-level availability checks if required.
+- [ ] Hand off the viewport-layer contract to `branch-BetterGui`.
+- [ ] Let BetterGUI add structural GUI coverage and update the canonical GUI
+  test plan during controlled integration.
+- [ ] Run full validation after integration, including Java 25 tests, GUI
+  tests, CLI UI tests, Checkstyle, Javadocs, and code-quality review.
 - [ ] Perform manual visual checks while scrolling and resizing.

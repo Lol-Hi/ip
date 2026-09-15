@@ -7,14 +7,30 @@ a cohesive colour system that reflects the chatbot's playful, lucky character.
 It builds on the completed Patrick Hand interface font and Roboto Mono task
 blocks without changing command behaviour or response wording.
 
-## Implementation status
+## Package status
 
-- [x] Apply the Pineapple Pop background, dark-blue Send button, and light-blue
-  user-message palette.
-- [x] Apply neutral, success, information, warning, and system-error chatbot
-  response tones.
-- [x] Use a clover-marked lucky-green treatment for successful task changes.
-- [x] Preserve the supplied circular chatbot and user avatar images.
+The visual direction and tokens below are approved design decisions. Under
+Specification B, this branch packages the resources and selectors only. The
+shared GUI branch remains responsible for applying those selectors to response
+roles and controls.
+
+- [x] Approve the Pineapple Pop, lucky-green, and blue visual direction.
+- [x] Define neutral, success, information, warning, and system-error tokens.
+- [x] Define the task-panel and typography tokens used by the other visual
+  specifications.
+- [x] Preserve the supplied circular chatbot and user avatar assets as inputs.
+- [ ] Extract the approved tokens into the personality-owned stylesheet and
+  resource package.
+
+## Branch ownership boundary
+
+`branch-personality` may provide colour tokens, typography declarations,
+scoped selectors, asset references, mockups, and visual acceptance criteria.
+It must not modify `ResponseTone`, response text, command classes,
+`LuckyNoSlacky.java`, `DialogueBox`, `MainWindow`, shared semantic CSS, the
+canonical GUI test plan, or functional tests. The BetterGUI integration owner
+will decide how these selectors are connected to semantic response roles and
+will make any required shared-file changes on `branch-BetterGui`.
 
 ## Visual direction
 
@@ -93,32 +109,37 @@ bubble and blue speaker label.
 - Chatbot, user, success, information, and warning bubbles must remain
   visually distinguishable in the same conversation.
 
-## Implementation outline
+## Personality resource-package outline
 
-1. Add CSS style classes for neutral, success, information, warning, system
-   error, and user dialogues.
-2. Apply the documented palette tokens consistently to labels, bubbles,
-   borders, task blocks, input controls, and button states.
-3. Extend the response path to carry a semantic tone alongside the response
-   text and exit flag.
-4. Map each command result and handled exception to its appropriate tone.
-5. Keep task-line detection independent from the dialogue tone so dark
-   monospace task blocks appear consistently within success and information
-   messages.
-6. Update GUI tests and `test/gui-test-plan.md` to cover representative tone
-   classes and the selected visual resources.
-7. Verify the Java 25 JUnit suite, GUI tests, UI tests, Checkstyle, Javadoc,
-   and the code-quality review.
+1. Add the bundled Patrick Hand and Roboto Mono declarations, including their
+   licenses, to the personality resource package.
+2. Add the approved colour tokens to a new `src/main/resources/css/personality.css`.
+3. Use only clearly scoped personality selectors, including
+   `.brand-header`, `.brand-title`, `.brand-tagline`,
+   `.personality-background`, `.personality-task-block`, and role/tone
+   selectors with the same `personality-` or `brand-` prefix.
+4. Document the selector contract: BetterGUI may apply the selectors to its
+   semantic nodes, but personality does not redefine BetterGUI semantic
+   classes directly.
+5. Keep task detection, response-tone classification, command mapping,
+   response wording, and JavaFX node construction as BetterGUI integration
+   work.
+6. Provide the mockup and visual acceptance criteria for the integration owner.
+7. Validate resource existence and stylesheet packaging only on this branch.
+   Full behavioural, GUI, and canonical test-plan validation belongs to the
+   controlled integration on `branch-BetterGui`.
 
 ## Acceptance criteria
 
 - The app has a recognisable pineapple-yellow, clover-green, and blue visual
   identity instead of a generic blue-and-green Material palette.
-- Each chatbot response category uses the documented semantic tone.
+- The package provides distinct visual tokens for each semantic tone, ready
+  for BetterGUI to connect to its response roles.
 - Users can distinguish their light-blue messages from all chatbot responses.
 - Success responses visibly communicate a lucky, positive outcome through
   green accents without making all chatbot messages green.
 - Task content remains easy to scan in a dark monospace block.
 - Supplied avatars remain in use and keep their current circular presentation.
 - All text, borders, and controls remain legible at the minimum window size.
-- CLI output, commands, persistence, and task behaviour remain unchanged.
+- No personality resource requires a change to CLI output, commands,
+  persistence, or task behaviour.

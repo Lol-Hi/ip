@@ -11,6 +11,16 @@ This specification corrects two visual issues in multiline chatbot responses:
 The change affects presentation only. Command behaviour, response wording,
 task ordering, persistence, and CLI output must remain unchanged.
 
+## Branch ownership boundary
+
+This specification is a visual contract for the personality resource package.
+`branch-personality` may provide the task-panel tokens, typography, scoped CSS
+selectors, mockups, and acceptance criteria. It must not change task content,
+response construction, `DialogueBox`, `MainWindow`, response-tone semantics,
+functional tests, or `test/gui-test-plan.md`. The BetterGUI integration owner
+will implement the response-level grouping and node structure while preserving
+the behaviour described here.
+
 ## Design decision
 
 The task-list text will use a **warm pale-yellow** colour. This keeps the
@@ -67,7 +77,10 @@ the response's semantic tone, while the task panel uses the shared dark task
 style regardless of whether the outer response is neutral, successful, or
 informational.
 
-## Functional requirements
+## Visual integration contract
+
+The following requirements describe the result that BetterGUI must integrate;
+they are not permission for `branch-personality` to modify shared Java code.
 
 ### One bubble per response
 
@@ -148,10 +161,12 @@ The task-list panel should have internal padding, a modest gap from the prose,
 and enough width for normal task output. It must remain legible at the minimum
 window size and when the application is resized.
 
-## Suggested implementation structure
+## Suggested integration structure
 
-The dialogue renderer should parse the complete response into a small ordered
-content model before constructing JavaFX nodes. A conceptual representation is:
+The BetterGUI dialogue renderer should parse the complete response into a small
+ordered content model before constructing JavaFX nodes. Personality only
+specifies the visual nodes and selectors expected by that integration. A
+conceptual representation is:
 
 ```text
 DialogueBox
@@ -165,7 +180,17 @@ DialogueBox
 The existing response-tone mechanism should remain responsible for the outer
 bubble. Task detection and task-panel styling should remain independent of
 the semantic response tone so task lists are treated consistently in list,
-success, and other applicable responses.
+success, and other applicable responses. The Java implementation and its
+functional tests belong to `branch-BetterGui`.
+
+### Personality-owned selectors
+
+The resource package should expose scoped selectors such as
+`.personality-task-block` and `.personality-task-content`. These selectors
+must describe the dark panel, warm pale-yellow text, Roboto Mono typography,
+padding, wrapping, and continuation-line indentation. They must not redefine
+BetterGUI semantic selectors directly. BetterGUI may apply them to the nodes
+it creates during controlled integration.
 
 ## Acceptance criteria
 
@@ -184,17 +209,15 @@ success, and other applicable responses.
 
 ## Implementation checklist
 
-- [x] Replace newline-based multiple-bubble rendering with one response-level
-  `DialogueBox`.
-- [x] Parse a response into prose and contiguous task-list segments.
-- [x] Recognise numbered and unnumbered `[T]`, `[D]`, and `[E]` lines.
-- [x] Group adjacent task lines into one inner dark task-list panel.
-- [x] Apply Roboto Mono only to task-list content.
-- [x] Apply warm pale-yellow `#FFF3B0` to task-list content.
-- [x] Preserve Patrick Hand for prose, labels, input text, and Send-button text.
-- [x] Add tests for numbered task detection and multi-item grouping.
-- [x] Add tests for prose-plus-task-list rendering in one outer bubble.
-- [x] Review and update `test/gui-test-plan.md`.
-- [x] Run Java 25 tests, GUI tests, UI tests, Checkstyle, Javadoc, and code-quality review.
+- [x] Approve the one-outer-bubble and grouped-task-panel visual direction.
+- [x] Approve Roboto Mono and warm pale-yellow `#FFF3B0` for task content.
+- [x] Define the dark task-panel appearance and wrapping requirements.
+- [ ] Add `.personality-task-block` and `.personality-task-content` to the
+  personality-owned stylesheet.
+- [ ] Document the required node structure and selector handoff for BetterGUI.
+- [ ] Let BetterGUI implement response-level grouping and task-line parsing on
+  `branch-BetterGui`.
+- [ ] Let BetterGUI update functional/GUI coverage and reconcile
+  `test/gui-test-plan.md` during controlled integration.
 - [ ] Manually verify long tasks, completed tasks, and a list containing at
-  least ten items.
+  least ten items after integration.

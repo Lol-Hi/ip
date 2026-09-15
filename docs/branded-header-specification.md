@@ -10,6 +10,16 @@ competing with the conversation area.
 This increment is presentational only. It must not change command parsing,
 response wording, task behaviour, persistence, or CLI output.
 
+## Branch ownership boundary
+
+This document defines a personality-owned visual resource and component
+contract. `branch-personality` may add `BrandHeader.fxml`, header-specific
+styles in `personality.css`, asset references, and documentation. It must not
+edit `MainWindow.fxml`, `MainWindow`, focus order, accessibility labels, or the
+canonical GUI test plan. The BetterGUI integration owner will include the new
+component in the shared layout and perform the corresponding behavioural and
+GUI validation on `branch-BetterGui`.
+
 ## Approved design direction
 
 Use a compact fixed header above the conversation area:
@@ -111,9 +121,10 @@ readable and does not merge visually with the neutral chatbot bubble.
 - If the tagline wraps at narrow widths, it must remain inside the header and
   must not overlap the avatar or input controls.
 
-## Suggested JavaFX structure
+## Component handoff structure
 
-Restructure the root layout into three vertical regions:
+The personality deliverable is a new `BrandHeader.fxml` component. Its
+conceptual placement in the eventual shared layout is three vertical regions:
 
 ```text
 AnchorPane or VBox root
@@ -123,8 +134,10 @@ AnchorPane or VBox root
 ```
 
 The existing `dialogContainer` must remain the content of the `ScrollPane`.
-The header should use stable IDs and CSS classes so GUI tests can locate the
-title, tagline, and avatar without coordinate-based assertions.
+The diagram is an integration contract, not permission for this branch to
+modify the shared root layout. The component should use stable IDs and CSS
+classes so the BetterGUI owner can locate the title, tagline, and avatar
+without coordinate-based assertions.
 
 Suggested IDs/classes:
 
@@ -147,8 +160,10 @@ Suggested IDs/classes:
 - The existing conversation, semantic response tones, task panels, input field,
   and Send button retain their current appearance and behaviour.
 - The header does not change any CLI output or command behaviour.
-- GUI regression tests verify the header's observable nodes and content.
-- The GUI test plan documents the new header behaviour.
+- The component and stylesheet are self-contained and can be incorporated into
+  the shared layout without redefining semantic BetterGUI selectors.
+- The BetterGUI integration verifies the header's observable nodes and content
+  and reconciles the canonical GUI test plan.
 
 ## Implementation checklist
 
@@ -158,14 +173,14 @@ Suggested IDs/classes:
 - [x] Confirm that the header stays fixed above the scrolling conversation.
 - [ ] Confirm the exact header yellow `#F6D365` and whether the clover accent
   is a literal `🍀` or a green decorative detail.
-- [x] Add the fixed header region above the conversation `ScrollPane`.
-- [x] Add the supplied chatbot avatar to the header.
-- [x] Add title, tagline, stable IDs, and CSS classes.
-- [x] Apply Patrick Hand and the existing brand palette.
+- [ ] Add the personality-owned `BrandHeader.fxml` component.
+- [ ] Reference the supplied chatbot avatar from the component.
+- [ ] Add title, tagline, stable IDs, and scoped CSS classes.
+- [ ] Apply Patrick Hand and the approved brand tokens through
+  `personality.css`.
 - [ ] Verify responsive behaviour at preferred and minimum window sizes.
-- [x] Add GUI regression tests for header presence, text, avatar, and layout
-  structure.
-- [x] Update `test/gui-test-plan.md`.
-- [x] Run Java 25 tests, GUI tests, UI tests, Checkstyle, Javadocs, and the
-  code-quality review.
+- [ ] Hand off the component to `branch-BetterGui` for inclusion above the
+  scrolling conversation.
+- [ ] Let the BetterGUI owner add shared GUI regression coverage and update
+  `test/gui-test-plan.md` during controlled integration.
 - [ ] Perform a manual visual review while scrolling and resizing the window.
