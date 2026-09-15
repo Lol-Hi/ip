@@ -256,9 +256,9 @@
 - Actions: Resize the window horizontally and vertically.
 - Expected result: The input field expands with the window, the Send button
   remains at the bottom-right with a stable width, and message bubbles wrap
-  without clipping or horizontal scrolling. The patterned background fills the
-  complete visible conversation viewport, including empty space below the
-  newest message, and continues to do so after each resize.
+  without clipping or horizontal scrolling. A muted, low-contrast clover
+  pattern fills the complete visible conversation viewport, including empty
+  space below the newest message, and continues to do so after each resize.
 
 ## Test Case: Sample task conversation uses actual chatbot responses
 
