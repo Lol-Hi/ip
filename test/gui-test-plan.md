@@ -62,7 +62,7 @@
 
 - Aim: Verify that the conversation history, command field, and Send button
   expose the drafted labels from the accessibility specification.
-- Test: `MainWindowTest.mainWindow_controls_exposeAccessibleLabels`
+- Test: `MainWindowInteractionTest.mainWindow_controls_exposeAccessibleLabels`
 - Expected result: Each control exposes its configured accessible text and the
   command field and Send button expose their keyboard-use help text.
 
@@ -70,7 +70,7 @@
 
 - Aim: Verify that future personality visuals can be inserted without
   replacing the functional conversation or command regions.
-- Test: `MainWindowTest.mainWindow_layoutRegions_exposeStableIntegrationHooks`
+- Test: `MainWindowLayoutTest.mainWindow_layoutRegions_exposeStableIntegrationHooks`
 - Expected result: The production layout exposes a visible managed brand
   header slot, a conversation region, and a command row with stable IDs and
   CSS classes. The integrated header slot contains the LuckyNoSlacky title,
@@ -80,27 +80,27 @@
 ## Test Case: Main window focuses the command field on startup
 
 - Aim: Verify that keyboard users can start typing immediately.
-- Test: `MainWindowTest.mainWindow_startApplication_focusesCommandInput`
+- Test: `MainWindowInteractionTest.mainWindow_startApplication_focusesCommandInput`
 - Expected result: The command field has focus after the window opens.
 
 ## Test Case: Main window supports forward keyboard traversal
 
 - Aim: Verify that Tab follows the specified focus order.
-- Test: `MainWindowTest.mainWindow_tabTraversal_movesForwardThroughControls`
+- Test: `MainWindowInteractionTest.mainWindow_tabTraversal_movesForwardThroughControls`
 - Expected result: Focus moves from command input to Send, then conversation
   history, then back to command input.
 
 ## Test Case: Main window supports reverse keyboard traversal
 
 - Aim: Verify that Shift+Tab reverses the specified focus order.
-- Test: `MainWindowTest.mainWindow_tabTraversal_movesBackwardThroughControls`
+- Test: `MainWindowInteractionTest.mainWindow_tabTraversal_movesBackwardThroughControls`
 - Expected result: Focus moves from conversation history to Send, then back to
   command input.
 
 ## Test Case: Send-button submission restores focus
 
 - Aim: Verify that keyboard users can continue typing after using Send.
-- Test: `MainWindowTest.mainWindow_sendButtonSubmission_returnsFocusToCommandInput`
+- Test: `MainWindowInteractionTest.mainWindow_sendButtonSubmission_returnsFocusToCommandInput`
 - Expected result: Focus returns to the command field after a Send-button
   submission.
 
@@ -108,7 +108,7 @@
 
 - Aim: Verify that entering an unrecognised command creates a user row and a
   warning response row.
-- Test: `MainWindowTest.mainWindow_unknownCommand_displaysUserAndWarningMessages`
+- Test: `MainWindowInteractionTest.mainWindow_unknownCommand_displaysUserAndWarningMessages`
 - Actions: Enter `unknown` in the command field and submit it.
 - Expected result: The conversation contains the greeting, a right-aligned
   user row containing `unknown`, and a left-aligned warning row containing the
@@ -117,7 +117,7 @@
 ## Test Case: Main window assigns response tones
 
 - Aim: Verify that the GUI receives semantic response tones from the chatbot.
-- Test: `MainWindowTest.mainWindow_unknownCommand_displaysUserAndWarningMessages`
+- Test: `MainWindowInteractionTest.mainWindow_unknownCommand_displaysUserAndWarningMessages`
 - Expected result: Invalid input uses the warning style while task changes,
   lists, and searches use their corresponding success or information styles.
 
@@ -125,7 +125,7 @@
 
 - Aim: Verify that a non-exit command clears the input field without disabling
   it.
-- Test: `MainWindowTest.mainWindow_unknownCommand_keepsInputEnabled`
+- Test: `MainWindowInteractionTest.mainWindow_unknownCommand_keepsInputEnabled`
 - Actions: Enter `unknown` in the command field and submit it.
 - Expected result: The input field is empty and remains enabled.
 
@@ -133,7 +133,7 @@
 
 - Aim: Verify that clicking the Send button submits a command through the same
   handler as pressing Enter.
-- Test: `MainWindowTest.mainWindow_sendButton_submitsCommand`
+- Test: `MainWindowInteractionTest.mainWindow_sendButton_submitsCommand`
 - Actions: Enter `unknown` and click `Send`.
 - Expected result: A user dialogue row and chatbot response row are added.
 
@@ -141,7 +141,7 @@
 
 - Aim: Verify that a long conversation automatically reveals its newest
   dialogue.
-- Test: `MainWindowTest.mainWindow_manyMessages_scrollsToLatestDialogue`
+- Test: `MainWindowLayoutTest.mainWindow_manyMessages_scrollsToLatestDialogue`
 - Actions: Submit 20 deterministic commands through the input field.
 - Expected result: All dialogue rows are retained and the scroll pane is at
   its maximum vertical position.
@@ -149,7 +149,7 @@
 ## Test Case: Main window ignores blank input
 
 - Aim: Verify that submitting an empty command does not add dialogue rows.
-- Test: `MainWindowTest.mainWindow_blankInput_doesNotAddDialogue`
+- Test: `MainWindowInteractionTest.mainWindow_blankInput_doesNotAddDialogue`
 - Actions: Click `Send` without entering a command.
 - Expected result: The greeting remains the only dialogue row.
 
@@ -157,7 +157,7 @@
 
 - Aim: Verify that the GUI enters degraded empty-list mode when task data
   cannot be loaded.
-- Test: `MainWindowTest.mainWindow_loadFailure_remainsInteractive`
+- Test: `MainWindowInteractionTest.mainWindow_loadFailure_remainsInteractive`
 - Actions: Launch the main window with a chatbot reporting a startup load
   failure, then enter `list` and submit it.
 - Expected result: The greeting and loading-error message are displayed once,
@@ -168,7 +168,7 @@
 
 - Aim: Verify that rejecting a task because the task list is full does not
   disable the GUI.
-- Test: `MainWindowTest.mainWindow_taskLimit_keepsControlsEnabled`
+- Test: `MainWindowInteractionTest.mainWindow_taskLimit_keepsControlsEnabled`
 - Actions: Launch the main window with a full-list chatbot, then submit
   `todo overflow`.
 - Expected result: The approved task-limit message is displayed, the rejected
@@ -178,7 +178,7 @@
 
 - Aim: Verify that the goodbye message remains visible while the application
   waits before exiting.
-- Test: `MainWindowTest.mainWindow_byeCommand_displaysGoodbyeBeforeDelayedExit`
+- Test: `MainWindowInteractionTest.mainWindow_byeCommand_displaysGoodbyeBeforeDelayedExit`
 - Actions: Enter `bye` in the command field and submit it.
 - Expected result: The goodbye message is displayed, both the input field and
   Send button are disabled, the window remains visible, and the exit callback
@@ -287,7 +287,7 @@ visible header slot, and places the clover pattern behind the conversation.
 These resources are visual dependencies only: command behavior, response
 tones, accessibility text, focus traversal, and minimum window dimensions
 remain owned and tested by BetterGUI.
-- Test: `MainWindowTest.mainWindow_widenedWindow_expandsInputAndPreservesButtonWidth`
+- Test: `MainWindowLayoutTest.mainWindow_widenedWindow_expandsInputAndPreservesButtonWidth`
 - Actions: Resize the window from 400 by 600 to 800 by 600.
 - Expected result: The input field expands with the window, while the Send
   button remains at the bottom-right with a stable width.
@@ -296,7 +296,7 @@ remain owned and tested by BetterGUI.
 
 - Aim: Verify that the input controls remain inside the scene at the minimum
   supported dimensions.
-- Test: `MainWindowTest.mainWindow_minimumWindow_keepsControlsWithinScene`
+- Test: `MainWindowLayoutTest.mainWindow_minimumWindow_keepsControlsWithinScene`
 - Actions: Resize the window to 320 by 480.
 - Expected result: The input field and Send button remain visible, usable, and
   inside the scene bounds.
