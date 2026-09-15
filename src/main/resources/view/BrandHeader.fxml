@@ -6,6 +6,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
 
 <HBox alignment="CENTER_LEFT" mouseTransparent="true" spacing="12.0"
       styleClass="brand-header" xmlns="http://javafx.com/javafx/17"
@@ -15,10 +16,14 @@
     </padding>
     <children>
         <ImageView fx:id="brandAvatar" fitHeight="56.0" fitWidth="56.0"
-                   preserveRatio="true" styleClass="brand-avatar">
+                   preserveRatio="true" styleClass="brand-avatar"
+                   accessibleText="" focusTraversable="false">
             <image>
                 <Image url="@../images/luckynoslacky.jpg" />
             </image>
+            <clip>
+                <Circle centerX="28.0" centerY="28.0" radius="28.0" />
+            </clip>
         </ImageView>
         <VBox alignment="CENTER_LEFT" spacing="1.0">
             <children>
@@ -26,6 +31,7 @@
                        text="LuckyNoSlacky" />
                 <Label fx:id="brandTagline" styleClass="brand-tagline"
                        text="Your lucky task buddy" wrapText="true" />
+                <Label styleClass="brand-accent" text="🍀" />
             </children>
         </VBox>
     </children>

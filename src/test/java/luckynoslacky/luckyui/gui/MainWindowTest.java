@@ -2,6 +2,7 @@ package luckynoslacky.luckyui.gui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -14,21 +15,30 @@ import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import luckynoslacky.LuckyNoSlacky;
+import luckynoslacky.luckyui.LuckyNoMessages;
 
 /** Tests observable interactions in the main JavaFX window. */
 @ExtendWith(ApplicationExtension.class)
 class MainWindowTest {
+    private Stage stage;
+
     /** Loads the production FXML window before each test. */
     @Start
     void start(Stage stage) throws IOException {
+        this.stage = stage;
         FXMLLoader loader = new FXMLLoader(
                 MainWindow.class.getResource("/view/MainWindow.fxml"));
         Parent root = loader.load();
@@ -41,7 +51,7 @@ class MainWindowTest {
 
     /** Verifies that the window displays a user input and chatbot reply. */
     @Test
-    void mainWindow_unknownCommand_displaysBothSpeakerMessages(FxRobot robot) {
+    void mainWindow_unknownCommand_displaysUserAndWarningMessages(FxRobot robot) {
         TextField inputField = robot.lookup("#userInput").query();
         robot.clickOn(inputField).write("unknown").push(KeyCode.ENTER);
 
@@ -51,8 +61,14 @@ class MainWindowTest {
                 (DialogueBox) dialogueContainer.getChildren().get(1);
         DialogueBox chatbotDialogue =
                 (DialogueBox) dialogueContainer.getChildren().get(2);
-        assertEquals("You said:", getSpeakerLabel(userDialogue, 0));
-        assertEquals("LuckyNoSlacky said:", getSpeakerLabel(chatbotDialogue, 1));
+        assertEquals("unknown", getMessageText(userDialogue, 0));
+        assertEquals(
+                LuckyNoMessages.unknownCommandMessage(),
+                getMessageText(chatbotDialogue, 1));
+        assertTrue(userDialogue.getStyleClass().contains(
+                DialogueBox.USER_DIALOGUE_STYLE));
+        assertTrue(chatbotDialogue.getStyleClass().contains(
+                DialogueBox.WARNING_DIALOGUE_STYLE));
     }
 
     /** Verifies that the input control remains enabled after a non-exit command. */
@@ -76,6 +92,80 @@ class MainWindowTest {
         assertEquals(3, dialogueContainer.getChildren().size());
     }
 
+    /** Verifies that the main controls expose the drafted accessible labels. */
+    @Test
+    void mainWindow_controls_exposeAccessibleLabels() {
+        TextField inputField = lookupTextField();
+        Button sendButton = lookupButton();
+        ScrollPane conversationHistory = lookupScrollPane();
+
+        assertEquals(
+                "Lai tell me what you want me to do, then click Send",
+                inputField.getAccessibleText());
+        assertEquals(
+                "You can also press Enter to send the command without using the mouse.",
+                inputField.getAccessibleHelp());
+        assertEquals("Send command", sendButton.getAccessibleText());
+        assertEquals(
+                "Sends the command currently entered in the command field.",
+                sendButton.getAccessibleHelp());
+        assertEquals(
+                "Here you see the whole chat history! Just use your arrow "
+                        + "or page keys to scroll up scroll down can liao",
+                conversationHistory.getAccessibleText());
+    }
+
+    /** Verifies that the command field receives focus when the window opens. */
+    @Test
+    void mainWindow_startApplication_focusesCommandInput(FxRobot robot) {
+        robot.interact(() -> assertTrue(lookupTextField().isFocused()));
+    }
+
+    /** Verifies that Tab follows the specified forward focus order. */
+    @Test
+    void mainWindow_tabTraversal_movesForwardThroughControls(FxRobot robot) {
+        TextField inputField = lookupTextField();
+        Button sendButton = lookupButton();
+        ScrollPane conversationHistory = lookupScrollPane();
+
+        robot.clickOn(inputField).push(KeyCode.TAB);
+        assertTrue(sendButton.isFocused());
+
+        robot.push(KeyCode.TAB);
+        assertTrue(conversationHistory.isFocused());
+
+        robot.push(KeyCode.TAB);
+        assertTrue(inputField.isFocused());
+    }
+
+    /** Verifies that Shift+Tab follows the specified reverse focus order. */
+    @Test
+    void mainWindow_tabTraversal_movesBackwardThroughControls(FxRobot robot) {
+        TextField inputField = lookupTextField();
+        Button sendButton = lookupButton();
+        ScrollPane conversationHistory = lookupScrollPane();
+
+        robot.clickOn(inputField).push(KeyCode.TAB);
+        robot.push(KeyCode.TAB);
+        assertTrue(conversationHistory.isFocused());
+
+        robot.press(KeyCode.SHIFT).push(KeyCode.TAB).release(KeyCode.SHIFT);
+        assertTrue(sendButton.isFocused());
+
+        robot.press(KeyCode.SHIFT).push(KeyCode.TAB).release(KeyCode.SHIFT);
+        assertTrue(inputField.isFocused());
+    }
+
+    /** Verifies that a Send-button submission restores focus to the input. */
+    @Test
+    void mainWindow_sendButtonSubmission_returnsFocusToCommandInput(FxRobot robot) {
+        robot.clickOn("#userInput")
+                .write("unknown")
+                .clickOn("#sendButton");
+
+        assertTrue(lookupTextField().isFocused());
+    }
+
     /** Verifies that submitting blank input leaves the conversation unchanged. */
     @Test
     void mainWindow_blankInput_doesNotAddDialogue(FxRobot robot) {
@@ -84,6 +174,31 @@ class MainWindowTest {
         robot.clickOn("#sendButton");
 
         assertEquals(1, dialogueContainer.getChildren().size());
+    }
+
+    /** Verifies that the layout exposes stable visual integration regions. */
+    @Test
+    void mainWindow_layoutRegions_exposeStableIntegrationHooks(FxRobot robot) {
+        VBox brandHeaderSlot = robot.lookup("#brandHeaderSlot").query();
+        ScrollPane conversationRegion = robot.lookup("#scrollPane").query();
+        HBox commandRow = robot.lookup("#commandRow").query();
+
+        assertTrue(brandHeaderSlot.getStyleClass().contains(
+                "brand-header-slot"));
+        assertTrue(brandHeaderSlot.isManaged());
+        assertTrue(brandHeaderSlot.isVisible());
+        assertNotNull(robot.lookup("#brandTitle").query());
+        assertTrue(conversationRegion.getStyleClass().contains(
+                "conversation-region"));
+        StackPane background = robot.lookup("#personalityBackground").query();
+        assertTrue(background.getStyleClass().contains("personality-background"));
+        assertTrue(background.getMinHeight()
+                >= conversationRegion.getViewportBounds().getHeight());
+        assertTrue(lookupTextField().getStyleClass().contains(
+                "personality-input-field"));
+        assertTrue(lookupButton().getStyleClass().contains(
+                "personality-send-button"));
+        assertTrue(commandRow.getStyleClass().contains("command-row"));
     }
 
     /** Verifies that the main window rejects a missing chatbot dependency. */
@@ -95,9 +210,46 @@ class MainWindowTest {
                 controller.setChatbot(null));
     }
 
-    /** Returns the speaker label from a dialogue row's text container. */
-    private String getSpeakerLabel(DialogueBox dialogue, int dialogueIndex) {
+    /** Returns the message text from a dialogue row's text container. */
+    private String getMessageText(DialogueBox dialogue, int dialogueIndex) {
         VBox messageContainer = (VBox) dialogue.getChildren().get(dialogueIndex);
-        return ((Label) messageContainer.getChildren().get(0)).getText();
+        return messageContainer.getChildren().stream()
+                .map(this::findVisibleMessageText)
+                .filter(text -> !text.isEmpty())
+                .findFirst()
+                .orElseThrow();
+    }
+
+    /** Finds the first visible response text while skipping tone markers. */
+    private String findVisibleMessageText(Node node) {
+        if (node instanceof Label label) {
+            return switch (label.getText()) {
+                case "🍀", "⚠", "⛔" -> "";
+                default -> label.getText();
+            };
+        }
+        if (node instanceof javafx.scene.Parent parent) {
+            return parent.getChildrenUnmodifiable().stream()
+                    .map(this::findVisibleMessageText)
+                    .filter(text -> !text.isEmpty())
+                    .findFirst()
+                    .orElse("");
+        }
+        return "";
+    }
+
+    /** Returns the command input from the production FXML scene. */
+    private TextField lookupTextField() {
+        return (TextField) stage.getScene().lookup("#userInput");
+    }
+
+    /** Returns the Send button from the production FXML scene. */
+    private Button lookupButton() {
+        return (Button) stage.getScene().lookup("#sendButton");
+    }
+
+    /** Returns the conversation history from the production FXML scene. */
+    private ScrollPane lookupScrollPane() {
+        return (ScrollPane) stage.getScene().lookup("#scrollPane");
     }
 }

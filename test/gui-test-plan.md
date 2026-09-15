@@ -10,28 +10,116 @@
 
 ## Test Case: DialogueBox displays user messages
 
-- Aim: Verify that user messages use the blue speaker label and right-side
-  alignment.
-- Test: `DialogueBoxTest.dialogueBox_userMessage_displaysBlueLabelOnRight`
-- Expected result: The row is right-aligned, displays `You said:`, preserves
-  the message text, and applies the user dialogue CSS style.
+- Aim: Verify that user messages use a compact right-aligned bubble and
+  circular user avatar.
+- Test: `DialogueBoxTest.dialogueBox_userMessage_displaysCircularAvatarOnRight`
+- Expected result: The row is right-aligned, displays only the raw message
+  text, applies the user dialogue CSS style, displays the existing user image
+  inside a 48-pixel circular avatar frame, and exposes the accessible text
+  `You: <message>` without making the avatar keyboard-focusable.
 
 ## Test Case: DialogueBox displays chatbot messages
 
-- Aim: Verify that chatbot messages use the green speaker label and left-side
-  alignment.
-- Test: `DialogueBoxTest.dialogueBox_chatbotMessage_displaysGreenLabelOnLeft`
-- Expected result: The row is left-aligned, displays `LuckyNoSlacky said:`,
-  preserves the message text, and applies the chatbot dialogue CSS style.
+- Aim: Verify that application messages use a wider left-aligned bubble.
+- Test: `DialogueBoxTest.dialogueBox_chatbotMessage_displaysBubbleOnLeft`
+- Expected result: The row is left-aligned, preserves the application message
+  text, applies the chatbot dialogue CSS style, displays the existing chatbot
+  image inside a circular avatar frame with the green accent, and exposes the
+  accessible text `LuckyNoSlacky: <message>`.
+
+## Test Case: DialogueBox displays warning messages
+
+- Aim: Verify that application warnings use a distinct visual style.
+- Test: `DialogueBoxTest.dialogueBox_warningMessage_appliesWarningStyle`
+- Expected result: The warning is left-aligned and applies the warning
+  dialogue CSS style, exposes the drafted warning accessible text, and shows a
+  visible warning marker.
+
+## Test Case: DialogueBox displays successful responses
+
+- Aim: Verify that successful task changes use a clover-green chatbot bubble.
+- Test: `DialogueBoxTest.dialogueBox_successMessage_displaysCloverMarker`
+- Expected result: The response remains left-aligned, applies the success
+  dialogue CSS style, shows the green personality treatment, and shows a
+  visible `🍀` marker without changing the response text.
+
+## Test Case: DialogueBox displays information responses
+
+- Aim: Verify that task lists and search results use the information tone.
+- Test: `DialogueBoxTest.dialogueBox_infoMessage_appliesInfoStyle`
+- Expected result: The response remains left-aligned, applies the information
+  dialogue CSS style, and does not add a tone prefix or marker to the message.
+
+## Test Case: DialogueBox displays system errors
+
+- Aim: Verify that storage failures use a stronger non-warning error style.
+- Test: `DialogueBoxTest.dialogueBox_systemErrorMessage_displaysErrorMarker`
+- Expected result: The response remains left-aligned, applies the system-error
+  dialogue CSS style, and shows a visible `⛔` marker without changing the
+  response text.
+
+## Test Case: Main window exposes accessible labels
+
+- Aim: Verify that the conversation history, command field, and Send button
+  expose the drafted labels from the accessibility specification.
+- Test: `MainWindowTest.mainWindow_controls_exposeAccessibleLabels`
+- Expected result: Each control exposes its configured accessible text and the
+  command field and Send button expose their keyboard-use help text.
+
+## Test Case: Main window exposes visual integration regions
+
+- Aim: Verify that future personality visuals can be inserted without
+  replacing the functional conversation or command regions.
+- Test: `MainWindowTest.mainWindow_layoutRegions_exposeStableIntegrationHooks`
+- Expected result: The production layout exposes a visible managed brand
+  header slot, a conversation region, and a command row with stable IDs and
+  CSS classes. The integrated header slot contains the LuckyNoSlacky title,
+  tagline, existing chatbot image, and clover accent; the conversation region
+  also exposes the personality background layer.
+
+## Test Case: Main window focuses the command field on startup
+
+- Aim: Verify that keyboard users can start typing immediately.
+- Test: `MainWindowTest.mainWindow_startApplication_focusesCommandInput`
+- Expected result: The command field has focus after the window opens.
+
+## Test Case: Main window supports forward keyboard traversal
+
+- Aim: Verify that Tab follows the specified focus order.
+- Test: `MainWindowTest.mainWindow_tabTraversal_movesForwardThroughControls`
+- Expected result: Focus moves from command input to Send, then conversation
+  history, then back to command input.
+
+## Test Case: Main window supports reverse keyboard traversal
+
+- Aim: Verify that Shift+Tab reverses the specified focus order.
+- Test: `MainWindowTest.mainWindow_tabTraversal_movesBackwardThroughControls`
+- Expected result: Focus moves from conversation history to Send, then back to
+  command input.
+
+## Test Case: Send-button submission restores focus
+
+- Aim: Verify that keyboard users can continue typing after using Send.
+- Test: `MainWindowTest.mainWindow_sendButtonSubmission_returnsFocusToCommandInput`
+- Expected result: Focus returns to the command field after a Send-button
+  submission.
 
 ## Test Case: Main window displays a conversation
 
-- Aim: Verify that entering a command creates both a user dialogue row and a
-  chatbot response row.
-- Test: `MainWindowTest.mainWindow_unknownCommand_displaysBothSpeakerMessages`
+- Aim: Verify that entering an unrecognised command creates a user row and a
+  warning response row.
+- Test: `MainWindowTest.mainWindow_unknownCommand_displaysUserAndWarningMessages`
 - Actions: Enter `unknown` in the command field and submit it.
-- Expected result: The conversation contains the greeting, a `You said:` row,
-  and a `LuckyNoSlacky said:` row.
+- Expected result: The conversation contains the greeting, a right-aligned
+  user row containing `unknown`, and a left-aligned warning row containing the
+  actual unknown-command response. The user row does not contain `You said:`.
+
+## Test Case: Main window assigns response tones
+
+- Aim: Verify that the GUI receives semantic response tones from the chatbot.
+- Test: `MainWindowTest.mainWindow_unknownCommand_displaysUserAndWarningMessages`
+- Expected result: Invalid input uses the warning style while task changes,
+  lists, and searches use their corresponding success or information styles.
 
 ## Test Case: Main window remains usable after a normal command
 
@@ -71,7 +159,46 @@
   available from the application classpath.
 - Test: `LuckyNoGuiTest.luckyNoGui_resourcePaths_areAvailable`
 - Expected result: The layout, both CSS stylesheets, chatbot avatar, and user
-  avatar resources are all found.
+  avatar resources, branded header, clover pattern, and bundled fonts are all
+  found, and the two personality font families are registered before FXML
+  styling.
+
+## Test Case: DialogueBox displays structured task cards
+
+- Aim: Verify that every formatted task line becomes a typed, status-aware
+  card inside one response bubble.
+- Test: `DialogueBoxTest.dialogueBox_taskContent_displaysTypedCardsAndAccessibleStatus`
+- Expected result: TODO, deadline, and event lines are displayed in their
+  original order with the labels `TODO 📌`, `DEADLINE ⏳`, and `EVENT 📆`.
+  Numbered task lines from `list` and `find` display their existing task
+  number as a `#<number>` badge in the top-right corner of the card.
+  Incomplete tasks show `❗`, completed tasks show `✅`, and the card colours
+  are pale blue, pale orange, and pale purple respectively. Todo cards omit a
+  schedule row. Deadline cards show one `by` row, while event cards show
+  separate `from` and `to` rows. The outer response bubble keeps its semantic
+  tone colour. Unnumbered confirmation lines remain unnumbered.
+
+## Test Case: DialogueBox provides accessible task descriptions
+
+- Aim: Verify that decorative task emojis and internal markers are not read
+  by a screen reader.
+- Test: `DialogueBoxTest.dialogueBox_taskContent_displaysTypedCardsAndAccessibleStatus`
+- Expected result: The outer response is exposed with descriptions such as
+  `TODO, task 1, incomplete, <task name>`, `DEADLINE, task 2, incomplete,
+  <task name>, by <date>`, and `EVENT, task 3, completed, <task name>, from
+  <start>, to <end>`. The
+  accessible text contains none of the type/status emojis or raw `[T]`, `[D]`,
+  and `[E]` markers, and the inner card nodes are not keyboard-focusable.
+  Confirmation lines without task numbers do not receive an invented number.
+
+## Test Case: DialogueBox leaves confirmations unnumbered
+
+- Aim: Verify that task numbers are limited to numbered `list` and `find`
+  output during this increment.
+- Test: `DialogueBoxTest.dialogueBox_taskConfirmation_omitsTaskNumber`
+- Expected result: A confirmation line such as `[T][ ] buy groceries` keeps
+  its task card but has no `#1` badge and no task number in its accessible
+  description.
 
 ## Test Case: Main window preserves usable minimum dimensions
 
@@ -87,8 +214,39 @@
   bottom control row.
 - Test: Manual acceptance check
 - Actions: Resize the window horizontally and vertically.
-- Expected result: The input field expands with the window, while the Send
-  button remains at the bottom-right with a stable width.
+- Expected result: The input field expands with the window, the Send button
+  remains at the bottom-right with a stable width, and message bubbles wrap
+  without clipping or horizontal scrolling. The patterned background fills the
+  complete visible conversation viewport, including empty space below the
+  newest message, and continues to do so after each resize.
+
+## Test Case: Sample task conversation uses actual chatbot responses
+
+- Aim: Verify that the GUI presents real LuckyNoSlacky task-management
+  responses rather than invented assistant copy.
+- Test: Manual acceptance check
+- Actions: Enter the following commands in order:
+
+  ```text
+  todo buy groceries
+  deadline submit report /by 20 Sep 2026 12pm
+  list
+  snooze 1 /by 2 days
+  ```
+
+- Expected result: The GUI displays the actual task confirmations, task list,
+  and the warning `Eh mr blur sotong this task don't even have time for you to
+  snooze la`. It does not display `Got it — I'll help you stay on track` or
+  `You said:`.
+
+## Integrated visual resources
+
+The production GUI loads `personality.css` after `main.css`, loads Patrick Hand
+and Roboto Mono before FXML construction, includes `BrandHeader.fxml` in the
+visible header slot, and places the clover pattern behind the conversation.
+These resources are visual dependencies only: command behavior, response
+tones, accessibility text, focus traversal, and minimum window dimensions
+remain owned and tested by BetterGUI.
 
 ## Acceptance checks beyond `guiTest`
 
@@ -100,4 +258,13 @@ may require a desktop automation capability or manual verification:
 - Enter enough commands to verify that the conversation scrolls to the latest
   message.
 - Resize the window and verify that message text and avatars remain readable.
+- Verify that both existing avatar assets are displayed as circular images.
 - Add a task, close the GUI, relaunch it, and verify that the task persists.
+- Add TODO, deadline, and event tasks in both incomplete and completed states;
+  use `list` and `find` to verify the card colour, type label, completion icon,
+  task number badge, and schedule rows. Confirm that command confirmations do
+  not display invented task numbers.
+- Use a screen reader to confirm that the drafted labels and message roles are
+  announced meaningfully, without reading decorative task emojis.
+- Enter `bye` and verify that both command controls become unavailable while
+  the farewell remains visible before the delayed exit.

@@ -1,12 +1,24 @@
 package luckynoslacky.luckyui.gui;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javafx.beans.binding.Bindings;
 import javafx.geometry.Pos;
+import javafx.scene.AccessibleRole;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
+import luckynoslacky.ResponseKind;
+import luckynoslacky.ResponseTone;
 
 /**
  * Displays one speaker's message in the conversation.
@@ -18,46 +30,506 @@ public class DialogueBox extends HBox {
     /** CSS style applied to user dialogue rows. */
     public static final String USER_DIALOGUE_STYLE = "user-dialogue";
 
+    /** CSS style applied to warning dialogue rows. */
+    public static final String WARNING_DIALOGUE_STYLE = "warning-dialogue";
+
+    /** CSS style applied to successful chatbot dialogue rows. */
+    public static final String SUCCESS_DIALOGUE_STYLE = "success-dialogue";
+
+    /** CSS style applied to informational chatbot dialogue rows. */
+    public static final String INFO_DIALOGUE_STYLE = "info-dialogue";
+
+    /** CSS style applied to system-error dialogue rows. */
+    public static final String SYSTEM_ERROR_DIALOGUE_STYLE =
+            "system-error-dialogue";
+
+    private static final double AVATAR_FRAME_SIZE = 48.0;
+    private static final double AVATAR_IMAGE_SIZE = 40.0;
+    private static final double CHATBOT_BUBBLE_WIDTH_FRACTION = 0.86;
+    private static final double USER_BUBBLE_WIDTH_FRACTION = 0.70;
+    private static final double DIALOGUE_SPACING = 8.0;
+    private static final String USER_ACCESSIBLE_PREFIX = "You: ";
+    private static final String CHATBOT_ACCESSIBLE_PREFIX = "LuckyNoSlacky: ";
+    private static final String WARNING_ACCESSIBLE_PREFIX =
+            "Bodoh sia like that also can kena warning ";
+    private static final Pattern TASK_LINE_PATTERN = Pattern.compile(
+            "^\\s*(?:(\\d+)\\.)?\\[([TDE])\\]\\[([ X])\\]\\s+(.+)$");
+    private static final Pattern DEADLINE_DETAILS_PATTERN = Pattern.compile(
+            "^(.*?)\\s*\\(by:\\s*(.+)\\)$");
+    private static final Pattern EVENT_DETAILS_PATTERN = Pattern.compile(
+            "^(.*?)\\s*\\(from:\\s*(.+?)\\s+to:\\s*(.+)\\)$");
+
+    /** Structured data used to render one task card. */
+    private record TaskDisplayData(
+            Integer taskNumber,
+            String typeLabel,
+            String typeEmoji,
+            String typeStyle,
+            String statusEmoji,
+            String title,
+            List<String> details,
+            String accessibleDescription) {
+    }
+
+    /** Structured schedule details extracted from a task line. */
+    private record TaskDetails(String title, List<String> details) {
+    }
+
+    /** Identifies the speaker and visual treatment of a dialogue row. */
+    public enum DialogueType {
+        /** A LuckyNoSlacky response. */
+        CHATBOT,
+        /** A command entered by the user. */
+        USER
+    }
+
     /**
-     * Creates a dialogue row with a speaker label and avatar.
+     * Creates a responsive dialogue row with a circular avatar.
      *
-     * @param speakerLabel speaker label shown above the message
      * @param message message content
      * @param avatar speaker profile image
-     * @param alignment horizontal alignment of the row
-     * @param dialogueStyle CSS style identifying the speaker role
+     * @param dialogueType speaker and visual role of the message
      */
     public DialogueBox(
-            String speakerLabel,
             String message,
             Image avatar,
-            Pos alignment,
-            String dialogueStyle) {
-        Label speakerNameLabel = new Label(speakerLabel);
-        speakerNameLabel.getStyleClass().add("speaker-label");
+            DialogueType dialogueType) {
+        this(message, avatar, dialogueType, ResponseTone.NEUTRAL,
+                ResponseKind.PLAIN_TEXT);
+    }
 
-        Label messageLabel = new Label(message);
-        messageLabel.getStyleClass().add("message-content");
-        messageLabel.setWrapText(true);
-        messageLabel.setMaxWidth(280.0);
+    /**
+     * Creates a responsive dialogue row with a circular avatar and response
+     * tone.
+     *
+     * @param message message content
+     * @param avatar speaker profile image
+     * @param dialogueType speaker role of the message
+     * @param responseTone semantic tone of a chatbot response
+     */
+    public DialogueBox(
+            String message,
+            Image avatar,
+            DialogueType dialogueType,
+            ResponseTone responseTone) {
+        this(message, avatar, dialogueType, responseTone,
+                ResponseKind.PLAIN_TEXT);
+    }
 
-        VBox messageContainer = new VBox(2.0, speakerNameLabel, messageLabel);
+    /**
+     * Creates a dialogue row with a semantic tone and content structure.
+     *
+     * @param message message content
+     * @param avatar speaker profile image
+     * @param dialogueType speaker role
+     * @param responseTone semantic tone of a chatbot response
+     * @param responseKind structural kind of a chatbot response
+     */
+    public DialogueBox(
+            String message,
+            Image avatar,
+            DialogueType dialogueType,
+            ResponseTone responseTone,
+            ResponseKind responseKind) {
+        VBox messageContainer = createMessageContainer(
+                message, dialogueType, responseTone, responseKind);
+        messageContainer.setMinWidth(0.0);
+
+        StackPane avatarFrame = createAvatarFrame(
+                avatar, dialogueType);
+
+        setMaxWidth(Double.MAX_VALUE);
+        setAccessibleRole(AccessibleRole.TEXT);
+        setAccessibleText(getAccessibleText(
+                message, dialogueType, responseTone, responseKind));
+        setFocusTraversable(false);
+        setAlignment(dialogueType == DialogueType.USER
+                ? Pos.CENTER_RIGHT
+                : Pos.CENTER_LEFT);
+        setSpacing(DIALOGUE_SPACING);
+        getStyleClass().addAll(
+                "dialogue-box",
+                getDialogueStyle(dialogueType),
+                getToneStyle(dialogueType, responseTone));
+
+        double bubbleWidthFraction = dialogueType == DialogueType.USER
+                ? USER_BUBBLE_WIDTH_FRACTION
+                : CHATBOT_BUBBLE_WIDTH_FRACTION;
+        messageContainer.maxWidthProperty().bind(
+                Bindings.createDoubleBinding(() -> {
+                    double availableWidth = getWidth()
+                            - AVATAR_FRAME_SIZE - DIALOGUE_SPACING;
+                    return Math.max(
+                            0.0,
+                            availableWidth * bubbleWidthFraction);
+                },
+                        widthProperty()));
+        if (dialogueType == DialogueType.USER) {
+            getChildren().addAll(messageContainer, avatarFrame);
+        } else {
+            getChildren().addAll(avatarFrame, messageContainer);
+        }
+    }
+
+    /** Creates the styled outer message bubble and its content children. */
+    private static VBox createMessageContainer(
+            String message,
+            DialogueType dialogueType,
+            ResponseTone responseTone,
+            ResponseKind responseKind) {
+        VBox messageContainer = new VBox();
+        messageContainer.getStyleClass().add("message-content");
+        if (dialogueType == DialogueType.CHATBOT) {
+            messageContainer.getStyleClass().add(
+                    getPersonalityToneStyle(responseTone));
+            String toneLabelStyle = getToneLabelStyle(responseTone);
+            if (!toneLabelStyle.isEmpty()) {
+                messageContainer.getStyleClass().add(toneLabelStyle);
+            }
+            if (responseKind == ResponseKind.TASK_CONTENT) {
+                addTaskContent(messageContainer, message, responseTone);
+            } else {
+                addProseContent(messageContainer, message, responseTone);
+            }
+        } else {
+            messageContainer.getStyleClass().add("personality-user-message");
+            Label messageLabel = createTextLabel(message, "personality-user-label");
+            messageContainer.getChildren().add(messageLabel);
+        }
+        return messageContainer;
+    }
+
+    /** Adds task lines as individual colour-coded cards while preserving order. */
+    private static void addTaskContent(
+            VBox messageContainer,
+            String message,
+            ResponseTone responseTone) {
+        addToneMarker(messageContainer, responseTone);
+        VBox taskList = new VBox();
+        taskList.getStyleClass().add("personality-task-list");
+        for (String line : message.split("\\R", -1)) {
+            Optional<TaskDisplayData> task = parseTaskLine(line);
+            if (task.isPresent()) {
+                taskList.getChildren().add(createTaskCard(task.get()));
+            } else {
+                if (!line.isBlank()) {
+                    taskList.getChildren().add(
+                            createTextLabel(
+                                    line,
+                                    "personality-prose",
+                                    getToneLabelStyle(responseTone)));
+                }
+            }
+        }
+        messageContainer.getChildren().add(taskList);
+    }
+
+    /** Creates one semantic task card from parsed task data. */
+    private static VBox createTaskCard(TaskDisplayData task) {
+        VBox taskCard = new VBox();
+        taskCard.getStyleClass().addAll(
+                "personality-task-card",
+                "personality-task-card-" + task.typeStyle());
+
+        Label typeLabel = createTextLabel(
+                task.typeLabel() + " " + task.typeEmoji(),
+                "personality-task-type");
+        HBox typeRow = new HBox(typeLabel);
+        typeRow.getStyleClass().add("personality-task-type-row");
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        typeRow.getChildren().add(spacer);
+        if (task.taskNumber() != null) {
+            typeRow.getChildren().add(createTextLabel(
+                    "#" + task.taskNumber(), "personality-task-number"));
+        }
+        Label statusLabel = createTextLabel(
+                task.statusEmoji(), "personality-task-status");
+        Label titleLabel = createTextLabel(
+                task.title(), "personality-task-title");
+        HBox titleRow = new HBox(statusLabel, titleLabel);
+        titleRow.getStyleClass().add("personality-task-title-row");
+
+        taskCard.getChildren().addAll(typeRow, titleRow);
+        for (String detail : task.details()) {
+            taskCard.getChildren().add(
+                    createTextLabel(detail, "personality-task-details"));
+        }
+        return taskCard;
+    }
+
+    /** Adds ordinary response text to a single visible prose label. */
+    private static void addProseContent(
+            VBox messageContainer,
+            String message,
+            ResponseTone responseTone) {
+        addToneMarker(messageContainer, responseTone);
+        messageContainer.getChildren().add(
+                createTextLabel(message,
+                        "personality-prose",
+                        getToneLabelStyle(responseTone)));
+    }
+
+    /** Creates a non-interactive circular avatar frame. */
+    private static StackPane createAvatarFrame(
+            Image avatar,
+            DialogueType dialogueType) {
+        StackPane avatarFrame = new StackPane();
+        avatarFrame.getStyleClass().addAll(
+                "avatar-frame",
+                "personality-avatar-frame",
+                dialogueType == DialogueType.USER
+                        ? "personality-user-avatar-frame"
+                        : "personality-chatbot-avatar-frame");
+        avatarFrame.setMinSize(AVATAR_FRAME_SIZE, AVATAR_FRAME_SIZE);
+        avatarFrame.setPrefSize(AVATAR_FRAME_SIZE, AVATAR_FRAME_SIZE);
+        avatarFrame.setMaxSize(AVATAR_FRAME_SIZE, AVATAR_FRAME_SIZE);
+        avatarFrame.setMouseTransparent(true);
+        avatarFrame.setFocusTraversable(false);
+        avatarFrame.setAccessibleRole(AccessibleRole.NODE);
+        avatarFrame.setAccessibleText("");
 
         ImageView imageView = new ImageView(avatar);
-        imageView.setFitWidth(45.0);
-        imageView.setFitHeight(45.0);
+        imageView.setFitWidth(AVATAR_IMAGE_SIZE);
+        imageView.setFitHeight(AVATAR_IMAGE_SIZE);
         imageView.setPreserveRatio(true);
-        imageView.setClip(new Circle(22.5, 22.5, 22.5));
-        imageView.getStyleClass().add("avatar");
+        imageView.setClip(new Circle(
+                AVATAR_IMAGE_SIZE / 2.0,
+                AVATAR_IMAGE_SIZE / 2.0,
+                AVATAR_IMAGE_SIZE / 2.0));
+        imageView.setAccessibleRole(AccessibleRole.NODE);
+        imageView.setAccessibleText("");
+        imageView.setFocusTraversable(false);
+        imageView.setMouseTransparent(true);
+        imageView.getStyleClass().addAll("avatar", "personality-avatar-image");
+        avatarFrame.getChildren().add(imageView);
 
-        setAlignment(alignment);
-        setSpacing(8.0);
-        getStyleClass().addAll("dialogue-box", dialogueStyle);
-
-        if (alignment == Pos.CENTER_RIGHT) {
-            getChildren().addAll(messageContainer, imageView);
-        } else {
-            getChildren().addAll(imageView, messageContainer);
+        if (dialogueType == DialogueType.CHATBOT) {
+            StackPane accent = new StackPane();
+            accent.getStyleClass().add("personality-chatbot-avatar-accent");
+            accent.setMouseTransparent(true);
+            accent.setFocusTraversable(false);
+            accent.setAccessibleRole(AccessibleRole.NODE);
+            accent.setAccessibleText("");
+            avatarFrame.getChildren().add(accent);
         }
+        return avatarFrame;
+    }
+
+    /** Creates a wrapped text node with hidden child semantics. */
+    private static Label createTextLabel(String text, String... styles) {
+        Label label = new Label(text);
+        label.setWrapText(true);
+        label.setAccessibleRole(AccessibleRole.NODE);
+        label.setAccessibleText("");
+        label.setFocusTraversable(false);
+        label.getStyleClass().addAll(styles);
+        return label;
+    }
+
+    /** Parses a task-list line into display data when it follows the output contract. */
+    private static Optional<TaskDisplayData> parseTaskLine(String line) {
+        Matcher matcher = TASK_LINE_PATTERN.matcher(line);
+        if (!matcher.matches()) {
+            return Optional.empty();
+        }
+
+        String taskType = matcher.group(2);
+        Integer taskNumber = matcher.group(1) == null
+                ? null
+                : Integer.valueOf(matcher.group(1));
+        String status = matcher.group(3);
+        TaskDetails taskDetails = parseTaskDetails(taskType, matcher.group(4).trim());
+        String typeLabel = switch (taskType) {
+            case "T" -> "TODO";
+            case "D" -> "DEADLINE";
+            case "E" -> "EVENT";
+            default -> throw new IllegalStateException("Unknown task type: " + taskType);
+        };
+        String typeEmoji = switch (taskType) {
+            case "T" -> "📌";
+            case "D" -> "⏳";
+            case "E" -> "📆";
+            default -> "";
+        };
+        String typeStyle = switch (taskType) {
+            case "T" -> "todo";
+            case "D" -> "deadline";
+            case "E" -> "event";
+            default -> "";
+        };
+        String statusEmoji = status.equals("X") ? "✅" : "❗";
+        String statusDescription = status.equals("X")
+                ? "completed"
+                : "incomplete";
+        String taskNumberDescription = taskNumber == null
+                ? ""
+                : ", task " + taskNumber;
+        String accessibleDescription = typeLabel + taskNumberDescription + ", "
+                + statusDescription + ", " + taskDetails.title();
+        if (!taskDetails.details().isEmpty()) {
+            accessibleDescription += ", "
+                    + String.join(", ", taskDetails.details());
+        }
+        return Optional.of(new TaskDisplayData(
+                taskNumber,
+                typeLabel,
+                typeEmoji,
+                typeStyle,
+                statusEmoji,
+                taskDetails.title(),
+                taskDetails.details(),
+                accessibleDescription));
+    }
+
+    /** Extracts schedule details while leaving the task title unchanged. */
+    private static TaskDetails parseTaskDetails(
+            String taskType,
+            String rawTaskText) {
+        if (taskType.equals("D")) {
+            Matcher matcher = DEADLINE_DETAILS_PATTERN.matcher(rawTaskText);
+            if (matcher.matches()) {
+                return new TaskDetails(
+                        matcher.group(1).trim(),
+                        List.of("by " + matcher.group(2).trim()));
+            }
+        } else if (taskType.equals("E")) {
+            Matcher matcher = EVENT_DETAILS_PATTERN.matcher(rawTaskText);
+            if (matcher.matches()) {
+                return new TaskDetails(
+                        matcher.group(1).trim(),
+                        List.of(
+                                "from " + matcher.group(2).trim(),
+                                "to " + matcher.group(3).trim()));
+            }
+        }
+        return new TaskDetails(rawTaskText, List.of());
+    }
+
+    /**
+     * Returns the CSS style for a dialogue role.
+     *
+     * @param dialogueType dialogue role
+     * @return CSS style class for the role
+     */
+    private static String getDialogueStyle(DialogueType dialogueType) {
+        return dialogueType == DialogueType.USER
+                ? USER_DIALOGUE_STYLE
+                : CHATBOT_DIALOGUE_STYLE;
+    }
+
+    /**
+     * Returns the CSS style for a chatbot response tone.
+     *
+     * @param dialogueType dialogue role
+     * @param responseTone response tone
+     * @return CSS style class for the tone, or an empty string for user rows
+     */
+    private static String getToneStyle(
+            DialogueType dialogueType,
+            ResponseTone responseTone) {
+        if (dialogueType == DialogueType.USER) {
+            return "";
+        }
+        return switch (responseTone) {
+            case NEUTRAL -> "";
+            case SUCCESS -> SUCCESS_DIALOGUE_STYLE;
+            case INFO -> INFO_DIALOGUE_STYLE;
+            case WARNING -> WARNING_DIALOGUE_STYLE;
+            case SYSTEM_ERROR -> SYSTEM_ERROR_DIALOGUE_STYLE;
+        };
+    }
+
+    /** Adds a non-colour marker for tones that require extra emphasis. */
+    private static void addToneMarker(
+            VBox messageContainer,
+            ResponseTone responseTone) {
+        String markerText = switch (responseTone) {
+            case SUCCESS -> "🍀";
+            case WARNING -> "⚠";
+            case SYSTEM_ERROR -> "⛔";
+            case NEUTRAL, INFO -> "";
+        };
+        if (!markerText.isEmpty()) {
+            Label marker = new Label(markerText);
+            marker.getStyleClass().add(getMarkerStyle(responseTone));
+            marker.setAccessibleText("");
+            marker.setFocusTraversable(false);
+            marker.setMouseTransparent(true);
+            messageContainer.getChildren().add(marker);
+        }
+    }
+
+    /** Returns the personality stylesheet class for a response tone. */
+    private static String getPersonalityToneStyle(ResponseTone responseTone) {
+        return switch (responseTone) {
+            case NEUTRAL -> "personality-response-neutral";
+            case SUCCESS -> "personality-response-success";
+            case INFO -> "personality-response-information";
+            case WARNING -> "personality-response-warning";
+            case SYSTEM_ERROR -> "personality-response-system-error";
+        };
+    }
+
+    /** Returns the personality label class for a response tone. */
+    private static String getToneLabelStyle(ResponseTone responseTone) {
+        return switch (responseTone) {
+            case NEUTRAL -> "personality-response-neutral-label";
+            case SUCCESS -> "personality-response-success-label";
+            case INFO -> "personality-response-information-label";
+            case WARNING -> "personality-response-warning-label";
+            case SYSTEM_ERROR -> "personality-response-system-error-label";
+        };
+    }
+
+    /**
+     * Returns the marker style for an emphasized response tone.
+     *
+     * @param responseTone response tone
+     * @return marker CSS style class
+     */
+    private static String getMarkerStyle(ResponseTone responseTone) {
+        return switch (responseTone) {
+            case SUCCESS -> "success-marker";
+            case SYSTEM_ERROR -> "system-error-marker";
+            case WARNING -> "warning-marker";
+            case NEUTRAL, INFO -> "";
+        };
+    }
+
+    /**
+     * Returns the screen-reader text for a dialogue role and response tone.
+     *
+     * @param message message content
+     * @param dialogueType dialogue role
+     * @param responseTone response tone
+     * @param responseKind structural kind of the response
+     * @return role-aware accessible message
+     */
+    private static String getAccessibleText(
+            String message,
+            DialogueType dialogueType,
+            ResponseTone responseTone,
+            ResponseKind responseKind) {
+        if (dialogueType == DialogueType.USER) {
+            return USER_ACCESSIBLE_PREFIX + message;
+        }
+        String accessibleMessage = responseKind == ResponseKind.TASK_CONTENT
+                ? getAccessibleTaskMessage(message)
+                : message;
+        return responseTone == ResponseTone.WARNING
+                ? WARNING_ACCESSIBLE_PREFIX + accessibleMessage
+                : CHATBOT_ACCESSIBLE_PREFIX + accessibleMessage;
+    }
+
+    /** Replaces internal task markers and decorative emojis with spoken labels. */
+    private static String getAccessibleTaskMessage(String message) {
+        return message.lines()
+                .map(line -> parseTaskLine(line)
+                        .map(TaskDisplayData::accessibleDescription)
+                        .orElse(line.trim()))
+                .filter(line -> !line.isEmpty())
+                .reduce((first, second) -> first + ". " + second)
+                .orElse("");
     }
 }

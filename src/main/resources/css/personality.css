@@ -46,13 +46,6 @@
     -fx-font-size: 16px;
 }
 
-.personality-task-content {
-    -fx-font-family: "Roboto Mono";
-    -fx-font-size: 13px;
-    -fx-padding: 0;
-    -fx-text-fill: #fff3b0;
-}
-
 /* Semantic response tokens. BetterGUI owns the mapping to these selectors. */
 .personality-response-neutral {
     -fx-background-color: #fff4b7;
@@ -105,17 +98,102 @@
 }
 
 .personality-user-label {
+    -fx-font-family: "Patrick Hand";
+    -fx-font-size: 16px;
     -fx-text-fill: #2563a8;
 }
 
-/* Task-list presentation selectors. */
-.personality-task-block {
-    -fx-background-color: #26352c;
-    -fx-background-radius: 6px;
-    -fx-border-color: #4f765c;
-    -fx-border-radius: 6px;
-    -fx-border-width: 1px;
-    -fx-padding: 8px;
+.chatbot-dialogue .message-content.personality-response-neutral {
+    -fx-background-color: #fff4b7;
+    -fx-border-color: #e3ba38;
+}
+
+.chatbot-dialogue .message-content.personality-response-success {
+    -fx-background-color: #dcf4df;
+    -fx-border-color: #62a87a;
+}
+
+.chatbot-dialogue .message-content.personality-response-information {
+    -fx-background-color: #fff9de;
+    -fx-border-color: #e7d87a;
+}
+
+.chatbot-dialogue .message-content.personality-response-warning {
+    -fx-background-color: #ffe2d8;
+    -fx-border-color: #d76a5d;
+}
+
+.chatbot-dialogue .message-content.personality-response-system-error {
+    -fx-background-color: #fcdede;
+    -fx-border-color: #a8322b;
+}
+
+/* Task-card presentation selectors. */
+.personality-task-list {
+    -fx-spacing: 8px;
+}
+
+.personality-task-card {
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+    -fx-border-width: 2px;
+    -fx-padding: 8px 10px;
+    -fx-spacing: 3px;
+}
+
+.personality-task-card-todo {
+    -fx-background-color: #eaf3ff;
+    -fx-border-color: #2f80ed;
+}
+
+.personality-task-card-deadline {
+    -fx-background-color: #fff1e3;
+    -fx-border-color: #e67e22;
+}
+
+.personality-task-card-event {
+    -fx-background-color: #f3e8ff;
+    -fx-border-color: #8e44ad;
+}
+
+.personality-task-type {
+    -fx-font-family: "Roboto Mono";
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.personality-task-type-row {
+    -fx-alignment: CENTER_LEFT;
+    -fx-spacing: 6px;
+}
+
+.personality-task-number {
+    -fx-font-family: "Roboto Mono";
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #5f6368;
+}
+
+.personality-task-title-row {
+    -fx-alignment: CENTER_LEFT;
+    -fx-spacing: 8px;
+}
+
+.personality-task-status {
+    -fx-font-size: 19px;
+}
+
+.personality-task-title {
+    -fx-font-family: "Patrick Hand";
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.personality-task-details {
+    -fx-font-family: "Patrick Hand";
+    -fx-font-size: 15px;
+    -fx-font-style: italic;
+    -fx-padding: 0 0 0 28px;
 }
 
 /* Conversation background selector for the BetterGUI viewport. */
@@ -124,6 +202,11 @@
     -fx-background-image: url("../images/clover-pattern.png");
     -fx-background-position: 0 0;
     -fx-background-repeat: repeat;
+}
+
+.personality-background-layer {
+    -fx-background-color: #eaf7e7;
+    -fx-opacity: 0.15;
 }
 
 /* Input and Send-control tokens. */
@@ -141,6 +224,10 @@
     -fx-border-color: #d38b08;
 }
 
+.personality-input-field:focused {
+    -fx-border-color: #d38b08;
+}
+
 .personality-send-button {
     -fx-background-color: #174ea6;
     -fx-background-radius: 4px;
@@ -153,7 +240,16 @@
     -fx-background-color: #123b82;
 }
 
+.personality-send-button:hover,
+.personality-send-button:focused {
+    -fx-background-color: #123b82;
+}
+
 .personality-send-button-pressed {
+    -fx-background-color: #0f3069;
+}
+
+.personality-send-button:pressed {
     -fx-background-color: #0f3069;
 }
 
@@ -174,8 +270,8 @@
 
 .personality-avatar-image {
     -fx-background-radius: 50%;
-    -fx-fit-width: 48px;
-    -fx-fit-height: 48px;
+    -fx-fit-width: 40px;
+    -fx-fit-height: 40px;
     -fx-preserve-ratio: true;
     -fx-smooth: true;
 }

@@ -1,5 +1,7 @@
 package luckynoslacky.luckycommand;
 
+import luckynoslacky.ResponseKind;
+import luckynoslacky.ResponseTone;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
 import luckynoslacky.luckytask.TaskTimes;
@@ -42,5 +44,25 @@ public class LuckyNoReschedCommand extends LuckyNoCommand {
         Task updatedTask = taskMaster.rescheduleTask(
                 taskNumber, newTimes);
         return LuckyNoMessages.rescheduledTaskMessage(updatedTask);
+    }
+
+    /**
+     * Returns the success tone for the rescheduling response.
+     *
+     * @return success response tone
+     */
+    @Override
+    public ResponseTone getResponseTone() {
+        return ResponseTone.SUCCESS;
+    }
+
+    /**
+     * Returns the task-content kind for the rescheduling response.
+     *
+     * @return task-content response kind
+     */
+    @Override
+    public ResponseKind getResponseKind() {
+        return ResponseKind.TASK_CONTENT;
     }
 }

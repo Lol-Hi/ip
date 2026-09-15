@@ -1,5 +1,6 @@
 package luckynoslacky.luckycommand;
 
+import luckynoslacky.ResponseTone;
 import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
@@ -20,6 +21,16 @@ public class LuckyNoByeCommand extends LuckyNoCommand {
     @Override
     public String execute() {
         return LuckyNoMessages.goodbye();
+    }
+
+    /**
+     * Returns the neutral tone for the farewell response.
+     *
+     * @return neutral response tone
+     */
+    @Override
+    public ResponseTone getResponseTone() {
+        return ResponseTone.NEUTRAL;
     }
 
     /**

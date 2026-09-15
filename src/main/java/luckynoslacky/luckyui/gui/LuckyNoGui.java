@@ -6,6 +6,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import luckynoslacky.LuckyNoSlacky;
 
@@ -32,9 +33,11 @@ public final class LuckyNoGui extends Application {
      */
     @Override
     public void start(Stage stage) throws IOException {
+        loadPersonalityFonts();
         FXMLLoader loader = new FXMLLoader(
                 LuckyNoGui.class.getResource("/view/MainWindow.fxml"));
         Parent root = loader.load();
+        addPersonalityStylesheet(root);
         MainWindow controller = loader.getController();
         controller.setChatbot(new LuckyNoSlacky());
 
@@ -45,5 +48,28 @@ public final class LuckyNoGui extends Application {
         stage.setWidth(WINDOW_WIDTH);
         stage.setHeight(WINDOW_HEIGHT);
         stage.show();
+    }
+
+    /** Loads optional personality fonts before FXML applies the CSS selectors. */
+    private static void loadPersonalityFonts() {
+        loadFont("/fonts/PatrickHand-Regular.ttf");
+        loadFont("/fonts/RobotoMono-Regular.ttf");
+    }
+
+    /** Loads one bundled font, allowing JavaFX to use a fallback if unavailable. */
+    private static void loadFont(String resourcePath) {
+        java.net.URL resource = LuckyNoGui.class.getResource(resourcePath);
+        if (resource != null) {
+            Font.loadFont(resource.toExternalForm(), 16.0);
+        }
+    }
+
+    /** Adds the personality stylesheet after the main stylesheet is loaded. */
+    private static void addPersonalityStylesheet(Parent root) {
+        java.net.URL resource = LuckyNoGui.class.getResource(
+                "/css/personality.css");
+        if (resource != null) {
+            root.getStylesheets().add(resource.toExternalForm());
+        }
     }
 }
