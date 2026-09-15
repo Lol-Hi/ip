@@ -163,14 +163,42 @@
   found, and the two personality font families are registered before FXML
   styling.
 
-## Test Case: DialogueBox groups task content
+## Test Case: DialogueBox displays structured task cards
 
-- Aim: Verify that structured task output remains one response bubble while
-  task lines receive the monospace task treatment.
-- Test: `DialogueBoxTest.dialogueBox_taskContent_groupsFormattedLinesInsideMessageBubble`
-- Expected result: Formatted task lines are placed in one
-  `personality-task-block`, remain in their original order, and the outer
-  dialogue retains the complete accessible response text.
+- Aim: Verify that every formatted task line becomes a typed, status-aware
+  card inside one response bubble.
+- Test: `DialogueBoxTest.dialogueBox_taskContent_displaysTypedCardsAndAccessibleStatus`
+- Expected result: TODO, deadline, and event lines are displayed in their
+  original order with the labels `TODO 📌`, `DEADLINE ⏳`, and `EVENT 📆`.
+  Numbered task lines from `list` and `find` display their existing task
+  number as a `#<number>` badge in the top-right corner of the card.
+  Incomplete tasks show `❗`, completed tasks show `✅`, and the card colours
+  are pale blue, pale orange, and pale purple respectively. Todo cards omit a
+  schedule row. Deadline cards show one `by` row, while event cards show
+  separate `from` and `to` rows. The outer response bubble keeps its semantic
+  tone colour. Unnumbered confirmation lines remain unnumbered.
+
+## Test Case: DialogueBox provides accessible task descriptions
+
+- Aim: Verify that decorative task emojis and internal markers are not read
+  by a screen reader.
+- Test: `DialogueBoxTest.dialogueBox_taskContent_displaysTypedCardsAndAccessibleStatus`
+- Expected result: The outer response is exposed with descriptions such as
+  `TODO, task 1, incomplete, <task name>`, `DEADLINE, task 2, incomplete,
+  <task name>, by <date>`, and `EVENT, task 3, completed, <task name>, from
+  <start>, to <end>`. The
+  accessible text contains none of the type/status emojis or raw `[T]`, `[D]`,
+  and `[E]` markers, and the inner card nodes are not keyboard-focusable.
+  Confirmation lines without task numbers do not receive an invented number.
+
+## Test Case: DialogueBox leaves confirmations unnumbered
+
+- Aim: Verify that task numbers are limited to numbered `list` and `find`
+  output during this increment.
+- Test: `DialogueBoxTest.dialogueBox_taskConfirmation_omitsTaskNumber`
+- Expected result: A confirmation line such as `[T][ ] buy groceries` keeps
+  its task card but has no `#1` badge and no task number in its accessible
+  description.
 
 ## Test Case: Main window preserves usable minimum dimensions
 
@@ -232,7 +260,11 @@ may require a desktop automation capability or manual verification:
 - Resize the window and verify that message text and avatars remain readable.
 - Verify that both existing avatar assets are displayed as circular images.
 - Add a task, close the GUI, relaunch it, and verify that the task persists.
+- Add TODO, deadline, and event tasks in both incomplete and completed states;
+  use `list` and `find` to verify the card colour, type label, completion icon,
+  task number badge, and schedule rows. Confirm that command confirmations do
+  not display invented task numbers.
 - Use a screen reader to confirm that the drafted labels and message roles are
-  announced meaningfully.
+  announced meaningfully, without reading decorative task emojis.
 - Enter `bye` and verify that both command controls become unavailable while
   the farewell remains visible before the delayed exit.
