@@ -198,15 +198,15 @@
 
 /* Conversation background selector for the BetterGUI viewport. */
 .personality-background {
-    -fx-background-color: #eaf7e7;
+    -fx-background-color: #edf3ed;
     -fx-background-image: url("../images/clover-pattern.png");
     -fx-background-position: 0 0;
     -fx-background-repeat: repeat;
 }
 
 .personality-background-layer {
-    -fx-background-color: #eaf7e7;
-    -fx-opacity: 0.15;
+    -fx-background-color: #edf3ed;
+    -fx-opacity: 0.82;
 }
 
 /* Input and Send-control tokens. */
