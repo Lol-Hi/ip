@@ -17,7 +17,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.junit.jupiter.api.Test;
 
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoTaskResponses;
 import luckynoslacky.luckytask.DeadlineTask;
 import luckynoslacky.luckytask.DurationPeriod;
 import luckynoslacky.luckytask.EventTask;
@@ -313,7 +313,7 @@ class CsvSaverRoundTripTest extends CsvSaverTestSupport {
                         + "2.[D][ ] return book (by: Sun Dec 06 2026, 11.59pm)\n"
                         + "3.[E][ ] project meeting (from: Thu Aug 06 2026, 2.00pm"
                         + " to: Thu Aug 06 2026, 4.00pm)",
-                LuckyNoMessages.listTasksMessage(restored.listTasks()));
+                LuckyNoTaskResponses.listed(restored.listTasks()).message());
     }
 
     /** Verifies that a mixed list remains equivalent after mutation and reload. */

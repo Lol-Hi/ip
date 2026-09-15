@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 
 /**
  * Parses date/time prefixes embedded in command arguments.
@@ -98,7 +98,7 @@ final class DateTimePrefixParser {
                 // Try a shorter prefix so valid trailing commentary is ignored.
             }
         }
-        throw new LuckyNoInputException(LuckyNoMessages.invalidDateTimeMessage());
+        throw new LuckyNoInputException(LuckyNoQuips.invalidDateTimeMessage());
     }
 
     /**

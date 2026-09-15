@@ -5,7 +5,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 
 /**
  * Identifies supported duration units and their accepted forms.
@@ -74,6 +74,6 @@ enum DurationPeriodUnit {
                 .filter(unit -> unit.acceptedForms.contains(normalizedUnit))
                 .findFirst()
                 .orElseThrow(() -> new LuckyNoInputException(
-                        LuckyNoMessages.invalidDurationMessage(inputText)));
+                        LuckyNoQuips.invalidDurationMessage(inputText)));
     }
 }

@@ -4,7 +4,8 @@ import java.time.LocalDateTime;
 
 import luckynoslacky.luckycommand.LuckyNoFindCommand;
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoFormatMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 import luckynoslacky.luckytask.DeadlineTask;
 import luckynoslacky.luckytask.EventTask;
 import luckynoslacky.luckytask.TaskMaster;
@@ -43,12 +44,12 @@ final class TaskCommandParser {
     TodoTask parseTodo(String commandArguments) throws LuckyNoInputException {
         if (commandArguments.isEmpty()) {
             throw new LuckyNoInputException(
-                    LuckyNoMessages.missingTaskDescriptionMessage());
+                    LuckyNoQuips.missingTaskDescriptionMessage());
         }
         CommandArgumentParser.rejectMarkerLikeSlash(
                 commandArguments,
                 LuckyNoParser.CommandName.TODO,
-                LuckyNoMessages.todoFormat());
+                LuckyNoFormatMessages.todoFormat());
         return new TodoTask(commandArguments);
     }
 
@@ -82,7 +83,7 @@ final class TaskCommandParser {
         LocalDateTime byTime = dateTimePrefixParser
                 .parseEndDateTimeIgnoringTrailingText(byTimeText);
         if (byTime.isBefore(dateTimeParser.now())) {
-            throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
+            throw new LuckyNoInputException(LuckyNoQuips.timeTravelMessage());
         }
         return new DeadlineTask(description, byTime);
     }
@@ -174,7 +175,7 @@ final class TaskCommandParser {
         LocalDateTime endTime = dateTimePrefixParser
                 .parseEndDateTimeIgnoringTrailingText(endTimeText, startTime);
         if (endTime.isBefore(startTime)) {
-            throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
+            throw new LuckyNoInputException(LuckyNoQuips.timeTravelMessage());
         }
         return new EventTask(description, startTime, endTime);
     }

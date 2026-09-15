@@ -3,7 +3,8 @@ package luckynoslacky.luckyparser;
 import java.util.Locale;
 
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoFormatMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 
 /**
  * Parses syntax shared by multiple chatbot commands.
@@ -25,7 +26,7 @@ final class CommandArgumentParser {
      */
     static ParsedInput parseInput(String userInput) throws LuckyNoInputException {
         if (userInput == null || userInput.trim().isEmpty()) {
-            throw new LuckyNoInputException(LuckyNoMessages.missingCommandMessage());
+            throw new LuckyNoInputException(LuckyNoQuips.missingCommandMessage());
         }
 
         String[] commandParts = userInput.trim().split("\\s+", 2);
@@ -47,7 +48,7 @@ final class CommandArgumentParser {
             throws LuckyNoInputException {
         return LuckyNoParser.CommandName.fromCommandToken(commandToken)
                 .orElseThrow(() -> new LuckyNoInputException(
-                        LuckyNoMessages.unknownCommandMessage()));
+                        LuckyNoQuips.unknownCommandMessage()));
     }
 
     /**
@@ -61,7 +62,7 @@ final class CommandArgumentParser {
             throws LuckyNoInputException {
         if (!commandArguments.isEmpty()) {
             throw new LuckyNoInputException(
-                    LuckyNoMessages.extraArgumentsMessage(commandName));
+                    LuckyNoQuips.extraArgumentsMessage(commandName));
         }
     }
 
@@ -77,7 +78,7 @@ final class CommandArgumentParser {
             throws LuckyNoInputException {
         if (taskNumberText.isEmpty() || taskNumberText.matches(".*\\s+.*")) {
             throw new LuckyNoInputException(
-                    LuckyNoMessages.missingTaskNumberMessage());
+                    LuckyNoQuips.missingTaskNumberMessage());
         }
 
         try {
@@ -88,7 +89,7 @@ final class CommandArgumentParser {
             return taskNumber;
         } catch (NumberFormatException exception) {
             throw new LuckyNoInputException(
-                    LuckyNoMessages.invalidTaskNumberMessage());
+                    LuckyNoQuips.invalidTaskNumberMessage());
         }
     }
 
@@ -205,7 +206,7 @@ final class CommandArgumentParser {
     static LuckyNoInputException invalidFormat(
             LuckyNoParser.CommandName commandName, String... formats) {
         return new LuckyNoInputException(
-                LuckyNoMessages.invalidFormatMessage(commandName, formats));
+                LuckyNoFormatMessages.invalidFormatMessage(commandName, formats));
     }
 
     /**

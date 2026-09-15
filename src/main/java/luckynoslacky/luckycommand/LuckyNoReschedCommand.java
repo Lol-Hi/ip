@@ -2,7 +2,7 @@ package luckynoslacky.luckycommand;
 
 import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoTaskResponses;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
 import luckynoslacky.luckytask.TaskTimes;
@@ -43,7 +43,7 @@ public class LuckyNoReschedCommand extends LuckyNoCommand {
     protected ResponseContent executeContent() {
         Task updatedTask = taskMaster.rescheduleTask(
                 taskNumber, newTimes);
-        return LuckyNoMessages.rescheduledTaskContent(updatedTask);
+        return LuckyNoTaskResponses.rescheduled(updatedTask);
     }
 
     /**

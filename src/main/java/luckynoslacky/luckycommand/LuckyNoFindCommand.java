@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoTaskResponses;
 import luckynoslacky.luckytask.TaskMaster;
 
 /**
@@ -58,7 +58,7 @@ public class LuckyNoFindCommand extends LuckyNoCommand {
      */
     @Override
     protected ResponseContent executeContent() {
-        return LuckyNoMessages.listTasksContent(
+        return LuckyNoTaskResponses.listed(
                 taskMaster.findTasks(descriptionQuery, dateTimeQuery));
     }
 

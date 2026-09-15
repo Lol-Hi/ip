@@ -9,7 +9,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoTaskResponses;
 import luckynoslacky.luckystorage.CsvSaver;
 
 /** Tests task-list display and search behavior provided by {@link TaskMaster}. */
@@ -30,7 +30,7 @@ class TaskMasterListingTest {
         TaskMaster taskMaster = createTaskMaster();
 
         assertEquals("Chill lah bro got nothing yet lah!",
-                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
+                LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
     /** Verifies that a valid task is added and listed. */
@@ -41,7 +41,7 @@ class TaskMasterListingTest {
         taskMaster.addTask(new TodoTask("read book"));
 
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
-                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
+                LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
     /** Verifies that listing preserves task insertion order. */
@@ -55,7 +55,7 @@ class TaskMasterListingTest {
         assertEquals("Nah, all these things you need to do:\n"
                         + "1.[T][ ] read book\n"
                         + "2.[T][ ] return book",
-                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
+                LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
     /** Verifies that a previously returned list view is not mutated later. */
@@ -88,7 +88,7 @@ class TaskMasterListingTest {
                         + "2.[D][ ] return book (by: Sun Dec 06 2026, 11.59pm)\n"
                         + "3.[E][ ] project meeting (from: Thu Aug 06 2026, 2.00pm"
                         + " to: Thu Aug 06 2026, 4.00pm)",
-                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
+                LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
     /** Verifies that search returns deadlines and events on a date. */
@@ -107,8 +107,8 @@ class TaskMasterListingTest {
                         + "2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)\n"
                         + "3.[E][ ] project meeting (from: Tue Aug 25 2026, 2.00pm"
                         + " to: Thu Aug 27 2026, 4.00pm)",
-                LuckyNoMessages.listTasksMessage(
-                        taskMaster.findTasks(LocalDateTime.of(2026, 8, 26, 0, 0))));
+                LuckyNoTaskResponses.listed(
+                        taskMaster.findTasks(LocalDateTime.of(2026, 8, 26, 0, 0))).message());
     }
 
     /** Verifies that search excludes ToDos and dates without matches. */
@@ -120,11 +120,11 @@ class TaskMasterListingTest {
                 "return book", LocalDateTime.of(2026, 8, 26, 23, 59)));
 
         assertEquals("Chill lah bro got nothing yet lah!",
-                LuckyNoMessages.listTasksMessage(
-                        taskMaster.findTasks(LocalDateTime.of(2026, 8, 25, 0, 0))));
+                LuckyNoTaskResponses.listed(
+                        taskMaster.findTasks(LocalDateTime.of(2026, 8, 25, 0, 0))).message());
         assertEquals("Chill lah bro got nothing yet lah!",
-                LuckyNoMessages.listTasksMessage(
-                        taskMaster.findTasks(LocalDateTime.of(2026, 8, 27, 0, 0))));
+                LuckyNoTaskResponses.listed(
+                        taskMaster.findTasks(LocalDateTime.of(2026, 8, 27, 0, 0))).message());
     }
 
     /** Verifies that description searches ignore letter case. */
@@ -139,7 +139,7 @@ class TaskMasterListingTest {
         assertEquals("Nah, all these things you need to do:\n"
                         + "1.[T][ ] read book\n"
                         + "2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)",
-                LuckyNoMessages.listTasksMessage(taskMaster.findTasks("BOOK")));
+                LuckyNoTaskResponses.listed(taskMaster.findTasks("BOOK")).message());
     }
 
     /** Verifies that description and date filters are applied together. */
@@ -156,8 +156,8 @@ class TaskMasterListingTest {
 
         assertEquals("Nah, all these things you need to do on: Aug 26 2026\n"
                         + "2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)",
-                LuckyNoMessages.listTasksMessage(taskMaster.findTasks(
-                        "book", LocalDateTime.of(2026, 8, 26, 0, 0))));
+                LuckyNoTaskResponses.listed(taskMaster.findTasks(
+                        "book", LocalDateTime.of(2026, 8, 26, 0, 0))).message());
     }
 
     /** Creates a task master backed by a temporary CSV file. */

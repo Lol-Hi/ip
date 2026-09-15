@@ -15,7 +15,9 @@ import luckynoslacky.luckycommand.LuckyNoFindCommand;
 import luckynoslacky.luckycommand.LuckyNoMarkCommand;
 import luckynoslacky.luckycommand.LuckyNoTaskCommand;
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoFormatMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
+import luckynoslacky.luckyresponse.LuckyNoTaskResponses;
 import luckynoslacky.luckytask.DeadlineTask;
 import luckynoslacky.luckytask.EventTask;
 import luckynoslacky.luckytask.TodoTask;
@@ -29,9 +31,9 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
                 scanner.parseCommand("todo borrow book", 0));
 
         assertEquals(
-                LuckyNoMessages.addedTaskMessage(
+                LuckyNoTaskResponses.added(
                         new TodoTask("borrow book"), 1),
-                command.execute().message());
+                command.execute().content());
     }
 
     /** Verifies parsing a deadline command. */
@@ -41,12 +43,12 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
                 scanner.parseCommand("deadline return book /by 2026-10-15 14:15", 0));
 
         assertEquals(
-                LuckyNoMessages.addedTaskMessage(
+                LuckyNoTaskResponses.added(
                         new DeadlineTask(
                                 "return book",
                                 LocalDateTime.of(2026, 10, 15, 14, 15)),
                         1),
-                command.execute().message());
+                command.execute().content());
     }
 
     /** Verifies parsing an event command. */
@@ -57,13 +59,13 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
                         + " /to 2026-08-06 16:00", 0));
 
         assertEquals(
-                LuckyNoMessages.addedTaskMessage(
+                LuckyNoTaskResponses.added(
                         new EventTask(
                                 "project meeting",
                                 LocalDateTime.of(2026, 8, 6, 14, 0),
                                 LocalDateTime.of(2026, 8, 6, 16, 0)),
                         1),
-                command.execute().message());
+                command.execute().content());
     }
 
     /** Verifies that mark and unmark commands request explicit statuses. */
@@ -77,11 +79,11 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
         CommandResult markResult = mark.execute();
 
         assertEquals(
-                LuckyNoMessages.markedTaskMessage(taskMaster.listTasks().getTask(1)),
+                LuckyNoTaskResponses.marked(taskMaster.listTasks().getTask(1)).message(),
                 markResult.message());
         CommandResult unmarkResult = unmark.execute();
         assertEquals(
-                LuckyNoMessages.unmarkedTaskMessage(taskMaster.listTasks().getTask(1)),
+                LuckyNoTaskResponses.unmarked(taskMaster.listTasks().getTask(1)).message(),
                 unmarkResult.message());
     }
 
@@ -96,7 +98,7 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
         CommandResult result = command.execute();
 
         assertEquals(
-                LuckyNoMessages.markedTaskMessage(taskMaster.listTasks().getTask(1)),
+                LuckyNoTaskResponses.marked(taskMaster.listTasks().getTask(1)).message(),
                 result.message());
     }
 
@@ -111,7 +113,7 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
         CommandResult result = command.execute();
 
         assertEquals(
-                LuckyNoMessages.deletedTaskMessage(new TodoTask("buy bread"), 2),
+                LuckyNoTaskResponses.deleted(new TodoTask("buy bread"), 2).message(),
                 result.message());
         assertEquals(2, taskMaster.getTaskCount());
     }
@@ -120,11 +122,11 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
     @Test
     void parseCommand_listAndByeInput_returnsCommands() throws LuckyNoInputException {
         assertEquals(
-                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()),
+                LuckyNoTaskResponses.listed(taskMaster.listTasks()).message(),
                 scanner.parseCommand("list", 0).execute().message());
         LuckyNoCommand bye = scanner.parseCommand("bye", 0);
         CommandResult result = bye.execute();
-        assertEquals(LuckyNoMessages.goodbye(), result.message());
+        assertEquals(LuckyNoQuips.goodbye(), result.message());
         assertTrue(result.shouldExit());
     }
 
@@ -138,9 +140,9 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
                 scanner.parseCommand("find book /on next Wednesday", 0));
 
         assertEquals(
-                LuckyNoMessages.listTasksMessage(taskMaster.findTasks(
+                LuckyNoTaskResponses.listed(taskMaster.findTasks(
                         "book", LocalDateTime.of(2026, 9, 2, 0, 0))),
-                command.execute().message());
+                command.execute().content());
     }
 
     /** Verifies find commands that contain only a description. */
@@ -154,8 +156,8 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
                 scanner.parseCommand("find book", 0));
 
         assertEquals(
-                LuckyNoMessages.listTasksMessage(taskMaster.findTasks("book")),
-                command.execute().message());
+                LuckyNoTaskResponses.listed(taskMaster.findTasks("book")),
+                command.execute().content());
     }
 
     /** Verifies known command tokens match case-insensitively. */
@@ -174,9 +176,9 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
                 scanner.parseCommand("  ToDo   read book  ", 0));
 
         assertEquals(
-                LuckyNoMessages.addedTaskMessage(
+                LuckyNoTaskResponses.added(
                         new TodoTask("read book"), 1),
-                command.execute().message());
+                command.execute().content());
     }
 
     /** Verifies timed commands accept trailing commentary and flexible spacing. */
@@ -198,7 +200,7 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
     void parseCommand_emptyOrUnknownInput_throwsInputException() {
         assertInputError("Eh you mute issit?? Just say what you want lah!", "   ", 0);
         assertInputError(
-                LuckyNoMessages.unknownCommandMessage(),
+                LuckyNoQuips.unknownCommandMessage(),
                 "dance", 0);
     }
 
@@ -206,10 +208,10 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
     @Test
     void parseCommand_malformedTodoDeadlineOrEvent_throwsInputException() {
         assertInputError("You don't tell me what to do how I know what to do???", "todo", 0);
-        assertInputError(LuckyNoMessages.invalidFormatMessage(
+        assertInputError(LuckyNoFormatMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.DEADLINE),
                 "deadline return book", 0);
-        assertInputError(LuckyNoMessages.invalidFormatMessage(
+        assertInputError(LuckyNoFormatMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.EVENT),
                 "event meeting /from 2pm", 0);
     }
@@ -218,37 +220,37 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
     @Test
     void parseCommand_nonMarkerSlashes_remainsValid() throws LuckyNoInputException {
         assertEquals(
-                LuckyNoMessages.addedTaskMessage(new TodoTask("read/book"), 1),
-                scanner.parseCommand("todo read/book", 0).execute().message());
+                LuckyNoTaskResponses.added(new TodoTask("read/book"), 1),
+                scanner.parseCommand("todo read/book", 0).execute().content());
         assertEquals(
-                LuckyNoMessages.addedTaskMessage(new TodoTask("read / book"), 2),
-                scanner.parseCommand("todo read / book", 1).execute().message());
+                LuckyNoTaskResponses.added(new TodoTask("read / book"), 2),
+                scanner.parseCommand("todo read / book", 1).execute().content());
         assertEquals(
-                LuckyNoMessages.addedTaskMessage(
+                LuckyNoTaskResponses.added(
                         new DeadlineTask(
                                 "slash date", LocalDateTime.of(2026, 8, 26, 23, 59)),
                         3),
                 scanner.parseCommand(
-                        "deadline slash date /by 2026/08/26", 2).execute().message());
+                        "deadline slash date /by 2026/08/26", 2).execute().content());
     }
 
     /** Verifies unsupported marker-like slashes use command format errors. */
     @Test
     void parseCommand_markerLikeSlashes_throwsCommandFormatErrors() {
         assertInputError(
-                LuckyNoMessages.invalidFormatMessage(
+                LuckyNoFormatMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.TODO),
                 "todo read /book", 0);
         assertInputError(
-                LuckyNoMessages.invalidFormatMessage(
+                LuckyNoFormatMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.DEADLINE),
                 "deadline report /by 2026/08/26 /extra", 0);
         assertInputError(
-                LuckyNoMessages.invalidFormatMessage(
+                LuckyNoFormatMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.FIND),
                 "find book /extra", 0);
         assertInputError(
-                LuckyNoMessages.invalidFormatMessage(
+                LuckyNoFormatMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.EVENT),
                 "event meeting /from 2026/08/26 /to 2026/08/27 /extra", 0);
     }
@@ -256,10 +258,10 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
     /** Verifies missing deadline and event time sections are rejected. */
     @Test
     void parseCommand_missingDeadlineOrEventTime_throwsInputException() {
-        assertInputError(LuckyNoMessages.invalidFormatMessage(
+        assertInputError(LuckyNoFormatMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.DEADLINE),
                 "deadline return book /by", 0);
-        assertInputError(LuckyNoMessages.invalidFormatMessage(
+        assertInputError(LuckyNoFormatMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.EVENT),
                 "event meeting /from Mon 2pm /to", 0);
     }
@@ -267,9 +269,9 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
     /** Verifies empty and reversed task sections are rejected. */
     @Test
     void parseCommand_emptyOrReversedTaskSections_throwsInputException() {
-        String deadlineFormat = LuckyNoMessages.invalidFormatMessage(
+        String deadlineFormat = LuckyNoFormatMessages.invalidFormatMessage(
                 LuckyNoParser.CommandName.DEADLINE);
-        String eventFormat = LuckyNoMessages.invalidFormatMessage(
+        String eventFormat = LuckyNoFormatMessages.invalidFormatMessage(
                 LuckyNoParser.CommandName.EVENT);
 
         assertInputError(deadlineFormat, "deadline /by 2pm", 0);
@@ -280,24 +282,24 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
     /** Verifies malformed find commands are rejected. */
     @Test
     void parseCommand_malformedFindInput_throwsInputException() {
-        assertInputError(LuckyNoMessages.invalidFormatMessage(
+        assertInputError(LuckyNoFormatMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.FIND),
                 "find", 0);
-        assertInputError(LuckyNoMessages.invalidFormatMessage(
+        assertInputError(LuckyNoFormatMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.FIND),
                 "find /on", 0);
-        assertInputError(LuckyNoMessages.invalidDateTimeMessage(),
+        assertInputError(LuckyNoQuips.invalidDateTimeMessage(),
                 "find ignored /on definitely-not-a-date", 0);
-        assertInputError(LuckyNoMessages.invalidDateTimeMessage(),
+        assertInputError(LuckyNoQuips.invalidDateTimeMessage(),
                 "find /on 32 Aug 2026", 0);
-        assertInputError(LuckyNoMessages.invalidDateTimeMessage(),
+        assertInputError(LuckyNoQuips.invalidDateTimeMessage(),
                 "find /on 2026-13-01", 0);
-        assertInputError(LuckyNoMessages.invalidDateTimeMessage(),
+        assertInputError(LuckyNoQuips.invalidDateTimeMessage(),
                 "find /on 25:99", 0);
-        assertInputError(LuckyNoMessages.invalidFormatMessage(
+        assertInputError(LuckyNoFormatMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.FIND),
                 "find book /on", 0);
-        assertInputError(LuckyNoMessages.invalidFormatMessage(
+        assertInputError(LuckyNoFormatMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.FIND),
                 "find book /on tomorrow /on Friday", 0);
     }

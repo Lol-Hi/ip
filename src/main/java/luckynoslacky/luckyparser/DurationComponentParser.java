@@ -8,7 +8,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 import luckynoslacky.luckytask.DurationPeriod;
 
 /**
@@ -141,7 +141,7 @@ final class DurationComponentParser {
                 && (unit == DurationPeriodUnit.MONTH
                 || unit == DurationPeriodUnit.YEAR)) {
             throw new LuckyNoInputException(
-                    LuckyNoMessages.decimalCalendarDurationMessage());
+                    LuckyNoQuips.decimalCalendarDurationMessage());
         }
         if (!unit.allowsDecimal() && amount.scale() > 0) {
             throw invalidDurationFormat(inputText);
@@ -334,6 +334,6 @@ final class DurationComponentParser {
     private static LuckyNoInputException invalidDurationFormat(
             String durationText) {
         return new LuckyNoInputException(
-                LuckyNoMessages.invalidDurationMessage(durationText));
+                LuckyNoQuips.invalidDurationMessage(durationText));
     }
 }

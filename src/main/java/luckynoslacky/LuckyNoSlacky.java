@@ -11,7 +11,7 @@ import luckynoslacky.luckyexception.LuckyNoStorageException;
 import luckynoslacky.luckyexception.LuckyNoTaskLimitException;
 import luckynoslacky.luckyparser.DateTimeParser;
 import luckynoslacky.luckyparser.LuckyNoParser;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 import luckynoslacky.luckystorage.CsvSaver;
 import luckynoslacky.luckytask.TaskMaster;
 import luckynoslacky.luckyui.LuckyNoCli;
@@ -89,7 +89,7 @@ public class LuckyNoSlacky {
                 commandLineInterface.showReply(exception.getMessage());
             } catch (LuckyNoTaskLimitException exception) {
                 commandLineInterface.showReply(
-                        LuckyNoMessages.taskLimitMessage());
+                        LuckyNoQuips.taskLimitMessage());
             } catch (LuckyNoStorageException exception) {
                 commandLineInterface.showSavingError();
             }
@@ -113,12 +113,12 @@ public class LuckyNoSlacky {
                     ResponseTone.WARNING);
         } catch (LuckyNoTaskLimitException exception) {
             return new CommandResult(
-                    LuckyNoMessages.taskLimitMessage(),
+                    LuckyNoQuips.taskLimitMessage(),
                     false,
                     ResponseTone.WARNING);
         } catch (LuckyNoStorageException exception) {
             return new CommandResult(
-                    LuckyNoMessages.saveErrorMessage(),
+                    LuckyNoQuips.saveErrorMessage(),
                     false,
                     ResponseTone.SYSTEM_ERROR);
         }

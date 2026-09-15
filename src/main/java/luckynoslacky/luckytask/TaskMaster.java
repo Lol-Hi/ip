@@ -1,6 +1,5 @@
 package luckynoslacky.luckytask;
 
-import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,6 +17,7 @@ public class TaskMaster {
     private static final int DEFAULT_MAX_TASKS = 100;
 
     private final TaskList tasks;
+    private final TaskSchedulingService taskSchedulingService;
     private final int maxTasks;
     private final CsvSaver csvSaver;
 
@@ -64,6 +64,7 @@ public class TaskMaster {
         this.maxTasks = maxTasks;
         this.csvSaver = saver;
         tasks = new TaskList();
+        taskSchedulingService = new TaskSchedulingService(tasks);
     }
 
     /**
@@ -235,8 +236,7 @@ public class TaskMaster {
      * @return immutable task scheduling state
      */
     public TaskSchedule getTaskSchedule(int taskNumber) {
-        Task task = getTask(taskNumber);
-        return new TaskSchedule(task.getTaskType(), task.getTaskTimes());
+        return taskSchedulingService.getTaskSchedule(taskNumber);
     }
 
     /**
@@ -246,10 +246,7 @@ public class TaskMaster {
      * @throws TaskSchedulingException if the task is a ToDo
      */
     public void validateTimedTask(int taskNumber) {
-        if (getTask(taskNumber).getTaskType() == Task.TaskType.TODO) {
-            throw new TaskSchedulingException(
-                    TaskSchedulingException.Reason.TODO_TASK);
-        }
+        taskSchedulingService.validateTimedTask(taskNumber);
     }
 
     /**
@@ -264,19 +261,7 @@ public class TaskMaster {
             int taskNumber,
             DurationPeriod amount,
             LocalDateTime currentTime) {
-        if (amount == null || currentTime == null) {
-            throw new IllegalArgumentException("Snooze validation values cannot be null.");
-        }
-        TaskSchedule schedule = getTaskSchedule(taskNumber);
-        validateTimedTask(taskNumber);
-        try {
-            LocalDateTime snoozedEndTime = amount.addTo(
-                    schedule.taskTimes().getEndTime());
-            validateNewEndTime(schedule, snoozedEndTime, currentTime);
-        } catch (DateTimeException exception) {
-            throw new TaskSchedulingException(
-                    TaskSchedulingException.Reason.TIME_OVERFLOW, exception);
-        }
+        taskSchedulingService.validateSnoozeBy(taskNumber, amount, currentTime);
     }
 
     /**
@@ -291,12 +276,7 @@ public class TaskMaster {
             int taskNumber,
             LocalDateTime endTime,
             LocalDateTime currentTime) {
-        if (endTime == null || currentTime == null) {
-            throw new IllegalArgumentException("Snooze validation values cannot be null.");
-        }
-        TaskSchedule schedule = getTaskSchedule(taskNumber);
-        validateTimedTask(taskNumber);
-        validateNewEndTime(schedule, endTime, currentTime);
+        taskSchedulingService.validateSnoozeTo(taskNumber, endTime, currentTime);
     }
 
     /**
@@ -314,23 +294,8 @@ public class TaskMaster {
             LocalDateTime startTime,
             LocalDateTime endTime,
             LocalDateTime currentTime) {
-        if (endTime == null || currentTime == null) {
-            throw new IllegalArgumentException("Rescheduling values cannot be null.");
-        }
-        TaskSchedule schedule = getTaskSchedule(taskNumber);
-        validateTimedTask(taskNumber);
-        if (schedule.taskType() == Task.TaskType.DEADLINE) {
-            validateNewEndTime(schedule, endTime, currentTime);
-            return TaskTimes.makeDeadlineTimes(endTime);
-        }
-        if (startTime == null) {
-            throw new IllegalArgumentException("Event start time cannot be null.");
-        }
-        if (endTime.isBefore(startTime)) {
-            throw new TaskSchedulingException(
-                    TaskSchedulingException.Reason.END_BEFORE_START);
-        }
-        return TaskTimes.makeEventTimes(startTime, endTime);
+        return taskSchedulingService.createRescheduledTimes(
+                taskNumber, startTime, endTime, currentTime);
     }
 
     /**
@@ -494,23 +459,6 @@ public class TaskMaster {
 
         saveChangesOrRollback(() -> task.reschedule(previousTimes));
         return task;
-    }
-
-    /** Validates a new ending time against a deadline or event's schedule. */
-    private void validateNewEndTime(
-            TaskSchedule schedule,
-            LocalDateTime endTime,
-            LocalDateTime currentTime) {
-        if (schedule.taskType() == Task.TaskType.DEADLINE
-                && endTime.isBefore(currentTime)) {
-            throw new TaskSchedulingException(
-                    TaskSchedulingException.Reason.PAST_DEADLINE);
-        }
-        if (schedule.taskType() == Task.TaskType.EVENT
-                && endTime.isBefore(schedule.taskTimes().getStartTime())) {
-            throw new TaskSchedulingException(
-                    TaskSchedulingException.Reason.END_BEFORE_START);
-        }
     }
 
     /**

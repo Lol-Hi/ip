@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 
 /**
  * Parses the flexible date and time text accepted by the chatbot.
@@ -235,6 +235,6 @@ public final class DateTimeParser {
      * @return invalid date/time exception
      */
     private static LuckyNoInputException invalidDateTime() {
-        return new LuckyNoInputException(LuckyNoMessages.invalidDateTimeMessage());
+        return new LuckyNoInputException(LuckyNoQuips.invalidDateTimeMessage());
     }
 }

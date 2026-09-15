@@ -2,7 +2,7 @@ package luckynoslacky.luckycommand;
 
 import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoTaskResponses;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
 
@@ -36,7 +36,7 @@ public class LuckyNoTaskCommand extends LuckyNoCommand {
     @Override
     protected ResponseContent executeContent() {
         this.taskMaster.addTask(task);
-        return LuckyNoMessages.addedTaskContent(
+        return LuckyNoTaskResponses.added(
                 task, this.taskMaster.getTaskCount());
     }
 

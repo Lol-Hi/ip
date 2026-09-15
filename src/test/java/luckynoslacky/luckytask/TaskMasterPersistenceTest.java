@@ -20,7 +20,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import luckynoslacky.luckyexception.LuckyNoStorageException;
 import luckynoslacky.luckyexception.LuckyNoTaskLimitException;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoTaskResponses;
 import luckynoslacky.luckystorage.CsvSaver;
 
 /** Tests persistence, capacity, and validation behavior provided by {@link TaskMaster}. */
@@ -141,7 +141,7 @@ class TaskMasterPersistenceTest {
         assertEquals("simulated save failure", exception.getMessage());
         assertEquals(1, taskMaster.getTaskCount());
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
-                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
+                LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
     /** Verifies that a failed middle deletion restores the original ordering. */

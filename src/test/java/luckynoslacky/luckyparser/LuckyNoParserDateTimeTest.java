@@ -9,7 +9,8 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 
 import luckynoslacky.luckycommand.LuckyNoTaskCommand;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
+import luckynoslacky.luckyresponse.LuckyNoTaskResponses;
 import luckynoslacky.luckytask.EventTask;
 
 /** Tests date and time interpretation used by command parsing. */
@@ -107,13 +108,13 @@ class LuckyNoParserDateTimeTest extends LuckyNoParserTestSupport {
     /** Verifies invalid and past date/time arguments are rejected. */
     @Test
     void parseCommand_invalidOrPastDateTimes_throwsInputException() {
-        assertInputError(LuckyNoMessages.invalidDateTimeMessage(),
+        assertInputError(LuckyNoQuips.invalidDateTimeMessage(),
                 "deadline report /by definitely-not-a-date", 0);
-        assertInputError(LuckyNoMessages.timeTravelMessage(),
+        assertInputError(LuckyNoQuips.timeTravelMessage(),
                 "deadline report /by 2026-08-25 09:00", 0);
-        assertInputError(LuckyNoMessages.timeTravelMessage(),
+        assertInputError(LuckyNoQuips.timeTravelMessage(),
                 "deadline report /by 25 Aug 2025", 0);
-        assertInputError(LuckyNoMessages.timeTravelMessage(),
+        assertInputError(LuckyNoQuips.timeTravelMessage(),
                 "event meeting /from 2026-08-06 16:00 /to 2026-08-06 14:00", 0);
     }
 
@@ -126,13 +127,13 @@ class LuckyNoParserDateTimeTest extends LuckyNoParserTestSupport {
                         + " /to 26 Aug 2025", 0));
 
         assertEquals(
-                LuckyNoMessages.addedTaskMessage(
+                LuckyNoTaskResponses.added(
                         new EventTask(
                                 "past meeting",
                                 LocalDateTime.of(2025, 8, 25, 0, 0),
                                 LocalDateTime.of(2025, 8, 26, 23, 59)),
                         1),
-                command.execute().message());
+                command.execute().content());
     }
 
     /** Verifies event end times use the start date or roll to the next date. */
@@ -148,20 +149,20 @@ class LuckyNoParserDateTimeTest extends LuckyNoParserTestSupport {
                         + " /to 1am", 0));
 
         assertEquals(
-                LuckyNoMessages.addedTaskMessage(
+                LuckyNoTaskResponses.added(
                         new EventTask(
                                 "afternoon meeting",
                                 LocalDateTime.of(2026, 8, 25, 14, 0),
                                 LocalDateTime.of(2026, 8, 25, 16, 0)),
                         1),
-                sameDay.execute().message());
+                sameDay.execute().content());
         assertEquals(
-                LuckyNoMessages.addedTaskMessage(
+                LuckyNoTaskResponses.added(
                         new EventTask(
                                 "overnight meeting",
                                 LocalDateTime.of(2026, 8, 25, 23, 0),
                                 LocalDateTime.of(2026, 8, 26, 1, 0)),
                         2),
-                overnight.execute().message());
+                overnight.execute().content());
     }
 }

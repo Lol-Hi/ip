@@ -6,7 +6,7 @@ import java.time.Period;
 
 import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoTaskResponses;
 import luckynoslacky.luckytask.DurationPeriod;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
@@ -80,7 +80,7 @@ public class LuckyNoSnoozeCommand extends LuckyNoCommand {
         Task updatedTask = targetEndTime == null
                 ? taskMaster.snoozeTaskBy(taskNumber, delayAmount)
                 : taskMaster.snoozeTaskTo(taskNumber, targetEndTime);
-        return LuckyNoMessages.snoozedTaskContent(updatedTask);
+        return LuckyNoTaskResponses.snoozed(updatedTask);
     }
 
     /**

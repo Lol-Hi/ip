@@ -16,7 +16,8 @@ import luckynoslacky.CommandResult;
 import luckynoslacky.ResponseTone;
 import luckynoslacky.TaskContent;
 import luckynoslacky.TextContent;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
+import luckynoslacky.luckyresponse.LuckyNoTaskResponses;
 import luckynoslacky.luckystorage.CsvSaver;
 import luckynoslacky.luckytask.DeadlineTask;
 import luckynoslacky.luckytask.DurationPeriod;
@@ -44,7 +45,7 @@ class LuckyNoCommandTest {
 
         CommandResult result = command.execute();
 
-        assertEquals(LuckyNoMessages.addedTaskMessage(task, 1), result.message());
+        assertEquals(LuckyNoTaskResponses.added(task, 1).message(), result.message());
         assertEquals(1, taskMaster.getTaskCount());
         assertFalse(result.shouldExit());
         assertEquals(ResponseTone.SUCCESS, result.tone());
@@ -61,9 +62,9 @@ class LuckyNoCommandTest {
         CommandResult result = command.execute();
 
         assertEquals(
-                LuckyNoMessages.markedTaskMessage(task), result.message());
+                LuckyNoTaskResponses.marked(task).message(), result.message());
         assertEquals("Nah, all these things you need to do:\n1.[T][X] read book",
-                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
+                LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
     /** Verifies that an unmark command clears a task's done status. */
@@ -77,9 +78,9 @@ class LuckyNoCommandTest {
         CommandResult result = command.execute();
 
         assertEquals(
-                LuckyNoMessages.unmarkedTaskMessage(task), result.message());
+                LuckyNoTaskResponses.unmarked(task).message(), result.message());
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
-                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
+                LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
     /** Verifies that a delete command removes an existing task. */
@@ -92,7 +93,7 @@ class LuckyNoCommandTest {
         CommandResult result = command.execute();
 
         assertEquals(
-                LuckyNoMessages.deletedTaskMessage(task, 0), result.message());
+                LuckyNoTaskResponses.deleted(task, 0).message(), result.message());
         assertEquals(0, taskMaster.getTaskCount());
     }
 
@@ -106,7 +107,7 @@ class LuckyNoCommandTest {
         CommandResult result = command.execute();
 
         assertEquals(
-                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()),
+                LuckyNoTaskResponses.listed(taskMaster.listTasks()).message(),
                 result.message());
         assertEquals(ResponseTone.INFO, result.tone());
         assertInstanceOf(TaskContent.class, result.content());
@@ -123,7 +124,7 @@ class LuckyNoCommandTest {
         CommandResult result = command.execute();
 
         assertEquals(
-                LuckyNoMessages.listTasksMessage(taskMaster.findTasks(SEARCH_DATE)),
+                LuckyNoTaskResponses.listed(taskMaster.findTasks(SEARCH_DATE)).message(),
                 result.message());
         assertEquals(ResponseTone.INFO, result.tone());
         assertInstanceOf(TaskContent.class, result.content());
@@ -142,7 +143,7 @@ class LuckyNoCommandTest {
 
         CommandResult result = command.execute();
 
-        assertEquals(LuckyNoMessages.snoozedTaskMessage(task), result.message());
+        assertEquals(LuckyNoTaskResponses.snoozed(task).message(), result.message());
         assertEquals(LocalDateTime.of(2026, 8, 26, 14, 0), task.getByTime());
     }
 
@@ -162,7 +163,7 @@ class LuckyNoCommandTest {
 
         CommandResult result = command.execute();
 
-        assertEquals(LuckyNoMessages.rescheduledTaskMessage(task), result.message());
+        assertEquals(LuckyNoTaskResponses.rescheduled(task).message(), result.message());
         assertEquals(newStart, task.getStartTime());
         assertEquals(newEnd, task.getEndTime());
     }
@@ -174,7 +175,7 @@ class LuckyNoCommandTest {
 
         CommandResult result = command.execute();
 
-        assertEquals(LuckyNoMessages.goodbye(), result.message());
+        assertEquals(LuckyNoQuips.goodbye(), result.message());
         assertTrue(result.shouldExit());
         assertEquals(ResponseTone.NEUTRAL, result.tone());
         assertInstanceOf(TextContent.class, result.content());

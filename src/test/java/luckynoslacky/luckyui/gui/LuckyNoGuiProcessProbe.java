@@ -14,7 +14,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 
 /** Drives the production GUI from an isolated subprocess test. */
 public final class LuckyNoGuiProcessProbe extends Application {
@@ -122,7 +122,7 @@ public final class LuckyNoGuiProcessProbe extends Application {
         return dialogueContainer.getChildren().stream()
                 .map(node -> (DialogueBox) node)
                 .anyMatch(dialogue -> dialogueContains(dialogue,
-                        LuckyNoMessages.loadErrorMessage()));
+                        LuckyNoQuips.loadErrorMessage()));
     }
 
     /** Checks whether one dialogue row contains the supplied message. */

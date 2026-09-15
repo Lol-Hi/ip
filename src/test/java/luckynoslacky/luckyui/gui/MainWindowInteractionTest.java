@@ -21,7 +21,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import luckynoslacky.CommandResult;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 
 /** Tests observable command interactions and failure handling in the main window. */
 @ExtendWith(ApplicationExtension.class)
@@ -46,7 +46,7 @@ class MainWindowInteractionTest extends MainWindowTestSupport {
                 (DialogueBox) dialogueContainer.getChildren().get(2);
         assertEquals("unknown", getMessageText(userDialogue, 0));
         assertEquals(
-                LuckyNoMessages.unknownCommandMessage(),
+                LuckyNoQuips.unknownCommandMessage(),
                 getMessageText(chatbotDialogue, 1));
         assertTrue(userDialogue.getStyleClass().contains(
                 DialogueBox.USER_DIALOGUE_STYLE));
@@ -187,7 +187,7 @@ class MainWindowInteractionTest extends MainWindowTestSupport {
         StubChatbot chatbot = new StubChatbot(
                 false,
                 new CommandResult(
-                        LuckyNoMessages.saveErrorMessage(), false));
+                        LuckyNoQuips.saveErrorMessage(), false));
         showWindowWithChatbot(robot, chatbot);
 
         robot.clickOn("#userInput").write("trigger save error")
@@ -196,7 +196,7 @@ class MainWindowInteractionTest extends MainWindowTestSupport {
         VBox dialogueContainer = robot.lookup("#dialogContainer").query();
         DialogueBox chatbotDialogue = (DialogueBox) dialogueContainer.getChildren()
                 .get(dialogueContainer.getChildren().size() - 1);
-        assertEquals(LuckyNoMessages.saveErrorMessage(),
+        assertEquals(LuckyNoQuips.saveErrorMessage(),
                 getMessageText(chatbotDialogue, 1));
         assertFalse(robot.lookup("#userInput").query().isDisabled());
     }
@@ -211,7 +211,7 @@ class MainWindowInteractionTest extends MainWindowTestSupport {
         VBox dialogueContainer = robot.lookup("#dialogContainer").query();
         DialogueBox chatbotDialogue = (DialogueBox) dialogueContainer.getChildren()
                 .get(dialogueContainer.getChildren().size() - 1);
-        assertEquals(LuckyNoMessages.loadErrorMessage(),
+        assertEquals(LuckyNoQuips.loadErrorMessage(),
                 getMessageText(chatbotDialogue, 1));
     }
 
@@ -252,7 +252,7 @@ class MainWindowInteractionTest extends MainWindowTestSupport {
         DialogueBox chatbotDialogue =
                 (DialogueBox) dialogueContainer.getChildren().get(2);
         assertEquals(
-                LuckyNoMessages.taskLimitMessage(),
+                LuckyNoQuips.taskLimitMessage(),
                 getMessageText(chatbotDialogue, 1));
     }
 
@@ -274,7 +274,7 @@ class MainWindowInteractionTest extends MainWindowTestSupport {
         Button sendButton = robot.lookup("#sendButton").query();
         assertEquals(3, dialogueContainer.getChildren().size());
         assertEquals(
-                LuckyNoMessages.goodbye(),
+                LuckyNoQuips.goodbye(),
                 getMessageText(chatbotDialogue, 1));
         assertTrue(stage.isShowing());
         assertTrue(inputField.isDisabled());

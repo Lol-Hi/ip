@@ -2,7 +2,7 @@ package luckynoslacky.luckycommand;
 
 import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoTaskResponses;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
 
@@ -41,8 +41,8 @@ public class LuckyNoMarkCommand extends LuckyNoCommand {
                 : this.taskMaster.unmarkTaskUndone(taskNumber);
 
         return shouldMarkDone
-                ? LuckyNoMessages.markedTaskContent(updatedTask)
-                : LuckyNoMessages.unmarkedTaskContent(updatedTask);
+                ? LuckyNoTaskResponses.marked(updatedTask)
+                : LuckyNoTaskResponses.unmarked(updatedTask);
     }
 
     /**

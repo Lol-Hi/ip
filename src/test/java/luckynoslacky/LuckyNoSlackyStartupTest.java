@@ -16,7 +16,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 
 /** Tests startup, termination, and isolated facade error paths. */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -39,10 +39,10 @@ class LuckyNoSlackyStartupTest {
 
         assertEquals(0, result.exitCode());
         assertEquals(
-                DIVIDER + LuckyNoMessages.banner() + "\n"
-                        + expectedReply(LuckyNoMessages.greeting())
+                DIVIDER + LuckyNoQuips.banner() + "\n"
+                        + expectedReply(LuckyNoQuips.greeting())
                         + expectedReply(
-                        LuckyNoMessages.configurationErrorMessage()),
+                        LuckyNoQuips.configurationErrorMessage()),
                 result.standardOutput());
         assertEquals("", result.standardError());
     }
@@ -76,7 +76,7 @@ class LuckyNoSlackyStartupTest {
         assertEquals(0, result.exitCode());
         assertEquals(expectedStartupOutput(true), result.standardOutput());
         assertEquals("", result.standardError());
-        assertTrue(result.standardOutput().contains(LuckyNoMessages.goodbye()));
+        assertTrue(result.standardOutput().contains(LuckyNoQuips.goodbye()));
     }
 
     /** Verifies a non-file data path produces the loading-error response. */
@@ -90,7 +90,7 @@ class LuckyNoSlackyStartupTest {
         assertEquals(0, result.exitCode());
         assertEquals(expectedStartupOutput(true), result.standardOutput());
         assertEquals("", result.standardError());
-        assertTrue(result.standardOutput().contains(LuckyNoMessages.goodbye()));
+        assertTrue(result.standardOutput().contains(LuckyNoQuips.goodbye()));
     }
 
     /** Verifies the facade converts a save failure into its GUI response. */
@@ -102,7 +102,7 @@ class LuckyNoSlackyStartupTest {
         ProcessResult result = runResponseProbe("todo new task");
 
         assertEquals(0, result.exitCode());
-        assertEquals(LuckyNoMessages.saveErrorMessage()
+        assertEquals(LuckyNoQuips.saveErrorMessage()
                         + "\nshouldExit=false\n",
                 result.standardOutput());
         assertEquals("", result.standardError());
@@ -122,12 +122,12 @@ class LuckyNoSlackyStartupTest {
 
     /** Builds the exact greeting, optional load error, and goodbye output. */
     private String expectedStartupOutput(boolean hasLoadError) {
-        String output = DIVIDER + LuckyNoMessages.banner() + "\n"
-                + expectedReply(LuckyNoMessages.greeting());
+        String output = DIVIDER + LuckyNoQuips.banner() + "\n"
+                + expectedReply(LuckyNoQuips.greeting());
         if (hasLoadError) {
-            output += expectedReply(LuckyNoMessages.loadErrorMessage());
+            output += expectedReply(LuckyNoQuips.loadErrorMessage());
         }
-        return output + expectedReply(LuckyNoMessages.goodbye());
+        return output + expectedReply(LuckyNoQuips.goodbye());
     }
 
     /** Builds one CLI reply using the production divider and indentation. */

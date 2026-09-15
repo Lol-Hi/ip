@@ -23,7 +23,8 @@ import org.junit.jupiter.api.Test;
 import luckynoslacky.luckyexception.LuckyNoConfigurationException;
 import luckynoslacky.luckyexception.LuckyNoStorageException;
 import luckynoslacky.luckyparser.DateTimeParser;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
+import luckynoslacky.luckyresponse.LuckyNoTaskResponses;
 import luckynoslacky.luckystorage.CsvSaver;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskList;
@@ -71,7 +72,7 @@ class LuckyNoSlackyTest {
         CommandResult response = chatbot.getResponse("unknown command");
 
         assertEquals(
-                LuckyNoMessages.unknownCommandMessage(),
+                LuckyNoQuips.unknownCommandMessage(),
                 response.message());
         assertFalse(response.shouldExit());
         assertEquals(ResponseTone.WARNING, response.tone());
@@ -97,7 +98,7 @@ class LuckyNoSlackyTest {
 
         CommandResult response = chatbot.getResponse("bye");
 
-        assertEquals(LuckyNoMessages.goodbye(), response.message());
+        assertEquals(LuckyNoQuips.goodbye(), response.message());
         assertTrue(response.shouldExit());
         assertEquals(ResponseTone.NEUTRAL, response.tone());
         assertInstanceOf(TextContent.class, response.content());
@@ -159,10 +160,10 @@ class LuckyNoSlackyTest {
         LuckyNoSlacky.main(new String[0]);
 
         String output = capturedOutput.toString(StandardCharsets.UTF_8);
-        assertTrue(output.contains(LuckyNoMessages.greeting()));
+        assertTrue(output.contains(LuckyNoQuips.greeting()));
         assertTrue(output.contains(
-                LuckyNoMessages.configurationErrorMessage()));
-        assertFalse(output.contains(LuckyNoMessages.goodbye()));
+                LuckyNoQuips.configurationErrorMessage()));
+        assertFalse(output.contains(LuckyNoQuips.goodbye()));
     }
 
     /** Verifies that empty input exits with one goodbye message. */
@@ -175,11 +176,11 @@ class LuckyNoSlackyTest {
         LuckyNoSlacky.run(chatbot, new LuckyNoCli());
 
         String output = capturedOutput.toString(StandardCharsets.UTF_8);
-        int greetingIndex = output.indexOf(LuckyNoMessages.greeting());
-        int goodbyeIndex = output.indexOf(LuckyNoMessages.goodbye());
+        int greetingIndex = output.indexOf(LuckyNoQuips.greeting());
+        int goodbyeIndex = output.indexOf(LuckyNoQuips.goodbye());
         assertTrue(greetingIndex >= 0);
         assertTrue(goodbyeIndex > greetingIndex);
-        assertEquals(1, countOccurrences(output, LuckyNoMessages.goodbye()));
+        assertEquals(1, countOccurrences(output, LuckyNoQuips.goodbye()));
     }
 
     /** Verifies that commands before EOF are processed before goodbye. */
@@ -193,10 +194,10 @@ class LuckyNoSlackyTest {
 
         String output = capturedOutput.toString(StandardCharsets.UTF_8);
         int taskIndex = output.indexOf("task before eof");
-        int goodbyeIndex = output.indexOf(LuckyNoMessages.goodbye());
+        int goodbyeIndex = output.indexOf(LuckyNoQuips.goodbye());
         assertTrue(taskIndex >= 0);
         assertTrue(goodbyeIndex > taskIndex);
-        assertEquals(1, countOccurrences(output, LuckyNoMessages.goodbye()));
+        assertEquals(1, countOccurrences(output, LuckyNoQuips.goodbye()));
     }
 
     /** Verifies that an invalid command before EOF still exits cleanly. */
@@ -210,11 +211,11 @@ class LuckyNoSlackyTest {
 
         String output = capturedOutput.toString(StandardCharsets.UTF_8);
         int errorIndex = output.indexOf(
-                LuckyNoMessages.unknownCommandMessage());
-        int goodbyeIndex = output.indexOf(LuckyNoMessages.goodbye());
+                LuckyNoQuips.unknownCommandMessage());
+        int goodbyeIndex = output.indexOf(LuckyNoQuips.goodbye());
         assertTrue(errorIndex >= 0);
         assertTrue(goodbyeIndex > errorIndex);
-        assertEquals(1, countOccurrences(output, LuckyNoMessages.goodbye()));
+        assertEquals(1, countOccurrences(output, LuckyNoQuips.goodbye()));
     }
 
     /** Verifies that a load warning precedes goodbye when input reaches EOF. */
@@ -227,11 +228,11 @@ class LuckyNoSlackyTest {
         LuckyNoSlacky.run(chatbot, new LuckyNoCli());
 
         String output = capturedOutput.toString(StandardCharsets.UTF_8);
-        int warningIndex = output.indexOf(LuckyNoMessages.loadErrorMessage());
-        int goodbyeIndex = output.indexOf(LuckyNoMessages.goodbye());
+        int warningIndex = output.indexOf(LuckyNoQuips.loadErrorMessage());
+        int goodbyeIndex = output.indexOf(LuckyNoQuips.goodbye());
         assertTrue(warningIndex >= 0);
         assertTrue(goodbyeIndex > warningIndex);
-        assertEquals(1, countOccurrences(output, LuckyNoMessages.goodbye()));
+        assertEquals(1, countOccurrences(output, LuckyNoQuips.goodbye()));
     }
 
     /** Verifies that explicit bye produces one goodbye message. */
@@ -244,7 +245,7 @@ class LuckyNoSlackyTest {
         LuckyNoSlacky.run(chatbot, new LuckyNoCli());
 
         String output = capturedOutput.toString(StandardCharsets.UTF_8);
-        assertEquals(1, countOccurrences(output, LuckyNoMessages.goodbye()));
+        assertEquals(1, countOccurrences(output, LuckyNoQuips.goodbye()));
     }
 
     /** Verifies that a load failure leaves the chatbot in degraded mode. */
@@ -255,7 +256,7 @@ class LuckyNoSlackyTest {
 
         assertTrue(chatbot.hasLoadError());
         assertEquals(
-                LuckyNoMessages.emptyTaskListMessage(),
+                LuckyNoTaskResponses.emptyTaskListMessage(),
                 chatbot.getResponse("list").message());
     }
 
@@ -271,15 +272,15 @@ class LuckyNoSlackyTest {
         LuckyNoSlacky.run(chatbot, new LuckyNoCli());
 
         String output = capturedOutput.toString(StandardCharsets.UTF_8);
-        int loadErrorIndex = output.indexOf(LuckyNoMessages.loadErrorMessage());
+        int loadErrorIndex = output.indexOf(LuckyNoQuips.loadErrorMessage());
         int emptyListIndex = output.indexOf(
-                LuckyNoMessages.emptyTaskListMessage());
+                LuckyNoTaskResponses.emptyTaskListMessage());
         assertTrue(loadErrorIndex >= 0);
         assertTrue(emptyListIndex > loadErrorIndex);
         assertEquals(
                 loadErrorIndex,
-                output.lastIndexOf(LuckyNoMessages.loadErrorMessage()));
-        assertTrue(output.contains(LuckyNoMessages.goodbye()));
+                output.lastIndexOf(LuckyNoQuips.loadErrorMessage()));
+        assertTrue(output.contains(LuckyNoQuips.goodbye()));
         assertTrue(saver.wasSaveCalled());
     }
 
@@ -303,7 +304,7 @@ class LuckyNoSlackyTest {
             CommandResult response = chatbot.getResponse(command);
 
             assertEquals(
-                    LuckyNoMessages.taskLimitMessage(), response.message());
+                    LuckyNoQuips.taskLimitMessage(), response.message());
             assertFalse(response.shouldExit());
             assertEquals(100, saver.getSaveCount());
         }
@@ -326,8 +327,8 @@ class LuckyNoSlackyTest {
         LuckyNoSlacky.run(chatbot, new LuckyNoCli());
 
         String output = capturedOutput.toString(StandardCharsets.UTF_8);
-        assertTrue(output.contains(LuckyNoMessages.taskLimitMessage()));
-        assertTrue(output.contains(LuckyNoMessages.goodbye()));
+        assertTrue(output.contains(LuckyNoQuips.taskLimitMessage()));
+        assertTrue(output.contains(LuckyNoQuips.goodbye()));
         assertEquals(100, saver.getSaveCount());
     }
 

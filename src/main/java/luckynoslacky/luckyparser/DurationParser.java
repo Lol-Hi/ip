@@ -1,7 +1,7 @@
 package luckynoslacky.luckyparser;
 
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 import luckynoslacky.luckytask.DurationPeriod;
 
 /**
@@ -84,6 +84,6 @@ public final class DurationParser {
     private static LuckyNoInputException invalidDurationFormat(
             String durationText) {
         return new LuckyNoInputException(
-                LuckyNoMessages.invalidDurationMessage(durationText));
+                LuckyNoQuips.invalidDurationMessage(durationText));
     }
 }

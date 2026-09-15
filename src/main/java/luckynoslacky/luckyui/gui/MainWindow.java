@@ -19,7 +19,7 @@ import luckynoslacky.LuckyNoSlacky;
 import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
 import luckynoslacky.TextContent;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 
 /**
  * Controls the main LuckyNoSlacky JavaFX window.
@@ -105,12 +105,12 @@ public class MainWindow {
         }
         this.chatbot = chatbot;
         addChatbotMessage(
-                new TextContent(LuckyNoMessages.greeting()),
+                new TextContent(LuckyNoQuips.greeting()),
                 ResponseTone.NEUTRAL);
 
         if (chatbot.hasLoadError()) {
             addChatbotMessage(
-                    new TextContent(LuckyNoMessages.loadErrorMessage()),
+                    new TextContent(LuckyNoQuips.loadErrorMessage()),
                     ResponseTone.SYSTEM_ERROR);
         }
     }

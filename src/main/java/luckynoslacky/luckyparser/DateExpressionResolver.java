@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.util.regex.Matcher;
 
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 
 /**
  * Resolves absolute and relative date expressions against a reference date.
@@ -399,7 +399,7 @@ final class DateExpressionResolver {
      * @return invalid date/time exception
      */
     private static LuckyNoInputException invalidDateTime() {
-        return new LuckyNoInputException(LuckyNoMessages.invalidDateTimeMessage());
+        return new LuckyNoInputException(LuckyNoQuips.invalidDateTimeMessage());
     }
 
     /** Stores a relative-date modifier, count, and remaining expression. */

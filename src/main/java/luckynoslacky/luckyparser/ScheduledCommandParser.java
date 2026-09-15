@@ -5,7 +5,8 @@ import java.time.LocalDateTime;
 import luckynoslacky.luckycommand.LuckyNoReschedCommand;
 import luckynoslacky.luckycommand.LuckyNoSnoozeCommand;
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoFormatMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 import luckynoslacky.luckytask.DurationPeriod;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
@@ -60,7 +61,7 @@ final class ScheduledCommandParser {
         if (CommandArgumentParser.startsWithMarker(parts[1], "/by")) {
             String durationText = CommandArgumentParser.markerValue(
                     parts[1], "/by", LuckyNoParser.CommandName.SNOOZE,
-                    LuckyNoMessages.snoozeByFormat(), LuckyNoMessages.snoozeToFormat());
+                    LuckyNoFormatMessages.snoozeByFormat(), LuckyNoFormatMessages.snoozeToFormat());
             DurationPeriod amount = DurationParser.parse(durationText);
             validateSnoozeBy(taskNumber, amount, taskMaster);
             return new LuckyNoSnoozeCommand(
@@ -69,7 +70,7 @@ final class ScheduledCommandParser {
         if (CommandArgumentParser.startsWithMarker(parts[1], "/to")) {
             String endTimeText = CommandArgumentParser.markerValue(
                     parts[1], "/to", LuckyNoParser.CommandName.SNOOZE,
-                    LuckyNoMessages.snoozeByFormat(), LuckyNoMessages.snoozeToFormat());
+                    LuckyNoFormatMessages.snoozeByFormat(), LuckyNoFormatMessages.snoozeToFormat());
             LocalDateTime endTime = dateTimePrefixParser
                     .parseEndDateTimeIgnoringTrailingText(endTimeText);
             validateSnoozeTo(taskNumber, endTime, taskMaster);
@@ -104,7 +105,7 @@ final class ScheduledCommandParser {
                 && CommandArgumentParser.startsWithMarker(parts[1], "/to")) {
             String endTimeText = CommandArgumentParser.markerValue(
                     parts[1], "/to", LuckyNoParser.CommandName.RESCHED,
-                    LuckyNoMessages.reschedDeadlineFormat());
+                    LuckyNoFormatMessages.reschedDeadlineFormat());
             LocalDateTime endTime = dateTimePrefixParser
                     .parseEndDateTimeIgnoringTrailingText(endTimeText);
             return new LuckyNoReschedCommand(
@@ -246,7 +247,7 @@ final class ScheduledCommandParser {
                 text.substring(markerIndex, valueEnd),
                 marker,
                 LuckyNoParser.CommandName.RESCHED,
-                LuckyNoMessages.reschedEventFormat());
+                LuckyNoFormatMessages.reschedEventFormat());
     }
 
     /** Validates that the selected task supports scheduling commands. */
@@ -310,9 +311,9 @@ final class ScheduledCommandParser {
             TaskSchedulingException exception,
             LuckyNoParser.CommandName commandName) {
         String message = switch (exception.getReason()) {
-            case TODO_TASK -> LuckyNoMessages.cannotSnoozeOrRescheduleTodoMessage(commandName);
-            case PAST_DEADLINE, END_BEFORE_START -> LuckyNoMessages.timeTravelMessage();
-            case TIME_OVERFLOW -> LuckyNoMessages.snoozeOverflowMessage();
+            case TODO_TASK -> LuckyNoQuips.cannotScheduleTodoMessage(commandName.getInputName());
+            case PAST_DEADLINE, END_BEFORE_START -> LuckyNoQuips.timeTravelMessage();
+            case TIME_OVERFLOW -> LuckyNoQuips.snoozeOverflowMessage();
         };
         return new LuckyNoInputException(message);
     }
@@ -325,8 +326,8 @@ final class ScheduledCommandParser {
     private LuckyNoInputException invalidSnoozeFormat() {
         return CommandArgumentParser.invalidFormat(
                 LuckyNoParser.CommandName.SNOOZE,
-                LuckyNoMessages.snoozeByFormat(),
-                LuckyNoMessages.snoozeToFormat());
+                LuckyNoFormatMessages.snoozeByFormat(),
+                LuckyNoFormatMessages.snoozeToFormat());
     }
 
     /**
@@ -339,10 +340,10 @@ final class ScheduledCommandParser {
         return taskType == Task.TaskType.DEADLINE
                 ? CommandArgumentParser.invalidFormat(
                 LuckyNoParser.CommandName.RESCHED,
-                LuckyNoMessages.reschedDeadlineFormat())
+                LuckyNoFormatMessages.reschedDeadlineFormat())
                 : CommandArgumentParser.invalidFormat(
                 LuckyNoParser.CommandName.RESCHED,
-                LuckyNoMessages.reschedEventFormat());
+                LuckyNoFormatMessages.reschedEventFormat());
     }
 
     /** Stores the optional marker values of an event rescheduling command. */

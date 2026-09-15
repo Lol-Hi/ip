@@ -14,7 +14,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 
 /**
  * Tests command-line input and output handled by LuckyNoCli.
@@ -76,8 +76,8 @@ class LuckyNoCliTest {
         cli.showGreeting();
 
         assertEquals(
-                DIVIDER + LuckyNoMessages.banner() + "\n"
-                        + expectedReply(LuckyNoMessages.greeting()),
+                DIVIDER + LuckyNoQuips.banner() + "\n"
+                        + expectedReply(LuckyNoQuips.greeting()),
                 capturedOutput.toString(StandardCharsets.UTF_8));
     }
 
@@ -91,9 +91,9 @@ class LuckyNoCliTest {
         cli.showSavingError();
 
         assertEquals(
-                expectedReply(LuckyNoMessages.goodbye())
-                        + expectedReply(LuckyNoMessages.loadErrorMessage())
-                        + expectedReply(LuckyNoMessages.saveErrorMessage()),
+                expectedReply(LuckyNoQuips.goodbye())
+                        + expectedReply(LuckyNoQuips.loadErrorMessage())
+                        + expectedReply(LuckyNoQuips.saveErrorMessage()),
                 capturedOutput.toString(StandardCharsets.UTF_8));
     }
 
@@ -105,7 +105,7 @@ class LuckyNoCliTest {
         cli.showConfigurationError();
 
         assertEquals(
-                expectedReply(LuckyNoMessages.configurationErrorMessage()),
+                expectedReply(LuckyNoQuips.configurationErrorMessage()),
                 capturedOutput.toString(StandardCharsets.UTF_8));
     }
 

@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoTaskResponses;
 import luckynoslacky.luckystorage.CsvSaver;
 
 /** Tests status changes and deletion behavior provided by {@link TaskMaster}. */
@@ -36,7 +36,7 @@ class TaskMasterMutationTest {
         assertEquals("Nah, all these things you need to do:\n"
                         + "1.[T][ ] read book\n"
                         + "2.[T][X] return book",
-                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
+                LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
     /** Verifies that unmarking a done task clears its status. */
@@ -49,7 +49,7 @@ class TaskMasterMutationTest {
         taskMaster.unmarkTaskUndone(1);
 
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
-                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
+                LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
     /** Verifies that marking an already done task is idempotent. */
@@ -62,7 +62,7 @@ class TaskMasterMutationTest {
         taskMaster.markTaskDone(1);
 
         assertEquals("Nah, all these things you need to do:\n1.[T][X] read book",
-                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
+                LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
     /** Verifies that unmarking an incomplete task is idempotent. */
@@ -75,7 +75,7 @@ class TaskMasterMutationTest {
         taskMaster.unmarkTaskUndone(1);
 
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
-                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
+                LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
     /** Verifies that deletion removes and renumbers later tasks. */
@@ -91,7 +91,7 @@ class TaskMasterMutationTest {
                         + "1.[T][ ] first\n"
                         + "2.[E][ ] third (from: Thu Aug 06 2026, 2.00pm"
                         + " to: Thu Aug 06 2026, 4.00pm)",
-                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
+                LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
     /** Verifies that an invalid deletion leaves the list unchanged. */
@@ -104,7 +104,7 @@ class TaskMasterMutationTest {
                 IllegalArgumentException.class, () -> taskMaster.deleteTask(2));
         assertEquals("Invalid task number.", exception.getMessage());
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
-                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
+                LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
     /** Verifies that deletion frees capacity for a later task. */
@@ -120,7 +120,7 @@ class TaskMasterMutationTest {
         assertEquals("Nah, all these things you need to do:\n"
                         + "1.[T][ ] second\n"
                         + "2.[T][ ] third",
-                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
+                LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
     /** Verifies that deletion from an empty list is rejected. */
@@ -169,12 +169,12 @@ class TaskMasterMutationTest {
 
         assertThrows(IllegalArgumentException.class, () -> taskMaster.markTaskDone(2));
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
-                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
+                LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
 
         taskMaster.markTaskDone(1);
         assertThrows(IllegalArgumentException.class, () -> taskMaster.unmarkTaskUndone(2));
         assertEquals("Nah, all these things you need to do:\n1.[T][X] read book",
-                LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
+                LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
     /** Creates a task master with the default test capacity. */

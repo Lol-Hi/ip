@@ -3,7 +3,7 @@ package luckynoslacky.luckycommand;
 import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
 import luckynoslacky.TextContent;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 
 /**
  * Represents a request to leave the chatbot.
@@ -22,7 +22,7 @@ public class LuckyNoByeCommand extends LuckyNoCommand {
      */
     @Override
     protected ResponseContent executeContent() {
-        return new TextContent(LuckyNoMessages.goodbye());
+        return new TextContent(LuckyNoQuips.goodbye());
     }
 
     /**

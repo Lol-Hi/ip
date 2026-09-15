@@ -10,7 +10,8 @@ import org.junit.jupiter.api.Test;
 
 import luckynoslacky.luckycommand.LuckyNoReschedCommand;
 import luckynoslacky.luckycommand.LuckyNoSnoozeCommand;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoFormatMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 import luckynoslacky.luckytask.DeadlineTask;
 import luckynoslacky.luckytask.EventTask;
 import luckynoslacky.luckytask.TodoTask;
@@ -148,9 +149,9 @@ class LuckyNoParserSchedulingTest extends LuckyNoParserTestSupport {
                         "project meeting",
                         LocalDateTime.of(2026, 8, 26, 14, 0),
                         LocalDateTime.of(2026, 8, 26, 16, 0))));
-        String expectedMessage = LuckyNoMessages.invalidFormatMessage(
+        String expectedMessage = LuckyNoFormatMessages.invalidFormatMessage(
                 LuckyNoParser.CommandName.RESCHED,
-                LuckyNoMessages.reschedEventFormat());
+                LuckyNoFormatMessages.reschedEventFormat());
 
         assertInputError(
                 expectedMessage,
@@ -173,12 +174,10 @@ class LuckyNoParserSchedulingTest extends LuckyNoParserTestSupport {
                 List.of(new TodoTask("read book")));
 
         assertInputError(
-                LuckyNoMessages.cannotSnoozeOrRescheduleTodoMessage(
-                        LuckyNoParser.CommandName.SNOOZE),
+                LuckyNoQuips.cannotScheduleTodoMessage("snooze"),
                 "snooze 1", 1);
         assertInputError(
-                LuckyNoMessages.cannotSnoozeOrRescheduleTodoMessage(
-                        LuckyNoParser.CommandName.RESCHED),
+                LuckyNoQuips.cannotScheduleTodoMessage("resched"),
                 "resched 1 /to tomorrow", 1);
     }
 
@@ -192,16 +191,16 @@ class LuckyNoParserSchedulingTest extends LuckyNoParserTestSupport {
                 "Siao ah time where got negative one",
                 "snooze 1 /by -2 hours", 1);
         assertInputError(
-                LuckyNoMessages.invalidFormatMessage(
+                LuckyNoFormatMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.SNOOZE,
-                        LuckyNoMessages.snoozeByFormat(),
-                        LuckyNoMessages.snoozeToFormat()),
+                        LuckyNoFormatMessages.snoozeByFormat(),
+                        LuckyNoFormatMessages.snoozeToFormat()),
                 "snooze 1 /by 2 hours /to tomorrow", 1);
         assertInputError(
-                LuckyNoMessages.invalidFormatMessage(
+                LuckyNoFormatMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.SNOOZE,
-                        LuckyNoMessages.snoozeByFormat(),
-                        LuckyNoMessages.snoozeToFormat()),
+                        LuckyNoFormatMessages.snoozeByFormat(),
+                        LuckyNoFormatMessages.snoozeToFormat()),
                 "snooze 1 /by 2 hours /extra", 1);
     }
 
@@ -216,10 +215,10 @@ class LuckyNoParserSchedulingTest extends LuckyNoParserTestSupport {
                         LocalDateTime.of(2026, 8, 26, 13, 0))));
 
         assertInputError(
-                LuckyNoMessages.snoozeOverflowMessage(),
+                LuckyNoQuips.snoozeOverflowMessage(),
                 "snooze 1 /by 1000000000 years", 1);
         assertInputError(
-                LuckyNoMessages.snoozeOverflowMessage(),
+                LuckyNoQuips.snoozeOverflowMessage(),
                 "snooze 2 /by 1000000000 years", 2);
     }
 
@@ -234,14 +233,14 @@ class LuckyNoParserSchedulingTest extends LuckyNoParserTestSupport {
                         LocalDateTime.of(2026, 8, 26, 13, 0))));
 
         assertInputError(
-                LuckyNoMessages.invalidFormatMessage(
+                LuckyNoFormatMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.RESCHED,
-                        LuckyNoMessages.reschedDeadlineFormat()),
+                        LuckyNoFormatMessages.reschedDeadlineFormat()),
                 "resched 1 /from tomorrow /to tomorrow", 2);
         assertInputError(
-                LuckyNoMessages.invalidFormatMessage(
+                LuckyNoFormatMessages.invalidFormatMessage(
                         LuckyNoParser.CommandName.RESCHED,
-                        LuckyNoMessages.reschedEventFormat()),
+                        LuckyNoFormatMessages.reschedEventFormat()),
                 "resched 2", 2);
     }
 

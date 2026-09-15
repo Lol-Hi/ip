@@ -2,7 +2,7 @@ package luckynoslacky.luckycommand;
 
 import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoTaskResponses;
 import luckynoslacky.luckytask.TaskMaster;
 
 /**
@@ -29,7 +29,7 @@ public class LuckyNoListCommand extends LuckyNoCommand {
      */
     @Override
     protected ResponseContent executeContent() {
-        return LuckyNoMessages.listTasksContent(taskMaster.listTasks());
+        return LuckyNoTaskResponses.listed(taskMaster.listTasks());
     }
 
     /**

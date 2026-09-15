@@ -22,7 +22,7 @@ import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 
 /** Tests GUI exit and persistence behavior through isolated Java processes. */
 class LuckyNoGuiSubprocessTest {
@@ -40,7 +40,7 @@ class LuckyNoGuiSubprocessTest {
         Process process = startProcess("bye");
         try {
             assertEquals(
-                    "GOODBYE_RESULT=" + LuckyNoMessages.goodbye()
+                    "GOODBYE_RESULT=" + LuckyNoQuips.goodbye()
                             + "|inputEmpty=true|inputDisabled=true",
                     readFirstOutputLine(process));
             assertTrue(process.isAlive());

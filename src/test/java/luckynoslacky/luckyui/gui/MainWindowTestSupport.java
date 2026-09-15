@@ -20,7 +20,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import luckynoslacky.CommandResult;
 import luckynoslacky.LuckyNoSlacky;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 
 /** Shared FXML fixtures, node lookups, and chatbot doubles for GUI tests. */
 abstract class MainWindowTestSupport {
@@ -154,7 +154,7 @@ abstract class MainWindowTestSupport {
         @Override
         public CommandResult getResponse(String userInput) {
             return new CommandResult(
-                    LuckyNoMessages.taskLimitMessage(), false);
+                    LuckyNoQuips.taskLimitMessage(), false);
         }
     }
 
@@ -180,7 +180,7 @@ abstract class MainWindowTestSupport {
 
         @Override
         public CommandResult getResponse(String userInput) {
-            return new CommandResult(LuckyNoMessages.goodbye(), true);
+            return new CommandResult(LuckyNoQuips.goodbye(), true);
         }
     }
 

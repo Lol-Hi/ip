@@ -2,7 +2,7 @@ package luckynoslacky.luckycommand;
 
 import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoTaskResponses;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
 
@@ -33,7 +33,7 @@ public class LuckyNoDeleteCommand extends LuckyNoCommand {
     @Override
     protected ResponseContent executeContent() {
         Task deletedTask = this.taskMaster.deleteTask(taskNumber);
-        return LuckyNoMessages.deletedTaskContent(
+        return LuckyNoTaskResponses.deleted(
                 deletedTask, this.taskMaster.getTaskCount());
     }
 

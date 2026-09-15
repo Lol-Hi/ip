@@ -2,7 +2,7 @@ package luckynoslacky.luckyui;
 
 import java.util.Scanner;
 
-import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoQuips;
 
 /**
  * Handles direct command-line interaction with the user.
@@ -49,28 +49,28 @@ public class LuckyNoCli {
 
     /** Displays the chatbot banner and greeting. */
     public void showGreeting() {
-        System.out.print(DIVIDER + LuckyNoMessages.banner() + "\n");
-        showReply(LuckyNoMessages.greeting());
+        System.out.print(DIVIDER + LuckyNoQuips.banner() + "\n");
+        showReply(LuckyNoQuips.greeting());
     }
 
     /** Displays the chatbot goodbye message. */
     public void showGoodbye() {
-        showReply(LuckyNoMessages.goodbye());
+        showReply(LuckyNoQuips.goodbye());
     }
 
     /** Displays the message shown when task loading fails. */
     public void showLoadingError() {
-        showReply(LuckyNoMessages.loadErrorMessage());
+        showReply(LuckyNoQuips.loadErrorMessage());
     }
 
     /** Displays the message shown when task saving fails. */
     public void showSavingError() {
-        showReply(LuckyNoMessages.saveErrorMessage());
+        showReply(LuckyNoQuips.saveErrorMessage());
     }
 
     /** Displays the message shown when application configuration is invalid. */
     public void showConfigurationError() {
-        showReply(LuckyNoMessages.configurationErrorMessage());
+        showReply(LuckyNoQuips.configurationErrorMessage());
     }
 
     /**
