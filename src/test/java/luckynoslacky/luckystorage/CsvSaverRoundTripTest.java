@@ -17,14 +17,15 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.junit.jupiter.api.Test;
 
-import luckynoslacky.luckyparser.DurationPeriod;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 import luckynoslacky.luckytask.DeadlineTask;
+import luckynoslacky.luckytask.DurationPeriod;
 import luckynoslacky.luckytask.EventTask;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
 import luckynoslacky.luckytask.TaskTimes;
+import luckynoslacky.luckytask.TaskView;
 import luckynoslacky.luckytask.TodoTask;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /** Tests successful CSV persistence and task round trips. */
 class CsvSaverRoundTripTest extends CsvSaverTestSupport {
@@ -244,8 +245,11 @@ class CsvSaverRoundTripTest extends CsvSaverTestSupport {
 
         assertCsvRecord(dataFile,
                 List.of("D", "1", "return book", "", "2026-08-26 14:00"));
-        assertTrue(loadTaskMaster(dataFile).listTasks().toDisplayString()
-                .contains("[D][X] return book"));
+        TaskView restoredTask = loadTaskMaster(dataFile).listTasks()
+                .getTaskViews().getFirst();
+        assertEquals(Task.TaskType.DEADLINE, restoredTask.taskType());
+        assertTrue(restoredTask.isDone());
+        assertEquals("return book", restoredTask.description());
     }
 
     /** Verifies saving rewrites the file after a task is deleted. */
@@ -326,16 +330,20 @@ class CsvSaverRoundTripTest extends CsvSaverTestSupport {
                 2, new DurationPeriod(Period.ZERO, Duration.ofHours(2)));
         original.snoozeTaskTo(3, LocalDateTime.of(2026, 8, 7, 18, 0));
 
-        List<List<String>> expectedRecords = original.listTasks()
-                .getCsvStorageRecords();
+        List<List<String>> expectedRecords = original.listTasks().getTasks()
+                .stream()
+                .map(TaskCsvCodec::toRecord)
+                .toList();
         List<Task> loadedTasks = saver.load();
         TaskMaster restored = new TaskMaster(3, saver);
         restored.loadTasksFromCsvStorageRecord(loadedTasks);
 
         assertEquals(expectedRecords,
-                restored.listTasks().getCsvStorageRecords());
-        assertEquals(original.listTasks().toDisplayString(),
-                restored.listTasks().toDisplayString());
+                restored.listTasks().getTasks().stream()
+                        .map(TaskCsvCodec::toRecord)
+                        .toList());
+        assertEquals(original.listTasks().getTaskViews(),
+                restored.listTasks().getTaskViews());
     }
 
     /** Verifies that deleting the final task persists an empty list. */

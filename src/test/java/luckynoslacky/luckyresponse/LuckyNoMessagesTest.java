@@ -1,4 +1,4 @@
-package luckynoslacky.luckyui;
+package luckynoslacky.luckyresponse;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

@@ -8,16 +8,17 @@ import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
 
+import luckynoslacky.CommandResult;
 import luckynoslacky.luckycommand.LuckyNoCommand;
 import luckynoslacky.luckycommand.LuckyNoDeleteCommand;
 import luckynoslacky.luckycommand.LuckyNoFindCommand;
 import luckynoslacky.luckycommand.LuckyNoMarkCommand;
 import luckynoslacky.luckycommand.LuckyNoTaskCommand;
 import luckynoslacky.luckyexception.LuckyNoInputException;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 import luckynoslacky.luckytask.DeadlineTask;
 import luckynoslacky.luckytask.EventTask;
 import luckynoslacky.luckytask.TodoTask;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /** Tests parsing and validation of basic command input. */
 class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
@@ -30,7 +31,7 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
         assertEquals(
                 LuckyNoMessages.addedTaskMessage(
                         new TodoTask("borrow book"), 1),
-                command.execute());
+                command.execute().message());
     }
 
     /** Verifies parsing a deadline command. */
@@ -45,7 +46,7 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
                                 "return book",
                                 LocalDateTime.of(2026, 10, 15, 14, 15)),
                         1),
-                command.execute());
+                command.execute().message());
     }
 
     /** Verifies parsing an event command. */
@@ -62,7 +63,7 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
                                 LocalDateTime.of(2026, 8, 6, 14, 0),
                                 LocalDateTime.of(2026, 8, 6, 16, 0)),
                         1),
-                command.execute());
+                command.execute().message());
     }
 
     /** Verifies that mark and unmark commands request explicit statuses. */
@@ -73,13 +74,15 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
                 scanner.parseCommand("mark 1", 1));
         LuckyNoMarkCommand unmark = assertInstanceOf(LuckyNoMarkCommand.class,
                 scanner.parseCommand("unmark 1", 1));
+        CommandResult markResult = mark.execute();
 
         assertEquals(
-                LuckyNoMessages.markedTaskMessage("[T][X] read book"),
-                mark.execute());
+                LuckyNoMessages.markedTaskMessage(taskMaster.listTasks().getTask(1)),
+                markResult.message());
+        CommandResult unmarkResult = unmark.execute();
         assertEquals(
-                LuckyNoMessages.unmarkedTaskMessage("[T][ ] read book"),
-                unmark.execute());
+                LuckyNoMessages.unmarkedTaskMessage(taskMaster.listTasks().getTask(1)),
+                unmarkResult.message());
     }
 
     /** Verifies parsing with an omitted explicit task count. */
@@ -90,10 +93,11 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
 
         LuckyNoMarkCommand command = assertInstanceOf(LuckyNoMarkCommand.class,
                 scanner.parseCommand("mark 1"));
+        CommandResult result = command.execute();
 
         assertEquals(
-                LuckyNoMessages.markedTaskMessage("[T][X] read book"),
-                command.execute());
+                LuckyNoMessages.markedTaskMessage(taskMaster.listTasks().getTask(1)),
+                result.message());
     }
 
     /** Verifies parsing a delete command. */
@@ -104,10 +108,11 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
         taskMaster.addTask(new TodoTask("buy bread"));
         LuckyNoDeleteCommand command = assertInstanceOf(LuckyNoDeleteCommand.class,
                 scanner.parseCommand("delete 3", 3));
+        CommandResult result = command.execute();
 
         assertEquals(
-                LuckyNoMessages.deletedTaskMessage("[T][ ] buy bread", 2),
-                command.execute());
+                LuckyNoMessages.deletedTaskMessage(new TodoTask("buy bread"), 2),
+                result.message());
         assertEquals(2, taskMaster.getTaskCount());
     }
 
@@ -116,10 +121,11 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
     void parseCommand_listAndByeInput_returnsCommands() throws LuckyNoInputException {
         assertEquals(
                 LuckyNoMessages.listTasksMessage(taskMaster.listTasks()),
-                scanner.parseCommand("list", 0).execute());
+                scanner.parseCommand("list", 0).execute().message());
         LuckyNoCommand bye = scanner.parseCommand("bye", 0);
-        assertEquals(LuckyNoMessages.goodbye(), bye.execute());
-        assertTrue(bye.shouldExit());
+        CommandResult result = bye.execute();
+        assertEquals(LuckyNoMessages.goodbye(), result.message());
+        assertTrue(result.shouldExit());
     }
 
     /** Verifies that text before the find tag is ignored. */
@@ -134,7 +140,7 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
         assertEquals(
                 LuckyNoMessages.listTasksMessage(taskMaster.findTasks(
                         "book", LocalDateTime.of(2026, 9, 2, 0, 0))),
-                command.execute());
+                command.execute().message());
     }
 
     /** Verifies find commands that contain only a description. */
@@ -149,7 +155,7 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
 
         assertEquals(
                 LuckyNoMessages.listTasksMessage(taskMaster.findTasks("book")),
-                command.execute());
+                command.execute().message());
     }
 
     /** Verifies known command tokens match case-insensitively. */
@@ -170,7 +176,7 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
         assertEquals(
                 LuckyNoMessages.addedTaskMessage(
                         new TodoTask("read book"), 1),
-                command.execute());
+                command.execute().message());
     }
 
     /** Verifies timed commands accept trailing commentary and flexible spacing. */
@@ -213,17 +219,17 @@ class LuckyNoParserCommandTest extends LuckyNoParserTestSupport {
     void parseCommand_nonMarkerSlashes_remainsValid() throws LuckyNoInputException {
         assertEquals(
                 LuckyNoMessages.addedTaskMessage(new TodoTask("read/book"), 1),
-                scanner.parseCommand("todo read/book", 0).execute());
+                scanner.parseCommand("todo read/book", 0).execute().message());
         assertEquals(
                 LuckyNoMessages.addedTaskMessage(new TodoTask("read / book"), 2),
-                scanner.parseCommand("todo read / book", 1).execute());
+                scanner.parseCommand("todo read / book", 1).execute().message());
         assertEquals(
                 LuckyNoMessages.addedTaskMessage(
                         new DeadlineTask(
                                 "slash date", LocalDateTime.of(2026, 8, 26, 23, 59)),
                         3),
                 scanner.parseCommand(
-                        "deadline slash date /by 2026/08/26", 2).execute());
+                        "deadline slash date /by 2026/08/26", 2).execute().message());
     }
 
     /** Verifies unsupported marker-like slashes use command format errors. */

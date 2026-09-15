@@ -1,11 +1,15 @@
-package luckynoslacky.luckyui;
+package luckynoslacky.luckyresponse;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
+import luckynoslacky.ResponseContent;
+import luckynoslacky.TaskContent;
+import luckynoslacky.TextContent;
 import luckynoslacky.luckyparser.LuckyNoParser;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskList;
+import luckynoslacky.luckytask.TaskView;
 
 /**
  * Stores and formats all messages that can be shown to the user.
@@ -336,7 +340,21 @@ public final class LuckyNoMessages {
         }
         return joinMessageLines(
                 "Nah here's your snooze you lazy bum, don't slack too much hor!",
-                "  " + task);
+                "  " + formatTask(task));
+    }
+
+    /**
+     * Returns structured content for a snoozed task.
+     *
+     * @param task updated task
+     * @return task response content
+     */
+    public static TaskContent snoozedTaskContent(Task task) {
+        return taskContent(
+                snoozedTaskMessage(task),
+                "Nah here's your snooze you lazy bum, don't slack too much hor!",
+                task,
+                null);
     }
 
     /**
@@ -351,7 +369,21 @@ public final class LuckyNoMessages {
         }
         return joinMessageLines(
                 "Nah here's your resched you lazy bum, don't slack too much hor!",
-                "  " + task);
+                "  " + formatTask(task));
+    }
+
+    /**
+     * Returns structured content for a rescheduled task.
+     *
+     * @param task updated task
+     * @return task response content
+     */
+    public static TaskContent rescheduledTaskContent(Task task) {
+        return taskContent(
+                rescheduledTaskMessage(task),
+                "Nah here's your resched you lazy bum, don't slack too much hor!",
+                task,
+                null);
     }
 
     /**
@@ -400,46 +432,105 @@ public final class LuckyNoMessages {
     public static String addedTaskMessage(Task task, int taskCount) {
         return joinMessageLines(
                 "Got one more thing to remember ah: ",
-                "  " + task,
+                "  " + formatTask(task),
+                "Now you got " + taskCount + " tasks to settle.");
+    }
+
+    /**
+     * Returns structured content for an added task.
+     *
+     * @param task task that was added
+     * @param taskCount number of tasks after adding the task
+     * @return task response content
+     */
+    public static TaskContent addedTaskContent(Task task, int taskCount) {
+        return taskContent(
+                addedTaskMessage(task, taskCount),
+                "Got one more thing to remember ah: ",
+                task,
                 "Now you got " + taskCount + " tasks to settle.");
     }
 
     /**
      * Formats the response after marking a task done.
      *
-     * @param formattedTask formatted task that was marked
+     * @param task task that was marked
      * @return mark response
      */
-    public static String markedTaskMessage(String formattedTask) {
+    public static String markedTaskMessage(Task task) {
         return joinMessageLines(
                 "Swee lah you're done with this task:",
-                "  " + formattedTask);
+                "  " + formatTask(task));
+    }
+
+    /**
+     * Returns structured content for a task marked as done.
+     *
+     * @param task task marked as done
+     * @return task response content
+     */
+    public static TaskContent markedTaskContent(Task task) {
+        return taskContent(
+                markedTaskMessage(task),
+                "Swee lah you're done with this task:",
+                task,
+                null);
     }
 
     /**
      * Formats the response after marking a task not done.
      *
-     * @param formattedTask formatted task that was unmarked
+     * @param task task that was unmarked
      * @return unmark response
      */
-    public static String unmarkedTaskMessage(String formattedTask) {
+    public static String unmarkedTaskMessage(Task task) {
         return joinMessageLines(
                 "Eh salah you're not done with this task ah, "
                         + "must remember to do ah!",
-                "  " + formattedTask);
+                "  " + formatTask(task));
+    }
+
+    /**
+     * Returns structured content for a task marked as not done.
+     *
+     * @param task task marked as not done
+     * @return task response content
+     */
+    public static TaskContent unmarkedTaskContent(Task task) {
+        return taskContent(
+                unmarkedTaskMessage(task),
+                "Eh salah you're not done with this task ah, "
+                        + "must remember to do ah!",
+                task,
+                null);
     }
 
     /**
      * Formats the response after deleting a task.
      *
-     * @param formattedTask formatted task that was deleted
+     * @param task task that was deleted
      * @param taskCount number of remaining tasks
      * @return deletion response
      */
-    public static String deletedTaskMessage(String formattedTask, int taskCount) {
+    public static String deletedTaskMessage(Task task, int taskCount) {
         return joinMessageLines(
                 "Solid man can don't care about this one already:",
-                "  " + formattedTask,
+                "  " + formatTask(task),
+                "But you still got " + taskCount + " tasks to settle.");
+    }
+
+    /**
+     * Returns structured content for a deleted task.
+     *
+     * @param task task that was deleted
+     * @param taskCount number of remaining tasks
+     * @return task response content
+     */
+    public static TaskContent deletedTaskContent(Task task, int taskCount) {
+        return taskContent(
+                deletedTaskMessage(task, taskCount),
+                "Solid man can don't care about this one already:",
+                task,
                 "But you still got " + taskCount + " tasks to settle.");
     }
 
@@ -467,11 +558,64 @@ public final class LuckyNoMessages {
             return emptyTaskListMessage();
         }
 
-        String header = taskList.getSearchDate()
+        String header = listTasksHeader(taskList);
+
+        return joinMessageLines(header, formatTaskList(taskList));
+    }
+
+    /**
+     * Returns structured content for a task-list or task-search response.
+     *
+     * @param taskList indexed task list to present
+     * @return text content for an empty list, or structured task content
+     */
+    public static ResponseContent listTasksContent(TaskList taskList) {
+        if (taskList == null) {
+            throw new IllegalArgumentException("Task list cannot be null.");
+        }
+        if (taskList.isEmpty()) {
+            return new TextContent(emptyTaskListMessage());
+        }
+        return new TaskContent(
+                listTasksMessage(taskList),
+                java.util.List.of(listTasksHeader(taskList)),
+                taskList.getTaskViews(),
+                java.util.List.of());
+    }
+
+    /** Creates a one-task response with optional trailing prose. */
+    private static TaskContent taskContent(
+            String message,
+            String leadingLine,
+            Task task,
+            String trailingLine) {
+        java.util.List<String> trailingLines = trailingLine == null
+                ? java.util.List.of()
+                : java.util.List.of(trailingLine);
+        return new TaskContent(
+                message,
+                java.util.List.of(leadingLine),
+                java.util.List.of(TaskView.fromTask(task)),
+                trailingLines);
+    }
+
+    /** Formats one task for the command-line response. */
+    private static String formatTask(Task task) {
+        return TaskTextFormatter.formatTask(TaskView.fromTask(task));
+    }
+
+    /** Formats each numbered task for the command-line response. */
+    private static String formatTaskList(TaskList taskList) {
+        return taskList.getTaskViews().stream()
+                .map(TaskTextFormatter::formatNumberedTask)
+                .collect(java.util.stream.Collectors.joining("\n"));
+    }
+
+    /** Returns the prose heading for a non-empty task-list response. */
+    private static String listTasksHeader(TaskList taskList) {
+        return taskList.getSearchDate()
                 .map(date -> "Nah, all these things you need to do on: "
                         + FIND_DATE_FORMAT.format(date))
                 .orElse("Nah, all these things you need to do:");
-
-        return joinMessageLines(header, taskList.toDisplayString());
     }
 }

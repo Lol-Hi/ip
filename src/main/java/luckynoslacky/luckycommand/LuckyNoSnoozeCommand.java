@@ -4,12 +4,12 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
 
-import luckynoslacky.ResponseKind;
+import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
-import luckynoslacky.luckyparser.DurationPeriod;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckytask.DurationPeriod;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Represents a request to extend or replace the ending time of a timed task.
@@ -76,11 +76,11 @@ public class LuckyNoSnoozeCommand extends LuckyNoCommand {
      * @return snooze response
      */
     @Override
-    public String execute() {
+    protected ResponseContent executeContent() {
         Task updatedTask = targetEndTime == null
                 ? taskMaster.snoozeTaskBy(taskNumber, delayAmount)
                 : taskMaster.snoozeTaskTo(taskNumber, targetEndTime);
-        return LuckyNoMessages.snoozedTaskMessage(updatedTask);
+        return LuckyNoMessages.snoozedTaskContent(updatedTask);
     }
 
     /**
@@ -89,17 +89,8 @@ public class LuckyNoSnoozeCommand extends LuckyNoCommand {
      * @return success response tone
      */
     @Override
-    public ResponseTone getResponseTone() {
+    protected ResponseTone responseTone() {
         return ResponseTone.SUCCESS;
     }
 
-    /**
-     * Returns the task-content kind for the snooze response.
-     *
-     * @return task-content response kind
-     */
-    @Override
-    public ResponseKind getResponseKind() {
-        return ResponseKind.TASK_CONTENT;
-    }
 }

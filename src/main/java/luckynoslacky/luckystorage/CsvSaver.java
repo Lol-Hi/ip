@@ -19,7 +19,6 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
 import luckynoslacky.luckyexception.LuckyNoStorageException;
-import luckynoslacky.luckyparser.DateTimeParser;
 import luckynoslacky.luckytask.DeadlineTask;
 import luckynoslacky.luckytask.EventTask;
 import luckynoslacky.luckytask.Task;
@@ -147,7 +146,8 @@ public class CsvSaver {
              CSVPrinter printer = new CSVPrinter(writer, CSVFormat.DEFAULT)) {
             printer.printRecord(CSV_HEADER);
 
-            for (List<String> record : taskList.getCsvStorageRecords()) {
+            for (Task task : taskList.getTasks()) {
+                List<String> record = TaskCsvCodec.toRecord(task);
                 assert record.size() == EXPECTED_FIELD_COUNT
                         : "Unexpected CSV field count: " + record.size();
                 printer.printRecord(record);
@@ -275,7 +275,7 @@ public class CsvSaver {
         String taskType = record.get(0);
         String description = record.get(2);
 
-        Task.TaskStatus completionStatus = parseCompletionStatus(record);
+        boolean isCompleted = parseCompletionStatus(record);
 
         Task task;
         try {
@@ -293,7 +293,7 @@ public class CsvSaver {
                     exception);
         }
 
-        if (completionStatus == Task.TaskStatus.DONE) {
+        if (isCompleted) {
             task.markAsDone();
         }
 
@@ -314,26 +314,27 @@ public class CsvSaver {
         return switch (taskType) {
             case "T" -> TaskTimes.none();
             case "D" -> TaskTimes.makeDeadlineTimes(
-                    DateTimeParser.parseFromStorage(endTimeText));
+                    DateTimeStorageCodec.parse(endTimeText));
             case "E" -> TaskTimes.makeEventTimes(
-                    DateTimeParser.parseFromStorage(startTimeText),
-                    DateTimeParser.parseFromStorage(endTimeText));
+                    DateTimeStorageCodec.parse(startTimeText),
+                    DateTimeStorageCodec.parse(endTimeText));
             default -> throw invalidRecord(record, "unknown task type");
         };
     }
 
     /**
-     * Validates the completion flag stored in a CSV record.
+     * Parses the completion flag stored in a CSV record.
      *
      * @param record CSV task record
+     * @return whether the task is completed
      * @throws LuckyNoStorageException if the flag is neither 0 nor 1
      */
-    private Task.TaskStatus parseCompletionStatus(CSVRecord record) {
-        try {
-            return Task.TaskStatus.fromStorageValue(record.get(1));
-        } catch (IllegalArgumentException exception) {
-            throw invalidRecord(record, "invalid completion status");
-        }
+    private boolean parseCompletionStatus(CSVRecord record) {
+        return switch (record.get(1)) {
+            case "0" -> false;
+            case "1" -> true;
+            default -> throw invalidRecord(record, "invalid completion status");
+        };
     }
 
     /**

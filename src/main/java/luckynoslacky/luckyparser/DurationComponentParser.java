@@ -8,7 +8,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckyui.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckytask.DurationPeriod;
 
 /**
  * Parses normalized numeric duration components and accumulates their values.

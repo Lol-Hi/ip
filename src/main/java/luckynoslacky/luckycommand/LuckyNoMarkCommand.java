@@ -1,9 +1,10 @@
 package luckynoslacky.luckycommand;
 
-import luckynoslacky.ResponseKind;
+import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Represents either a mark or an unmark request.
@@ -34,14 +35,14 @@ public class LuckyNoMarkCommand extends LuckyNoCommand {
      * @return mark or unmark response
      */
     @Override
-    public String execute() {
-        String formattedTask = shouldMarkDone
+    protected ResponseContent executeContent() {
+        Task updatedTask = shouldMarkDone
                 ? this.taskMaster.markTaskDone(taskNumber)
                 : this.taskMaster.unmarkTaskUndone(taskNumber);
 
         return shouldMarkDone
-                ? LuckyNoMessages.markedTaskMessage(formattedTask)
-                : LuckyNoMessages.unmarkedTaskMessage(formattedTask);
+                ? LuckyNoMessages.markedTaskContent(updatedTask)
+                : LuckyNoMessages.unmarkedTaskContent(updatedTask);
     }
 
     /**
@@ -50,17 +51,8 @@ public class LuckyNoMarkCommand extends LuckyNoCommand {
      * @return success response tone
      */
     @Override
-    public ResponseTone getResponseTone() {
+    protected ResponseTone responseTone() {
         return ResponseTone.SUCCESS;
     }
 
-    /**
-     * Returns the task-content kind for the task-status response.
-     *
-     * @return task-content response kind
-     */
-    @Override
-    public ResponseKind getResponseKind() {
-        return ResponseKind.TASK_CONTENT;
-    }
 }

@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -138,14 +137,23 @@ public class TaskList {
     }
 
     /**
-     * Returns the task records in CSV column order.
+     * Returns the tasks in this list without exposing its mutable indexing.
      *
-     * @return immutable CSV records for the stored tasks
+     * @return tasks in task-number order
      */
-    public List<List<String>> getCsvStorageRecords() {
+    public List<Task> getTasks() {
+        return indexedTasks.stream().map(IndexedTask::task).toList();
+    }
+
+    /**
+     * Returns immutable task views with their original one-based numbers.
+     *
+     * @return task views in their display order
+     */
+    public List<TaskView> getTaskViews() {
         return indexedTasks.stream()
-                .map(IndexedTask::task)
-                .map(Task::getCsvStorageFields)
+                .map(indexedTask -> TaskView.fromTask(
+                        indexedTask.taskNumber(), indexedTask.task()))
                 .toList();
     }
 
@@ -165,17 +173,6 @@ public class TaskList {
      */
     public Optional<LocalDate> getSearchDate() {
         return searchDate;
-    }
-
-    /**
-     * Formats the indexed tasks as newline-separated display lines.
-     *
-     * @return indexed task lines, or an empty string when there are no tasks
-     */
-    public String toDisplayString() {
-        return indexedTasks.stream()
-                .map(IndexedTask::toDisplayString)
-                .collect(Collectors.joining("\n"));
     }
 
     /** Adds an indexed task without exposing indexing details to callers. */
@@ -223,13 +220,5 @@ public class TaskList {
             }
         }
 
-        /**
-         * Returns this task in the format used by task-list messages.
-         *
-         * @return one-based task number followed by the task text
-         */
-        public String toDisplayString() {
-            return taskNumber + "." + task;
-        }
     }
 }

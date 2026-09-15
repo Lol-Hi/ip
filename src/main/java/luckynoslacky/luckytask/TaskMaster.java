@@ -1,5 +1,6 @@
 package luckynoslacky.luckytask;
 
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -8,7 +9,6 @@ import java.util.function.Predicate;
 
 import luckynoslacky.luckyexception.LuckyNoStorageException;
 import luckynoslacky.luckyexception.LuckyNoTaskLimitException;
-import luckynoslacky.luckyparser.DurationPeriod;
 import luckynoslacky.luckystorage.CsvSaver;
 
 /**
@@ -160,9 +160,9 @@ public class TaskMaster {
      * Marks a task as done.
      *
      * @param taskNumber one-based number of the task to mark
-     * @return description of the task that was marked
+     * @return task that was marked
      */
-    public String markTaskDone(int taskNumber) {
+    public Task markTaskDone(int taskNumber) {
         return updateTaskStatus(taskNumber, true);
     }
 
@@ -170,9 +170,9 @@ public class TaskMaster {
      * Marks a task as not done.
      *
      * @param taskNumber one-based number of the task to unmark
-     * @return description of the task that was unmarked
+     * @return task that was unmarked
      */
-    public String unmarkTaskUndone(int taskNumber) {
+    public Task unmarkTaskUndone(int taskNumber) {
         return updateTaskStatus(taskNumber, false);
     }
 
@@ -229,6 +229,111 @@ public class TaskMaster {
     }
 
     /**
+     * Returns the scheduling state needed to parse a timed-task command.
+     *
+     * @param taskNumber one-based number of the task
+     * @return immutable task scheduling state
+     */
+    public TaskSchedule getTaskSchedule(int taskNumber) {
+        Task task = getTask(taskNumber);
+        return new TaskSchedule(task.getTaskType(), task.getTaskTimes());
+    }
+
+    /**
+     * Validates that a task can have its schedule modified.
+     *
+     * @param taskNumber one-based number of the task
+     * @throws TaskSchedulingException if the task is a ToDo
+     */
+    public void validateTimedTask(int taskNumber) {
+        if (getTask(taskNumber).getTaskType() == Task.TaskType.TODO) {
+            throw new TaskSchedulingException(
+                    TaskSchedulingException.Reason.TODO_TASK);
+        }
+    }
+
+    /**
+     * Validates the result of extending a task's ending time.
+     *
+     * @param taskNumber one-based number of the task
+     * @param amount duration by which to extend the ending time
+     * @param currentTime current date and time for deadline validation
+     * @throws TaskSchedulingException if the task or resulting time is invalid
+     */
+    public void validateSnoozeBy(
+            int taskNumber,
+            DurationPeriod amount,
+            LocalDateTime currentTime) {
+        if (amount == null || currentTime == null) {
+            throw new IllegalArgumentException("Snooze validation values cannot be null.");
+        }
+        TaskSchedule schedule = getTaskSchedule(taskNumber);
+        validateTimedTask(taskNumber);
+        try {
+            LocalDateTime snoozedEndTime = amount.addTo(
+                    schedule.taskTimes().getEndTime());
+            validateNewEndTime(schedule, snoozedEndTime, currentTime);
+        } catch (DateTimeException exception) {
+            throw new TaskSchedulingException(
+                    TaskSchedulingException.Reason.TIME_OVERFLOW, exception);
+        }
+    }
+
+    /**
+     * Validates a replacement ending time for a deadline or event.
+     *
+     * @param taskNumber one-based number of the task
+     * @param endTime replacement ending time
+     * @param currentTime current date and time for deadline validation
+     * @throws TaskSchedulingException if the task or replacement time is invalid
+     */
+    public void validateSnoozeTo(
+            int taskNumber,
+            LocalDateTime endTime,
+            LocalDateTime currentTime) {
+        if (endTime == null || currentTime == null) {
+            throw new IllegalArgumentException("Snooze validation values cannot be null.");
+        }
+        TaskSchedule schedule = getTaskSchedule(taskNumber);
+        validateTimedTask(taskNumber);
+        validateNewEndTime(schedule, endTime, currentTime);
+    }
+
+    /**
+     * Creates validated replacement timing information for a task.
+     *
+     * @param taskNumber one-based number of the task
+     * @param startTime replacement event start time, or {@code null} for a deadline
+     * @param endTime replacement deadline or event end time
+     * @param currentTime current date and time for deadline validation
+     * @return validated timing information matching the task category
+     * @throws TaskSchedulingException if the task or replacement schedule is invalid
+     */
+    public TaskTimes createRescheduledTimes(
+            int taskNumber,
+            LocalDateTime startTime,
+            LocalDateTime endTime,
+            LocalDateTime currentTime) {
+        if (endTime == null || currentTime == null) {
+            throw new IllegalArgumentException("Rescheduling values cannot be null.");
+        }
+        TaskSchedule schedule = getTaskSchedule(taskNumber);
+        validateTimedTask(taskNumber);
+        if (schedule.taskType() == Task.TaskType.DEADLINE) {
+            validateNewEndTime(schedule, endTime, currentTime);
+            return TaskTimes.makeDeadlineTimes(endTime);
+        }
+        if (startTime == null) {
+            throw new IllegalArgumentException("Event start time cannot be null.");
+        }
+        if (endTime.isBefore(startTime)) {
+            throw new TaskSchedulingException(
+                    TaskSchedulingException.Reason.END_BEFORE_START);
+        }
+        return TaskTimes.makeEventTimes(startTime, endTime);
+    }
+
+    /**
      * Returns the type of a task identified by its one-based task number.
      *
      * @param taskNumber one-based number of the task
@@ -269,10 +374,10 @@ public class TaskMaster {
      *
      * @param taskNumber one-based number of the task to update
      * @param shouldBeDone whether the task should be marked as done
-     * @return description of the updated task
+     * @return updated task
      * @throws LuckyNoStorageException if the updated list cannot be saved
      */
-    private String updateTaskStatus(int taskNumber, boolean shouldBeDone) {
+    private Task updateTaskStatus(int taskNumber, boolean shouldBeDone) {
         Task task = getTask(taskNumber);
         boolean wasDone = task.isDone();
 
@@ -283,22 +388,22 @@ public class TaskMaster {
         }
 
         saveChangesOrRollback(() -> restoreTaskStatus(task, wasDone));
-        return task.toString();
+        return task;
     }
 
     /**
      * Deletes a task from the task list.
      *
      * @param taskNumber one-based number of the task to delete
-     * @return description of the deleted task
+     * @return deleted task
      */
-    public String deleteTask(int taskNumber) {
+    public Task deleteTask(int taskNumber) {
         int previousTaskCount = tasks.size();
         Task deletedTask = tasks.removeTask(taskNumber);
         assert tasks.size() == previousTaskCount - 1
                 : "Task count did not decrease after deleting a task";
         saveChangesOrRollback(() -> tasks.insertTask(taskNumber, deletedTask));
-        return deletedTask.toString();
+        return deletedTask;
     }
 
     /**
@@ -389,6 +494,23 @@ public class TaskMaster {
 
         saveChangesOrRollback(() -> task.reschedule(previousTimes));
         return task;
+    }
+
+    /** Validates a new ending time against a deadline or event's schedule. */
+    private void validateNewEndTime(
+            TaskSchedule schedule,
+            LocalDateTime endTime,
+            LocalDateTime currentTime) {
+        if (schedule.taskType() == Task.TaskType.DEADLINE
+                && endTime.isBefore(currentTime)) {
+            throw new TaskSchedulingException(
+                    TaskSchedulingException.Reason.PAST_DEADLINE);
+        }
+        if (schedule.taskType() == Task.TaskType.EVENT
+                && endTime.isBefore(schedule.taskTimes().getStartTime())) {
+            throw new TaskSchedulingException(
+                    TaskSchedulingException.Reason.END_BEFORE_START);
+        }
     }
 
     /**

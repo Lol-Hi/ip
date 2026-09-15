@@ -4,11 +4,11 @@ import java.time.LocalDateTime;
 
 import luckynoslacky.luckycommand.LuckyNoFindCommand;
 import luckynoslacky.luckyexception.LuckyNoInputException;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 import luckynoslacky.luckytask.DeadlineTask;
 import luckynoslacky.luckytask.EventTask;
 import luckynoslacky.luckytask.TaskMaster;
 import luckynoslacky.luckytask.TodoTask;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Parses commands that create tasks or search existing tasks.

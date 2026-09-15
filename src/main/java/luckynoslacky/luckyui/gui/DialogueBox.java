@@ -1,6 +1,7 @@
 package luckynoslacky.luckyui.gui;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Pos;
@@ -12,8 +13,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
-import luckynoslacky.ResponseKind;
+import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
+import luckynoslacky.TaskContent;
+import luckynoslacky.TextContent;
 
 /**
  * Displays one speaker's message in the conversation.
@@ -66,8 +69,8 @@ public class DialogueBox extends HBox {
             String message,
             Image avatar,
             DialogueType dialogueType) {
-        this(message, avatar, dialogueType, ResponseTone.NEUTRAL,
-                ResponseKind.PLAIN_TEXT);
+        this(avatar, dialogueType, ResponseTone.NEUTRAL,
+                new TextContent(message));
     }
 
     /**
@@ -84,27 +87,25 @@ public class DialogueBox extends HBox {
             Image avatar,
             DialogueType dialogueType,
             ResponseTone responseTone) {
-        this(message, avatar, dialogueType, responseTone,
-                ResponseKind.PLAIN_TEXT);
+        this(avatar, dialogueType, responseTone,
+                new TextContent(message));
     }
 
     /**
-     * Creates a dialogue row with a semantic tone and content structure.
+     * Creates a dialogue row with a semantic tone and structured content.
      *
-     * @param message message content
      * @param avatar speaker profile image
      * @param dialogueType speaker role
      * @param responseTone semantic tone of a chatbot response
-     * @param responseKind structural kind of a chatbot response
+     * @param responseContent structured chatbot response content
      */
     public DialogueBox(
-            String message,
             Image avatar,
             DialogueType dialogueType,
             ResponseTone responseTone,
-            ResponseKind responseKind) {
+            ResponseContent responseContent) {
         VBox messageContainer = createMessageContainer(
-                message, dialogueType, responseTone, responseKind);
+                responseContent, dialogueType, responseTone);
         messageContainer.setMinWidth(0.0);
 
         StackPane avatarFrame = createAvatarFrame(
@@ -113,7 +114,7 @@ public class DialogueBox extends HBox {
         setMaxWidth(Double.MAX_VALUE);
         setAccessibleRole(AccessibleRole.TEXT);
         setAccessibleText(getAccessibleText(
-                message, dialogueType, responseTone, responseKind));
+                responseContent, dialogueType, responseTone));
         setFocusTraversable(false);
         setAlignment(dialogueType == DialogueType.USER
                 ? Pos.CENTER_RIGHT
@@ -145,10 +146,9 @@ public class DialogueBox extends HBox {
 
     /** Creates the styled outer message bubble and its content children. */
     private static VBox createMessageContainer(
-            String message,
+            ResponseContent responseContent,
             DialogueType dialogueType,
-            ResponseTone responseTone,
-            ResponseKind responseKind) {
+            ResponseTone responseTone) {
         VBox messageContainer = new VBox();
         messageContainer.getStyleClass().add("message-content");
         if (dialogueType == DialogueType.CHATBOT) {
@@ -158,14 +158,16 @@ public class DialogueBox extends HBox {
             if (!toneLabelStyle.isEmpty()) {
                 messageContainer.getStyleClass().add(toneLabelStyle);
             }
-            if (responseKind == ResponseKind.TASK_CONTENT) {
-                addTaskContent(messageContainer, message, responseTone);
+            if (responseContent instanceof TaskContent taskContent) {
+                addTaskContent(messageContainer, taskContent, responseTone);
             } else {
-                addProseContent(messageContainer, message, responseTone);
+                addProseContent(
+                        messageContainer, responseContent.message(), responseTone);
             }
         } else {
             messageContainer.getStyleClass().add("personality-user-message");
-            Label messageLabel = createTextLabel(message, "personality-user-label");
+            Label messageLabel = createTextLabel(
+                    responseContent.message(), "personality-user-label");
             messageContainer.getChildren().add(messageLabel);
         }
         return messageContainer;
@@ -174,28 +176,30 @@ public class DialogueBox extends HBox {
     /** Adds task lines as individual colour-coded cards while preserving order. */
     private static void addTaskContent(
             VBox messageContainer,
-            String message,
+            TaskContent taskContent,
             ResponseTone responseTone) {
         addToneMarker(messageContainer, responseTone);
         VBox taskList = new VBox();
         taskList.getStyleClass().add("personality-task-list");
-        for (String line : message.split("\\R", -1)) {
-            Optional<TaskLineParser.TaskDisplayData> task =
-                    TaskLineParser.parse(line);
-            if (task.isPresent()) {
-                taskList.getChildren().add(
-                        TaskCardRenderer.createTaskCard(task.get()));
-            } else {
-                if (!line.isBlank()) {
-                    taskList.getChildren().add(
-                            createTextLabel(
-                                    line,
-                                    "personality-prose",
-                                    getToneLabelStyle(responseTone)));
-                }
-            }
-        }
+        addProseLines(taskList, taskContent.leadingLines(), responseTone);
+        taskContent.taskViews().forEach(task -> taskList.getChildren().add(
+                TaskCardRenderer.createTaskCard(task)));
+        addProseLines(taskList, taskContent.trailingLines(), responseTone);
         messageContainer.getChildren().add(taskList);
+    }
+
+    /** Adds non-empty prose lines surrounding structured task cards. */
+    private static void addProseLines(
+            VBox taskList,
+            List<String> lines,
+            ResponseTone responseTone) {
+        lines.stream()
+                .filter(line -> !line.isBlank())
+                .map(line -> createTextLabel(
+                        line,
+                        "personality-prose",
+                        getToneLabelStyle(responseTone)))
+                .forEach(taskList.getChildren()::add);
     }
 
     /** Adds ordinary response text to a single visible prose label. */
@@ -361,36 +365,44 @@ public class DialogueBox extends HBox {
     /**
      * Returns the screen-reader text for a dialogue role and response tone.
      *
-     * @param message message content
+     * @param responseContent response content
      * @param dialogueType dialogue role
      * @param responseTone response tone
-     * @param responseKind structural kind of the response
      * @return role-aware accessible message
      */
     private static String getAccessibleText(
-            String message,
+            ResponseContent responseContent,
             DialogueType dialogueType,
-            ResponseTone responseTone,
-            ResponseKind responseKind) {
+            ResponseTone responseTone) {
         if (dialogueType == DialogueType.USER) {
-            return USER_ACCESSIBLE_PREFIX + message;
+            return USER_ACCESSIBLE_PREFIX + responseContent.message();
         }
-        String accessibleMessage = responseKind == ResponseKind.TASK_CONTENT
-                ? getAccessibleTaskMessage(message)
-                : message;
+        String accessibleMessage = responseContent instanceof TaskContent taskContent
+                ? getAccessibleTaskMessage(taskContent)
+                : responseContent.message();
         return responseTone == ResponseTone.WARNING
                 ? WARNING_ACCESSIBLE_PREFIX + accessibleMessage
                 : CHATBOT_ACCESSIBLE_PREFIX + accessibleMessage;
     }
 
-    /** Replaces internal task markers and decorative emojis with spoken labels. */
-    private static String getAccessibleTaskMessage(String message) {
-        return message.lines()
-                .map(line -> TaskLineParser.parse(line)
-                        .map(TaskLineParser.TaskDisplayData::accessibleDescription)
-                        .orElse(line.trim()))
+    /** Returns task content without decorative markers for screen readers. */
+    private static String getAccessibleTaskMessage(TaskContent taskContent) {
+        List<String> accessibleLines = new ArrayList<>();
+        addAccessibleProseLines(accessibleLines, taskContent.leadingLines());
+        taskContent.taskViews().stream()
+                .map(TaskCardRenderer::getAccessibleDescription)
+                .forEach(accessibleLines::add);
+        addAccessibleProseLines(accessibleLines, taskContent.trailingLines());
+        return String.join(". ", accessibleLines);
+    }
+
+    /** Adds non-empty prose lines to a screen-reader response. */
+    private static void addAccessibleProseLines(
+            List<String> accessibleLines,
+            List<String> proseLines) {
+        proseLines.stream()
+                .map(String::trim)
                 .filter(line -> !line.isEmpty())
-                .reduce((first, second) -> first + ". " + second)
-                .orElse("");
+                .forEach(accessibleLines::add);
     }
 }

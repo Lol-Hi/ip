@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckyui.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 
 /**
  * Parses date/time prefixes embedded in command arguments.

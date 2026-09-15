@@ -5,17 +5,16 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 
-import luckynoslacky.luckycommand.LuckyNoCommand;
 import luckynoslacky.luckyexception.LuckyNoConfigurationException;
 import luckynoslacky.luckyexception.LuckyNoInputException;
 import luckynoslacky.luckyexception.LuckyNoStorageException;
 import luckynoslacky.luckyexception.LuckyNoTaskLimitException;
 import luckynoslacky.luckyparser.DateTimeParser;
 import luckynoslacky.luckyparser.LuckyNoParser;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 import luckynoslacky.luckystorage.CsvSaver;
 import luckynoslacky.luckytask.TaskMaster;
 import luckynoslacky.luckyui.LuckyNoCli;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Starts the LuckyNoSlacky chatbot.
@@ -24,46 +23,6 @@ public class LuckyNoSlacky {
     private static final long CONFIGURATION_ERROR_DELAY_MILLIS = 1500L;
     private static final String FIXED_NOW_PROPERTY =
             "luckynoslacky.fixedNow";
-
-    /**
-     * Contains a chatbot reply, its requested follow-up action, and its
-     * presentation tone.
-     *
-     * @param message user-facing reply
-     * @param shouldExit whether the interface should close
-     * @param tone semantic tone for presenting the reply
-     * @param kind structural content kind for presenting the reply
-     */
-    public record ChatResponse(
-            String message,
-            boolean shouldExit,
-            ResponseTone tone,
-            ResponseKind kind) {
-        /**
-         * Creates a response whose content is ordinary conversational text.
-         *
-         * @param message user-facing reply
-         * @param shouldExit whether the interface should close
-         * @param tone semantic tone for presenting the reply
-         */
-        public ChatResponse(
-                String message,
-                boolean shouldExit,
-                ResponseTone tone) {
-            this(message, shouldExit, tone, ResponseKind.PLAIN_TEXT);
-        }
-
-        /**
-         * Creates a neutral response for callers that do not need to specify a
-         * presentation tone.
-         *
-         * @param message user-facing reply
-         * @param shouldExit whether the interface should close
-         */
-        public ChatResponse(String message, boolean shouldExit) {
-            this(message, shouldExit, ResponseTone.NEUTRAL);
-        }
-    }
 
     private final TaskMaster taskMaster;
     private final LuckyNoParser parser;
@@ -121,9 +80,9 @@ public class LuckyNoSlacky {
         while (commandLineInterface.hasNextLine()) {
             String userInput = commandLineInterface.readCommand();
             try {
-                LuckyNoCommand command = parser.parseCommand(userInput);
-                commandLineInterface.showReply(command.execute());
-                if (command.shouldExit()) {
+                CommandResult result = parser.parseCommand(userInput).execute();
+                commandLineInterface.showReply(result.message());
+                if (result.shouldExit()) {
                     return true;
                 }
             } catch (LuckyNoInputException exception) {
@@ -144,26 +103,21 @@ public class LuckyNoSlacky {
      * @param userInput command entered by the user
      * @return chatbot response and exit status
      */
-    public ChatResponse getResponse(String userInput) {
+    public CommandResult getResponse(String userInput) {
         try {
-            LuckyNoCommand command = parser.parseCommand(userInput);
-            return new ChatResponse(
-                    command.execute(),
-                    command.shouldExit(),
-                    command.getResponseTone(),
-                    command.getResponseKind());
+            return parser.parseCommand(userInput).execute();
         } catch (LuckyNoInputException exception) {
-            return new ChatResponse(
+            return new CommandResult(
                     exception.getMessage(),
                     false,
                     ResponseTone.WARNING);
         } catch (LuckyNoTaskLimitException exception) {
-            return new ChatResponse(
+            return new CommandResult(
                     LuckyNoMessages.taskLimitMessage(),
                     false,
                     ResponseTone.WARNING);
         } catch (LuckyNoStorageException exception) {
-            return new ChatResponse(
+            return new CommandResult(
                     LuckyNoMessages.saveErrorMessage(),
                     false,
                     ResponseTone.SYSTEM_ERROR);

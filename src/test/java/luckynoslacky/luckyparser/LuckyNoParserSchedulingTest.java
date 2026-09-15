@@ -10,10 +10,10 @@ import org.junit.jupiter.api.Test;
 
 import luckynoslacky.luckycommand.LuckyNoReschedCommand;
 import luckynoslacky.luckycommand.LuckyNoSnoozeCommand;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 import luckynoslacky.luckytask.DeadlineTask;
 import luckynoslacky.luckytask.EventTask;
 import luckynoslacky.luckytask.TodoTask;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /** Tests parsing commands that change task schedules. */
 class LuckyNoParserSchedulingTest extends LuckyNoParserTestSupport {

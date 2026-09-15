@@ -39,9 +39,9 @@ class CsvSaverCapacityTest extends CsvSaverTestSupport {
         List<Task> loadedTasks = new CsvSaver(dataFile).load();
 
         assertEquals(LARGE_CSV_TASK_COUNT, loadedTasks.size());
-        assertEquals(records.get(0), loadedTasks.get(0).getCsvStorageFields());
+        assertEquals(records.get(0), TaskCsvCodec.toRecord(loadedTasks.get(0)));
         assertEquals(records.get(records.size() - 1),
-                loadedTasks.get(loadedTasks.size() - 1).getCsvStorageFields());
+                TaskCsvCodec.toRecord(loadedTasks.get(loadedTasks.size() - 1)));
     }
 
     /** Verifies loading beyond task capacity is rejected. */
@@ -103,7 +103,7 @@ class CsvSaverCapacityTest extends CsvSaverTestSupport {
                 exception.getMessage());
         assertEquals(1, taskMaster.getTaskCount());
         assertEquals("existing task", taskMaster.listTasks().getTask(1)
-                .getCsvStorageFields().get(2));
+                .getDescription());
         assertEquals(recordsBefore, readCsvValues(dataFile));
     }
 }

@@ -20,8 +20,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import luckynoslacky.LuckyNoSlacky;
-import luckynoslacky.luckyui.LuckyNoMessages;
+import luckynoslacky.CommandResult;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 
 /** Tests observable command interactions and failure handling in the main window. */
 @ExtendWith(ApplicationExtension.class)
@@ -168,7 +168,7 @@ class MainWindowInteractionTest extends MainWindowTestSupport {
     void mainWindow_parseErrorResponse_displaysExactReply(FxRobot robot) {
         StubChatbot chatbot = new StubChatbot(
                 false,
-                new LuckyNoSlacky.ChatResponse("exact parse error", false));
+                new CommandResult("exact parse error", false));
         showWindowWithChatbot(robot, chatbot);
 
         robot.clickOn("#userInput").write("trigger parse error")
@@ -186,7 +186,7 @@ class MainWindowInteractionTest extends MainWindowTestSupport {
     void mainWindow_saveErrorResponse_displaysExactReply(FxRobot robot) {
         StubChatbot chatbot = new StubChatbot(
                 false,
-                new LuckyNoSlacky.ChatResponse(
+                new CommandResult(
                         LuckyNoMessages.saveErrorMessage(), false));
         showWindowWithChatbot(robot, chatbot);
 
@@ -206,7 +206,7 @@ class MainWindowInteractionTest extends MainWindowTestSupport {
     void mainWindow_loadErrorChatbot_displaysExactStartupError(FxRobot robot) {
         showWindowWithChatbot(robot, new StubChatbot(
                 true,
-                new LuckyNoSlacky.ChatResponse("unused response", false)));
+                new CommandResult("unused response", false)));
 
         VBox dialogueContainer = robot.lookup("#dialogContainer").query();
         DialogueBox chatbotDialogue = (DialogueBox) dialogueContainer.getChildren()

@@ -20,8 +20,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import luckynoslacky.luckyexception.LuckyNoStorageException;
 import luckynoslacky.luckyexception.LuckyNoTaskLimitException;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 import luckynoslacky.luckystorage.CsvSaver;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /** Tests persistence, capacity, and validation behavior provided by {@link TaskMaster}. */
 class TaskMasterPersistenceTest {
@@ -157,10 +157,9 @@ class TaskMasterPersistenceTest {
                 LuckyNoStorageException.class, () -> taskMaster.deleteTask(2));
         assertEquals("simulated save failure", exception.getMessage());
 
-        assertEquals("1.[T][ ] first\n"
-                        + "2.[T][ ] middle\n"
-                        + "3.[T][ ] last",
-                taskMaster.listTasks().toDisplayString());
+        assertEquals(List.of("first", "middle", "last"),
+                taskMaster.listTasks().getTaskViews().stream()
+                        .map(TaskView::description).toList());
     }
 
     /** Verifies that a failed mutation leaves the existing CSV records intact. */
@@ -181,8 +180,9 @@ class TaskMasterPersistenceTest {
                 taskMaster.addTask(new TodoTask("new task")));
 
         assertEquals(recordsBefore, readCsvRecords(dataFile));
-        assertEquals("1.[T][ ] existing task",
-                taskMaster.listTasks().toDisplayString());
+        assertEquals(List.of("existing task"),
+                taskMaster.listTasks().getTaskViews().stream()
+                        .map(TaskView::description).toList());
     }
 
     /** Verifies failed status and deletion mutations preserve persisted data. */
@@ -216,9 +216,8 @@ class TaskMasterPersistenceTest {
         assertEquals("simulated save failure", exception.getMessage());
 
         assertEquals(recordsBefore, readCsvRecords(dataFile));
-        assertEquals("1.[T][X] completed task\n"
-                        + "2.[T][ ] second task",
-                taskMaster.listTasks().toDisplayString());
+        assertEquals(List.of(true, false), taskMaster.listTasks().getTaskViews().stream()
+                .map(TaskView::isDone).toList());
     }
 
     /** Verifies that null or null-containing loaded lists are rejected. */

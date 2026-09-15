@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckyui.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 
 /**
  * Parses the flexible date and time text accepted by the chatbot.
@@ -113,26 +113,6 @@ public final class DateTimeParser {
      */
     public LocalDateTime now() {
         return LocalDateTime.now(clock);
-    }
-
-    /**
-     * Formats a date/time for the CSV storage format.
-     *
-     * @param dateTime date and time to format, or null for an empty field
-     * @return formatted storage text
-     */
-    public static String formatForStorage(LocalDateTime dateTime) {
-        return DateTimeStorageCodec.format(dateTime);
-    }
-
-    /**
-     * Parses stored date/time text from the CSV storage format.
-     *
-     * @param storedDateTimeText stored date and time, or blank for no date/time
-     * @return parsed date and time, or null for blank stored text
-     */
-    public static LocalDateTime parseFromStorage(String storedDateTimeText) {
-        return DateTimeStorageCodec.parse(storedDateTimeText);
     }
 
     /**

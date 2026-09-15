@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.util.regex.Matcher;
 
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckyui.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 
 /**
  * Resolves absolute and relative date expressions against a reference date.

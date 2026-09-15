@@ -1,9 +1,9 @@
 package luckynoslacky.luckycommand;
 
-import luckynoslacky.ResponseKind;
+import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 import luckynoslacky.luckytask.TaskMaster;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Represents a request to list all stored tasks.
@@ -28,8 +28,8 @@ public class LuckyNoListCommand extends LuckyNoCommand {
      * @return task-list response
      */
     @Override
-    public String execute() {
-        return LuckyNoMessages.listTasksMessage(taskMaster.listTasks());
+    protected ResponseContent executeContent() {
+        return LuckyNoMessages.listTasksContent(taskMaster.listTasks());
     }
 
     /**
@@ -38,17 +38,8 @@ public class LuckyNoListCommand extends LuckyNoCommand {
      * @return information response tone
      */
     @Override
-    public ResponseTone getResponseTone() {
+    protected ResponseTone responseTone() {
         return ResponseTone.INFO;
     }
 
-    /**
-     * Returns the task-content kind for the task-list response.
-     *
-     * @return task-content response kind
-     */
-    @Override
-    public ResponseKind getResponseKind() {
-        return ResponseKind.TASK_CONTENT;
-    }
 }

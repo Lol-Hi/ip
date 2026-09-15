@@ -5,7 +5,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckyui.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 
 /**
  * Identifies supported duration units and their accepted forms.

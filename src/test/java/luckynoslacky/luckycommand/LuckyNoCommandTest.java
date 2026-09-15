@@ -2,6 +2,7 @@ package luckynoslacky.luckycommand;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -11,16 +12,18 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import luckynoslacky.ResponseKind;
+import luckynoslacky.CommandResult;
 import luckynoslacky.ResponseTone;
-import luckynoslacky.luckyparser.DurationPeriod;
+import luckynoslacky.TaskContent;
+import luckynoslacky.TextContent;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 import luckynoslacky.luckystorage.CsvSaver;
 import luckynoslacky.luckytask.DeadlineTask;
+import luckynoslacky.luckytask.DurationPeriod;
 import luckynoslacky.luckytask.EventTask;
 import luckynoslacky.luckytask.TaskMaster;
 import luckynoslacky.luckytask.TaskTimes;
 import luckynoslacky.luckytask.TodoTask;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Tests the execution behavior of the command classes used by LuckyNoSlacky.
@@ -39,23 +42,26 @@ class LuckyNoCommandTest {
         TodoTask task = new TodoTask("read book");
         LuckyNoTaskCommand command = new LuckyNoTaskCommand(task, taskMaster);
 
-        assertEquals(LuckyNoMessages.addedTaskMessage(task, 1), command.execute());
+        CommandResult result = command.execute();
+
+        assertEquals(LuckyNoMessages.addedTaskMessage(task, 1), result.message());
         assertEquals(1, taskMaster.getTaskCount());
-        assertFalse(command.shouldExit());
-        assertEquals(ResponseTone.SUCCESS, command.getResponseTone());
-        assertEquals(ResponseKind.TASK_CONTENT, command.getResponseKind());
+        assertFalse(result.shouldExit());
+        assertEquals(ResponseTone.SUCCESS, result.tone());
+        assertInstanceOf(TaskContent.class, result.content());
     }
 
     /** Verifies that a mark command marks an incomplete task. */
     @Test
     void execute_markCommandWithUndoneTask_marksTaskDoneAndReturnsReply() {
         TaskMaster taskMaster = createTaskMaster();
-        taskMaster.addTask(new TodoTask("read book"));
+        TodoTask task = new TodoTask("read book");
+        taskMaster.addTask(task);
         LuckyNoMarkCommand command = new LuckyNoMarkCommand(1, true, taskMaster);
+        CommandResult result = command.execute();
 
         assertEquals(
-                LuckyNoMessages.markedTaskMessage("[T][X] read book"),
-                command.execute());
+                LuckyNoMessages.markedTaskMessage(task), result.message());
         assertEquals("Nah, all these things you need to do:\n1.[T][X] read book",
                 LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
@@ -68,10 +74,10 @@ class LuckyNoCommandTest {
         task.markAsDone();
         taskMaster.addTask(task);
         LuckyNoMarkCommand command = new LuckyNoMarkCommand(1, false, taskMaster);
+        CommandResult result = command.execute();
 
         assertEquals(
-                LuckyNoMessages.unmarkedTaskMessage("[T][ ] read book"),
-                command.execute());
+                LuckyNoMessages.unmarkedTaskMessage(task), result.message());
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
                 LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
@@ -80,12 +86,13 @@ class LuckyNoCommandTest {
     @Test
     void execute_deleteCommandWithExistingTask_deletesTaskAndReturnsReply() {
         TaskMaster taskMaster = createTaskMaster();
-        taskMaster.addTask(new TodoTask("read book"));
+        TodoTask task = new TodoTask("read book");
+        taskMaster.addTask(task);
         LuckyNoDeleteCommand command = new LuckyNoDeleteCommand(1, taskMaster);
+        CommandResult result = command.execute();
 
         assertEquals(
-                LuckyNoMessages.deletedTaskMessage("[T][ ] read book", 0),
-                command.execute());
+                LuckyNoMessages.deletedTaskMessage(task, 0), result.message());
         assertEquals(0, taskMaster.getTaskCount());
     }
 
@@ -96,11 +103,13 @@ class LuckyNoCommandTest {
         taskMaster.addTask(new TodoTask("read book"));
         LuckyNoListCommand command = new LuckyNoListCommand(taskMaster);
 
+        CommandResult result = command.execute();
+
         assertEquals(
                 LuckyNoMessages.listTasksMessage(taskMaster.listTasks()),
-                command.execute());
-        assertEquals(ResponseTone.INFO, command.getResponseTone());
-        assertEquals(ResponseKind.TASK_CONTENT, command.getResponseKind());
+                result.message());
+        assertEquals(ResponseTone.INFO, result.tone());
+        assertInstanceOf(TaskContent.class, result.content());
     }
 
     /** Verifies that a find command returns matching dated tasks. */
@@ -111,11 +120,13 @@ class LuckyNoCommandTest {
                 "return book", LocalDateTime.of(2026, 8, 26, 23, 59)));
         LuckyNoFindCommand command = new LuckyNoFindCommand(SEARCH_DATE, taskMaster);
 
+        CommandResult result = command.execute();
+
         assertEquals(
                 LuckyNoMessages.listTasksMessage(taskMaster.findTasks(SEARCH_DATE)),
-                command.execute());
-        assertEquals(ResponseTone.INFO, command.getResponseTone());
-        assertEquals(ResponseKind.TASK_CONTENT, command.getResponseKind());
+                result.message());
+        assertEquals(ResponseTone.INFO, result.tone());
+        assertInstanceOf(TaskContent.class, result.content());
     }
 
     /** Verifies that a snooze command extends a deadline and returns its reply. */
@@ -129,9 +140,9 @@ class LuckyNoCommandTest {
                 1, new DurationPeriod(java.time.Period.ZERO,
                 java.time.Duration.ofHours(2)), taskMaster);
 
-        String reply = command.execute();
+        CommandResult result = command.execute();
 
-        assertEquals(LuckyNoMessages.snoozedTaskMessage(task), reply);
+        assertEquals(LuckyNoMessages.snoozedTaskMessage(task), result.message());
         assertEquals(LocalDateTime.of(2026, 8, 26, 14, 0), task.getByTime());
     }
 
@@ -149,9 +160,9 @@ class LuckyNoCommandTest {
         LuckyNoReschedCommand command = new LuckyNoReschedCommand(
                 1, TaskTimes.makeEventTimes(newStart, newEnd), taskMaster);
 
-        String reply = command.execute();
+        CommandResult result = command.execute();
 
-        assertEquals(LuckyNoMessages.rescheduledTaskMessage(task), reply);
+        assertEquals(LuckyNoMessages.rescheduledTaskMessage(task), result.message());
         assertEquals(newStart, task.getStartTime());
         assertEquals(newEnd, task.getEndTime());
     }
@@ -161,10 +172,12 @@ class LuckyNoCommandTest {
     void execute_byeCommandWithoutArguments_returnsGoodbyeAndRequestsExit() {
         LuckyNoByeCommand command = new LuckyNoByeCommand();
 
-        assertEquals(LuckyNoMessages.goodbye(), command.execute());
-        assertTrue(command.shouldExit());
-        assertEquals(ResponseTone.NEUTRAL, command.getResponseTone());
-        assertEquals(ResponseKind.PLAIN_TEXT, command.getResponseKind());
+        CommandResult result = command.execute();
+
+        assertEquals(LuckyNoMessages.goodbye(), result.message());
+        assertTrue(result.shouldExit());
+        assertEquals(ResponseTone.NEUTRAL, result.tone());
+        assertInstanceOf(TextContent.class, result.content());
     }
 
     /** Verifies that task commands reject a missing task master. */

@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import luckynoslacky.luckyexception.LuckyNoStorageException;
-import luckynoslacky.luckyparser.DurationPeriod;
 import luckynoslacky.luckystorage.CsvSaver;
 
 /** Tests snoozing and rescheduling behavior provided by {@link TaskMaster}. */
@@ -145,6 +144,62 @@ class TaskMasterSchedulingTest {
                 1, TaskTimes.makeDeadlineTimes(DEADLINE)));
     }
 
+    /** Verifies scheduling validation identifies a ToDo as an unsupported timed task. */
+    @Test
+    void validateTimedTask_todoTask_throwsTodoTaskReason() {
+        TaskMaster taskMaster = createTaskMaster();
+        taskMaster.loadTasksFromCsvStorageRecord(List.of(new TodoTask("read book")));
+
+        TaskSchedulingException exception = assertThrows(
+                TaskSchedulingException.class, () -> taskMaster.validateTimedTask(1));
+
+        assertEquals(TaskSchedulingException.Reason.TODO_TASK, exception.getReason());
+    }
+
+    /** Verifies scheduling validation rejects a deadline set before the current time. */
+    @Test
+    void validateSnoozeTo_pastDeadline_throwsPastDeadlineReason() {
+        TaskMaster taskMaster = createTaskMaster();
+        taskMaster.loadTasksFromCsvStorageRecord(
+                List.of(new DeadlineTask("return book", DEADLINE)));
+
+        TaskSchedulingException exception = assertThrows(
+                TaskSchedulingException.class, () -> taskMaster.validateSnoozeTo(
+                        1, DEADLINE.minusHours(1), DEADLINE));
+
+        assertEquals(TaskSchedulingException.Reason.PAST_DEADLINE, exception.getReason());
+    }
+
+    /** Verifies scheduling validation rejects an event ending before its start. */
+    @Test
+    void createRescheduledTimes_endBeforeStart_throwsEndBeforeStartReason() {
+        TaskMaster taskMaster = createTaskMaster();
+        taskMaster.loadTasksFromCsvStorageRecord(
+                List.of(new EventTask("project meeting", EVENT_START, EVENT_END)));
+
+        TaskSchedulingException exception = assertThrows(
+                TaskSchedulingException.class, () -> taskMaster.createRescheduledTimes(
+                        1, EVENT_END, EVENT_START, EVENT_START));
+
+        assertEquals(TaskSchedulingException.Reason.END_BEFORE_START, exception.getReason());
+    }
+
+    /** Verifies scheduling validation reports durations outside the date-time range. */
+    @Test
+    void validateSnoozeBy_unrepresentableDuration_throwsTimeOverflowReason() {
+        TaskMaster taskMaster = createTaskMaster();
+        taskMaster.loadTasksFromCsvStorageRecord(
+                List.of(new DeadlineTask("return book", DEADLINE)));
+        DurationPeriod unrepresentableAmount = new DurationPeriod(
+                Period.ofYears(Integer.MAX_VALUE), Duration.ZERO);
+
+        TaskSchedulingException exception = assertThrows(
+                TaskSchedulingException.class, () -> taskMaster.validateSnoozeBy(
+                        1, unrepresentableAmount, DEADLINE));
+
+        assertEquals(TaskSchedulingException.Reason.TIME_OVERFLOW, exception.getReason());
+    }
+
     /** Verifies that a failed snooze save restores the original event times. */
     @Test
     void snoozeTaskBy_saveFailure_restoresOriginalEventTimes() {
@@ -205,7 +260,7 @@ class TaskMasterSchedulingTest {
         TaskMaster initialTaskMaster = new TaskMaster(100, workingSaver);
         initialTaskMaster.addTask(new EventTask(
                 "project meeting", EVENT_START, EVENT_END));
-        List<List<String>> recordsBefore = readTaskRecords(dataFile);
+        List<TaskView> recordsBefore = readTaskRecords(dataFile);
 
         TaskMaster taskMaster = new TaskMaster(
                 100, new FailingSaver(dataFile));
@@ -237,10 +292,10 @@ class TaskMasterSchedulingTest {
         return new TaskMaster(new CsvSaver(temporaryDirectory.resolve("tasks.csv")));
     }
 
-    /** Reads parsed task records from a persistence file. */
-    private List<List<String>> readTaskRecords(Path dataFile) {
+    /** Reads task state from a persistence file without using display text. */
+    private List<TaskView> readTaskRecords(Path dataFile) {
         return new CsvSaver(dataFile).load().stream()
-                .map(Task::getCsvStorageFields)
+                .map(TaskView::fromTask)
                 .toList();
     }
 

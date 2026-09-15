@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
@@ -23,8 +26,11 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
-import luckynoslacky.ResponseKind;
 import luckynoslacky.ResponseTone;
+import luckynoslacky.TaskContent;
+import luckynoslacky.luckytask.Task;
+import luckynoslacky.luckytask.TaskTimes;
+import luckynoslacky.luckytask.TaskView;
 
 /** Tests the reusable JavaFX dialogue message component. */
 @ExtendWith(ApplicationExtension.class)
@@ -172,16 +178,32 @@ class DialogueBoxTest {
     void dialogueBox_taskContent_displaysTypedCardsAndAccessibleStatus(
             FxRobot robot) {
         robot.interact(() -> {
-            String message = "1.[T][ ] buy groceries\n"
-                    + "2.[D][ ] submit report (by: Wed Aug 26 2026, 11:59pm)\n"
-                    + "3.[E][X] team meeting (from: Wed Aug 26 2026, 2:00pm "
-                    + "to: Wed Aug 26 2026, 3:00pm)";
             DialogueBox dialogue = new DialogueBox(
-                    message,
                     new WritableImage(45, 45),
                     DialogueBox.DialogueType.CHATBOT,
                     ResponseTone.INFO,
-                    ResponseKind.TASK_CONTENT);
+                    createTaskContent(List.of(
+                            new TaskView(
+                                    1,
+                                    Task.TaskType.TODO,
+                                    false,
+                                    "buy groceries",
+                                    TaskTimes.none()),
+                            new TaskView(
+                                    2,
+                                    Task.TaskType.DEADLINE,
+                                    false,
+                                    "submit report",
+                                    TaskTimes.makeDeadlineTimes(
+                                            LocalDateTime.of(2026, 8, 26, 23, 59))),
+                            new TaskView(
+                                    3,
+                                    Task.TaskType.EVENT,
+                                    true,
+                                    "team meeting",
+                                    TaskTimes.makeEventTimes(
+                                            LocalDateTime.of(2026, 8, 26, 14, 0),
+                                            LocalDateTime.of(2026, 8, 26, 15, 0))))));
 
             VBox messageContainer = getMessageContainer(dialogue, 1);
             VBox taskList = (VBox) messageContainer.getChildren().get(0);
@@ -211,7 +233,7 @@ class DialogueBoxTest {
             Label deadlineNumber = (Label) deadlineTypeRow.getChildren().get(2);
             assertEquals("#2", deadlineNumber.getText());
             Label deadlineDetails = (Label) deadlineCard.getChildren().get(2);
-            assertEquals("by Wed Aug 26 2026, 11:59pm",
+            assertEquals("by Wed Aug 26 2026, 11.59pm",
                     deadlineDetails.getText());
 
             VBox eventCard = (VBox) taskList.getChildren().get(2);
@@ -225,15 +247,15 @@ class DialogueBoxTest {
             assertEquals("✅", eventStatus.getText());
             Label eventStart = (Label) eventCard.getChildren().get(2);
             Label eventEnd = (Label) eventCard.getChildren().get(3);
-            assertEquals("from Wed Aug 26 2026, 2:00pm", eventStart.getText());
-            assertEquals("to Wed Aug 26 2026, 3:00pm", eventEnd.getText());
+            assertEquals("from Wed Aug 26 2026, 2.00pm", eventStart.getText());
+            assertEquals("to Wed Aug 26 2026, 3.00pm", eventEnd.getText());
 
             String accessibleText = dialogue.getAccessibleText();
             assertEquals(
                     "LuckyNoSlacky: TODO, task 1, incomplete, buy groceries. "
-                            + "DEADLINE, task 2, incomplete, submit report, by Wed Aug 26 2026, 11:59pm. "
-                            + "EVENT, task 3, completed, team meeting, from Wed Aug 26 2026, 2:00pm, "
-                            + "to Wed Aug 26 2026, 3:00pm",
+                            + "DEADLINE, task 2, incomplete, submit report, by Wed Aug 26 2026, 11.59pm. "
+                            + "EVENT, task 3, completed, team meeting, from Wed Aug 26 2026, 2.00pm, "
+                            + "to Wed Aug 26 2026, 3.00pm",
                     accessibleText);
             assertFalse(accessibleText.contains("📌"));
             assertFalse(accessibleText.contains("⏳"));
@@ -249,11 +271,16 @@ class DialogueBoxTest {
     void dialogueBox_taskConfirmation_omitsTaskNumber(FxRobot robot) {
         robot.interact(() -> {
             DialogueBox dialogue = new DialogueBox(
-                    "[T][ ] buy groceries",
                     new WritableImage(45, 45),
                     DialogueBox.DialogueType.CHATBOT,
                     ResponseTone.SUCCESS,
-                    ResponseKind.TASK_CONTENT);
+                    createTaskContent(List.of(
+                            new TaskView(
+                                    null,
+                                    Task.TaskType.TODO,
+                                    false,
+                                    "buy groceries",
+                                    TaskTimes.none()))));
 
             VBox messageContainer = getMessageContainer(dialogue, 1);
             VBox taskList = (VBox) messageContainer.getChildren().get(1);
@@ -275,6 +302,11 @@ class DialogueBoxTest {
                 new WritableImage(45, 45),
                 DialogueBox.DialogueType.CHATBOT,
                 responseTone);
+    }
+
+    /** Creates task content with no surrounding prose for component tests. */
+    private TaskContent createTaskContent(List<TaskView> taskViews) {
+        return new TaskContent("", List.of(), taskViews, List.of());
     }
 
     /** Returns the message label from a chatbot dialogue. */

@@ -2,10 +2,10 @@ package luckynoslacky.luckycommand;
 
 import java.time.LocalDateTime;
 
-import luckynoslacky.ResponseKind;
+import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 import luckynoslacky.luckytask.TaskMaster;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Represents a command that searches tasks by description, date, or both.
@@ -57,8 +57,8 @@ public class LuckyNoFindCommand extends LuckyNoCommand {
      * @return search response
      */
     @Override
-    public String execute() {
-        return LuckyNoMessages.listTasksMessage(
+    protected ResponseContent executeContent() {
+        return LuckyNoMessages.listTasksContent(
                 taskMaster.findTasks(descriptionQuery, dateTimeQuery));
     }
 
@@ -68,17 +68,8 @@ public class LuckyNoFindCommand extends LuckyNoCommand {
      * @return information response tone
      */
     @Override
-    public ResponseTone getResponseTone() {
+    protected ResponseTone responseTone() {
         return ResponseTone.INFO;
     }
 
-    /**
-     * Returns the task-content kind for the search response.
-     *
-     * @return task-content response kind
-     */
-    @Override
-    public ResponseKind getResponseKind() {
-        return ResponseKind.TASK_CONTENT;
-    }
 }

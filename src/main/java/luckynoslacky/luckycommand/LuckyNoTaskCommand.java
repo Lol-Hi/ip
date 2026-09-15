@@ -1,10 +1,10 @@
 package luckynoslacky.luckycommand;
 
-import luckynoslacky.ResponseKind;
+import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Represents a command that creates a task.
@@ -34,9 +34,9 @@ public class LuckyNoTaskCommand extends LuckyNoCommand {
      * @return task-added response
      */
     @Override
-    public String execute() {
+    protected ResponseContent executeContent() {
         this.taskMaster.addTask(task);
-        return LuckyNoMessages.addedTaskMessage(
+        return LuckyNoMessages.addedTaskContent(
                 task, this.taskMaster.getTaskCount());
     }
 
@@ -46,17 +46,8 @@ public class LuckyNoTaskCommand extends LuckyNoCommand {
      * @return success response tone
      */
     @Override
-    public ResponseTone getResponseTone() {
+    protected ResponseTone responseTone() {
         return ResponseTone.SUCCESS;
     }
 
-    /**
-     * Returns the task-content kind for the task-creation response.
-     *
-     * @return task-content response kind
-     */
-    @Override
-    public ResponseKind getResponseKind() {
-        return ResponseKind.TASK_CONTENT;
-    }
 }

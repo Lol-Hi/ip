@@ -1,7 +1,8 @@
 package luckynoslacky.luckyparser;
 
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckyui.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckytask.DurationPeriod;
 
 /**
  * Parses the decimal and combined duration formats supported by the snooze

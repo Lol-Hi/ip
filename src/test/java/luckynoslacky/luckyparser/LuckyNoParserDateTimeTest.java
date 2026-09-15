@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 
 import luckynoslacky.luckycommand.LuckyNoTaskCommand;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 import luckynoslacky.luckytask.EventTask;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /** Tests date and time interpretation used by command parsing. */
 class LuckyNoParserDateTimeTest extends LuckyNoParserTestSupport {
@@ -132,7 +132,7 @@ class LuckyNoParserDateTimeTest extends LuckyNoParserTestSupport {
                                 LocalDateTime.of(2025, 8, 25, 0, 0),
                                 LocalDateTime.of(2025, 8, 26, 23, 59)),
                         1),
-                command.execute());
+                command.execute().message());
     }
 
     /** Verifies event end times use the start date or roll to the next date. */
@@ -154,7 +154,7 @@ class LuckyNoParserDateTimeTest extends LuckyNoParserTestSupport {
                                 LocalDateTime.of(2026, 8, 25, 14, 0),
                                 LocalDateTime.of(2026, 8, 25, 16, 0)),
                         1),
-                sameDay.execute());
+                sameDay.execute().message());
         assertEquals(
                 LuckyNoMessages.addedTaskMessage(
                         new EventTask(
@@ -162,6 +162,6 @@ class LuckyNoParserDateTimeTest extends LuckyNoParserTestSupport {
                                 LocalDateTime.of(2026, 8, 25, 23, 0),
                                 LocalDateTime.of(2026, 8, 26, 1, 0)),
                         2),
-                overnight.execute());
+                overnight.execute().message());
     }
 }

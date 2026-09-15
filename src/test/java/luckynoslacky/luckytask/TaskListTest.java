@@ -11,7 +11,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests indexed task-list results and their display representation.
+ * Tests indexed task-list results and their structured task views.
  */
 class TaskListTest {
 
@@ -38,9 +38,8 @@ class TaskListTest {
         taskList.addTask(new TodoTask("second task"));
         taskList.addTask(new TodoTask("third task"));
 
-        assertEquals("[T][ ] second task", taskList.removeTask(2).toString());
-        assertEquals("1.[T][ ] first task\n2.[T][ ] third task",
-                taskList.toDisplayString());
+        assertEquals("second task", taskList.removeTask(2).getDescription());
+        assertTaskViews(taskList, List.of(1, 2), List.of("first task", "third task"));
     }
 
     /** Verifies that loaded tasks replace the existing canonical collection. */
@@ -54,13 +53,13 @@ class TaskListTest {
                 new TodoTask("second loaded task")));
 
         assertEquals(2, taskList.size());
-        assertEquals("1.[T][ ] first loaded task\n2.[T][ ] second loaded task",
-                taskList.toDisplayString());
+        assertTaskViews(taskList, List.of(1, 2),
+                List.of("first loaded task", "second loaded task"));
     }
 
-    /** Verifies that display formatting preserves original task numbers. */
+    /** Verifies that a filtered view preserves original task numbers. */
     @Test
-    void toDisplayString_filteredTasks_preservesOriginalNumbers() {
+    void createView_filteredTasks_preservesOriginalNumbers() {
         TaskList taskList = new TaskList();
         TodoTask readBook = new TodoTask("read book");
         TodoTask buyBread = new TodoTask("buy bread");
@@ -72,8 +71,28 @@ class TaskListTest {
         TaskList matchingTasks = taskList.createView(
                 null, task -> task == readBook || task == buyBread);
 
-        assertEquals("2.[T][ ] read book\n4.[T][ ] buy bread",
-                matchingTasks.toDisplayString());
+        assertTaskViews(matchingTasks, List.of(2, 4),
+                List.of("read book", "buy bread"));
+    }
+
+    /** Verifies that task views retain task data and original task numbers. */
+    @Test
+    void getTaskViews_indexedTasks_returnsStructuredTaskData() {
+        TaskList taskList = new TaskList();
+        TodoTask completedTask = new TodoTask("read book");
+        completedTask.markAsDone();
+        taskList.addTask(completedTask);
+        taskList.addTask(new TodoTask("buy bread"));
+
+        List<TaskView> taskViews = taskList.getTaskViews();
+
+        assertEquals(2, taskViews.size());
+        assertEquals(1, taskViews.get(0).taskNumber());
+        assertEquals(Task.TaskType.TODO, taskViews.get(0).taskType());
+        assertTrue(taskViews.get(0).isDone());
+        assertEquals("read book", taskViews.get(0).description());
+        assertEquals(2, taskViews.get(1).taskNumber());
+        assertEquals("buy bread", taskViews.get(1).description());
     }
 
     /** Verifies that a date-search result retains its search-date context. */
@@ -85,12 +104,12 @@ class TaskListTest {
         assertEquals(searchDate, taskList.getSearchDate().orElseThrow());
     }
 
-    /** Verifies that an empty task list has no display lines. */
+    /** Verifies that an empty task list has no task views. */
     @Test
-    void toDisplayString_emptyTaskList_returnsEmptyString() {
+    void getTaskViews_emptyTaskList_returnsEmptyList() {
         TaskList taskList = new TaskList();
 
-        assertEquals("", taskList.toDisplayString());
+        assertTrue(taskList.getTaskViews().isEmpty());
     }
 
     /** Verifies that a null search date creates a non-date task list. */
@@ -145,7 +164,7 @@ class TaskListTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 taskList.replaceTasks(loadedTasks));
         assertEquals("Task cannot be null.", exception.getMessage());
-        assertEquals("1.[T][ ] existing task", taskList.toDisplayString());
+        assertTaskViews(taskList, List.of(1), List.of("existing task"));
     }
 
     /** Verifies that non-positive task numbers are rejected by IndexedTask. */
@@ -172,8 +191,7 @@ class TaskListTest {
         TaskList result = taskList.createView(
                 null, task -> task.matchesDescription("book"));
 
-        assertEquals("1.[T][ ] read book\n3.[T][ ] return book",
-                result.toDisplayString());
+        assertTaskViews(result, List.of(1, 3), List.of("read book", "return book"));
     }
 
     /** Verifies that a null view matcher is rejected. */
@@ -200,12 +218,8 @@ class TaskListTest {
         taskList.insertTask(5, new TodoTask("new last task"));
 
         assertEquals(5, taskList.size());
-        assertEquals("1.[T][ ] new first task\n"
-                        + "2.[T][ ] first task\n"
-                        + "3.[T][ ] middle task\n"
-                        + "4.[T][ ] last task\n"
-                        + "5.[T][ ] new last task",
-                taskList.toDisplayString());
+        assertTaskViews(taskList, List.of(1, 2, 3, 4, 5),
+                List.of("new first task", "first task", "middle task", "last task", "new last task"));
         assertEquals(lastTask, taskList.getTask(4));
     }
 
@@ -221,7 +235,7 @@ class TaskListTest {
         exception = assertThrows(IllegalArgumentException.class, () ->
                 taskList.insertTask(3, new TodoTask("invalid task")));
         assertEquals("Invalid task number.", exception.getMessage());
-        assertEquals("1.[T][ ] existing task", taskList.toDisplayString());
+        assertTaskViews(taskList, List.of(1), List.of("existing task"));
     }
 
     /** Verifies a view retains its indexed entries after the source list changes. */
@@ -234,8 +248,19 @@ class TaskListTest {
         TaskList view = taskList.createView(null, task -> true);
         taskList.removeTask(1);
 
-        assertEquals("1.[T][ ] first task\n2.[T][ ] second task",
-                view.toDisplayString());
-        assertEquals("1.[T][ ] second task", taskList.toDisplayString());
+        assertTaskViews(view, List.of(1, 2), List.of("first task", "second task"));
+        assertTaskViews(taskList, List.of(1), List.of("second task"));
+    }
+
+    /** Asserts task numbers and descriptions without coupling to presentation. */
+    private void assertTaskViews(
+            TaskList taskList,
+            List<Integer> expectedTaskNumbers,
+            List<String> expectedDescriptions) {
+        List<TaskView> taskViews = taskList.getTaskViews();
+        assertEquals(expectedTaskNumbers,
+                taskViews.stream().map(TaskView::taskNumber).toList());
+        assertEquals(expectedDescriptions,
+                taskViews.stream().map(TaskView::description).toList());
     }
 }

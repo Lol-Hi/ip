@@ -1,15 +1,17 @@
 package luckynoslacky.luckyparser;
 
-import java.time.DateTimeException;
 import java.time.LocalDateTime;
 
 import luckynoslacky.luckycommand.LuckyNoReschedCommand;
 import luckynoslacky.luckycommand.LuckyNoSnoozeCommand;
 import luckynoslacky.luckyexception.LuckyNoInputException;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckytask.DurationPeriod;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
+import luckynoslacky.luckytask.TaskSchedule;
+import luckynoslacky.luckytask.TaskSchedulingException;
 import luckynoslacky.luckytask.TaskTimes;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Parses commands that change the schedule of existing timed tasks.
@@ -50,7 +52,7 @@ final class ScheduledCommandParser {
             throws LuckyNoInputException {
         String[] parts = CommandArgumentParser.splitTaskNumber(commandArguments);
         int taskNumber = CommandArgumentParser.parseTaskNumber(parts[0], taskCount);
-        rejectTodoTask(taskNumber, taskMaster, LuckyNoParser.CommandName.SNOOZE);
+        validateTimedTask(taskNumber, taskMaster, LuckyNoParser.CommandName.SNOOZE);
 
         if (parts[1].isEmpty()) {
             return new LuckyNoSnoozeCommand(taskNumber, taskMaster);
@@ -60,7 +62,7 @@ final class ScheduledCommandParser {
                     parts[1], "/by", LuckyNoParser.CommandName.SNOOZE,
                     LuckyNoMessages.snoozeByFormat(), LuckyNoMessages.snoozeToFormat());
             DurationPeriod amount = DurationParser.parse(durationText);
-            validateSnoozeAmount(taskNumber, amount, taskMaster);
+            validateSnoozeBy(taskNumber, amount, taskMaster);
             return new LuckyNoSnoozeCommand(
                     taskNumber, amount, taskMaster);
         }
@@ -70,7 +72,7 @@ final class ScheduledCommandParser {
                     LuckyNoMessages.snoozeByFormat(), LuckyNoMessages.snoozeToFormat());
             LocalDateTime endTime = dateTimePrefixParser
                     .parseEndDateTimeIgnoringTrailingText(endTimeText);
-            validateDeadlineOrEventEnd(taskNumber, endTime, taskMaster);
+            validateSnoozeTo(taskNumber, endTime, taskMaster);
             return new LuckyNoSnoozeCommand(taskNumber, endTime, taskMaster);
         }
         throw invalidSnoozeFormat();
@@ -92,10 +94,11 @@ final class ScheduledCommandParser {
             throws LuckyNoInputException {
         String[] parts = CommandArgumentParser.splitTaskNumber(commandArguments);
         int taskNumber = CommandArgumentParser.parseTaskNumber(parts[0], taskCount);
-        Task.TaskType taskType = taskMaster.getTaskType(taskNumber);
+        TaskSchedule taskSchedule = taskMaster.getTaskSchedule(taskNumber);
+        Task.TaskType taskType = taskSchedule.taskType();
 
         if (taskType == Task.TaskType.TODO) {
-            rejectTodoTask(taskNumber, taskMaster, LuckyNoParser.CommandName.RESCHED);
+            validateTimedTask(taskNumber, taskMaster, LuckyNoParser.CommandName.RESCHED);
         }
         if (taskType == Task.TaskType.DEADLINE
                 && CommandArgumentParser.startsWithMarker(parts[1], "/to")) {
@@ -104,17 +107,15 @@ final class ScheduledCommandParser {
                     LuckyNoMessages.reschedDeadlineFormat());
             LocalDateTime endTime = dateTimePrefixParser
                     .parseEndDateTimeIgnoringTrailingText(endTimeText);
-            if (endTime.isBefore(dateTimeParser.now())) {
-                throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
-            }
             return new LuckyNoReschedCommand(
                     taskNumber,
-                    TaskTimes.makeDeadlineTimes(endTime),
+                    createRescheduledTimes(
+                            taskNumber, null, endTime, taskMaster),
                     taskMaster);
         }
 
         if (taskType == Task.TaskType.EVENT) {
-            return parseEventResched(parts[1], taskNumber, taskMaster);
+            return parseEventResched(parts[1], taskNumber, taskSchedule, taskMaster);
         }
         throw reschedFormat(taskType);
     }
@@ -132,11 +133,12 @@ final class ScheduledCommandParser {
     private LuckyNoReschedCommand parseEventResched(
             String arguments,
             int taskNumber,
+            TaskSchedule taskSchedule,
             TaskMaster taskMaster)
             throws LuckyNoInputException {
         ReschedParts parts = parseEventReschedParts(arguments);
-        LocalDateTime existingStart = taskMaster.getTaskStartTime(taskNumber);
-        LocalDateTime existingEnd = taskMaster.getTaskEndTime(taskNumber);
+        LocalDateTime existingStart = taskSchedule.taskTimes().getStartTime();
+        LocalDateTime existingEnd = taskSchedule.taskTimes().getEndTime();
 
         LocalDateTime startTime = parts.startTimeText() == null
                 ? existingStart
@@ -148,12 +150,10 @@ final class ScheduledCommandParser {
                 .parseEndDateTimeIgnoringTrailingText(
                         parts.endTimeText(), startTime);
 
-        if (endTime.isBefore(startTime)) {
-            throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
-        }
         return new LuckyNoReschedCommand(
                 taskNumber,
-                TaskTimes.makeEventTimes(startTime, endTime),
+                createRescheduledTimes(
+                        taskNumber, startTime, endTime, taskMaster),
                 taskMaster);
     }
 
@@ -249,68 +249,72 @@ final class ScheduledCommandParser {
                 LuckyNoMessages.reschedEventFormat());
     }
 
-    /**
-     * Rejects commands that target a ToDo task.
-     *
-     * @param taskNumber one-based task number
-     * @param taskMaster task master containing the task
-     * @param commandName snooze or reschedule command
-     * @throws LuckyNoInputException if the selected task is a ToDo
-     */
-    private void rejectTodoTask(
+    /** Validates that the selected task supports scheduling commands. */
+    private void validateTimedTask(
             int taskNumber,
             TaskMaster taskMaster,
             LuckyNoParser.CommandName commandName)
             throws LuckyNoInputException {
-        if (taskMaster.getTaskType(taskNumber) == Task.TaskType.TODO) {
-            throw new LuckyNoInputException(
-                    LuckyNoMessages.cannotSnoozeOrRescheduleTodoMessage(commandName));
+        try {
+            taskMaster.validateTimedTask(taskNumber);
+        } catch (TaskSchedulingException exception) {
+            throw schedulingInputError(exception, commandName);
         }
     }
 
-    /**
-     * Validates the result of a duration-based snooze.
-     *
-     * @param taskNumber one-based task number
-     * @param amount snooze amount
-     * @param taskMaster task master containing the task
-     * @throws LuckyNoInputException if the resulting time is invalid or overflows
-     */
-    private void validateSnoozeAmount(
-            int taskNumber, DurationPeriod amount, TaskMaster taskMaster)
+    /** Validates a duration-based snooze through the task domain. */
+    private void validateSnoozeBy(
+            int taskNumber,
+            DurationPeriod amount,
+            TaskMaster taskMaster)
             throws LuckyNoInputException {
         try {
-            LocalDateTime snoozedEndTime = amount.addTo(
-                    taskMaster.getTaskEndTime(taskNumber));
-            if (taskMaster.getTaskType(taskNumber) == Task.TaskType.DEADLINE
-                    && snoozedEndTime.isBefore(dateTimeParser.now())) {
-                throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
-            }
-        } catch (DateTimeException exception) {
-            throw new LuckyNoInputException(LuckyNoMessages.snoozeOverflowMessage());
+            taskMaster.validateSnoozeBy(
+                    taskNumber, amount, dateTimeParser.now());
+        } catch (TaskSchedulingException exception) {
+            throw schedulingInputError(exception, LuckyNoParser.CommandName.SNOOZE);
         }
     }
 
-    /**
-     * Validates a replacement ending time against the selected task.
-     *
-     * @param taskNumber one-based task number
-     * @param endTime replacement ending time
-     * @param taskMaster task master containing the task
-     * @throws LuckyNoInputException if the replacement violates time ordering
-     */
-    private void validateDeadlineOrEventEnd(
-            int taskNumber, LocalDateTime endTime, TaskMaster taskMaster)
+    /** Validates a replacement snooze end time through the task domain. */
+    private void validateSnoozeTo(
+            int taskNumber,
+            LocalDateTime endTime,
+            TaskMaster taskMaster)
             throws LuckyNoInputException {
-        Task.TaskType taskType = taskMaster.getTaskType(taskNumber);
-        if (taskType == Task.TaskType.DEADLINE
-                && endTime.isBefore(dateTimeParser.now())) {
-            throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
+        try {
+            taskMaster.validateSnoozeTo(
+                    taskNumber, endTime, dateTimeParser.now());
+        } catch (TaskSchedulingException exception) {
+            throw schedulingInputError(exception, LuckyNoParser.CommandName.SNOOZE);
         }
-        if (taskType == Task.TaskType.EVENT
-                && endTime.isBefore(taskMaster.getTaskStartTime(taskNumber))) {
-            throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
+    }
+
+    /** Creates a validated rescheduling time value through the task domain. */
+    private TaskTimes createRescheduledTimes(
+            int taskNumber,
+            LocalDateTime startTime,
+            LocalDateTime endTime,
+            TaskMaster taskMaster)
+            throws LuckyNoInputException {
+        try {
+            return taskMaster.createRescheduledTimes(
+                    taskNumber, startTime, endTime, dateTimeParser.now());
+        } catch (TaskSchedulingException exception) {
+            throw schedulingInputError(exception, LuckyNoParser.CommandName.RESCHED);
         }
+    }
+
+    /** Maps a domain scheduling failure to the existing user-facing message. */
+    private LuckyNoInputException schedulingInputError(
+            TaskSchedulingException exception,
+            LuckyNoParser.CommandName commandName) {
+        String message = switch (exception.getReason()) {
+            case TODO_TASK -> LuckyNoMessages.cannotSnoozeOrRescheduleTodoMessage(commandName);
+            case PAST_DEADLINE, END_BEFORE_START -> LuckyNoMessages.timeTravelMessage();
+            case TIME_OVERFLOW -> LuckyNoMessages.snoozeOverflowMessage();
+        };
+        return new LuckyNoInputException(message);
     }
 
     /**

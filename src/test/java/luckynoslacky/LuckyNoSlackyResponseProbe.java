@@ -15,7 +15,7 @@ public final class LuckyNoSlackyResponseProbe {
      */
     public static void main(String[] args) {
         String userInput = String.join(" ", args);
-        LuckyNoSlacky.ChatResponse response = new LuckyNoSlacky()
+        CommandResult response = new LuckyNoSlacky()
                 .getResponse(userInput);
         System.out.println(response.message());
         System.out.println("shouldExit=" + response.shouldExit());

@@ -4,30 +4,23 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import luckynoslacky.luckyparser.DurationPeriod;
 
 /**
  * Tests the event task subclass.
  */
 class EventTaskTest {
 
-    /** Verifies that an event includes its formatted start and end times. */
+    /** Verifies that an event retains its description, start, and end times. */
     @Test
-    void toString_eventTask_includesStartAndEndTimes() {
+    void construct_eventTask_retainsDescriptionAndTimes() {
         LocalDateTime start = LocalDateTime.of(2026, 8, 6, 14, 0);
         LocalDateTime end = LocalDateTime.of(2026, 8, 6, 16, 0);
         EventTask task = new EventTask("project meeting", start, end);
 
-        assertEquals("[E][ ] project meeting (from: Thu Aug 06 2026, 2.00pm"
-                        + " to: Thu Aug 06 2026, 4.00pm)",
-                task.toString());
-        assertEquals(List.of("E", "0", "project meeting",
-                        "2026-08-06 14:00", "2026-08-06 16:00"),
-                task.getCsvStorageFields());
+        assertEquals("project meeting", task.getDescription());
         assertEquals(TaskTimes.makeEventTimes(start, end), task.getTaskTimes());
     }
 

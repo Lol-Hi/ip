@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 import luckynoslacky.luckystorage.CsvSaver;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /** Tests status changes and deletion behavior provided by {@link TaskMaster}. */
 class TaskMasterMutationTest {
@@ -86,8 +86,7 @@ class TaskMasterMutationTest {
         taskMaster.addTask(new DeadlineTask("second", DEADLINE));
         taskMaster.addTask(new EventTask("third", EVENT_START, EVENT_END));
 
-        assertEquals("[D][ ] second (by: Sun Dec 06 2026, 11.59pm)",
-                taskMaster.deleteTask(2));
+        assertEquals("second", taskMaster.deleteTask(2).getDescription());
         assertEquals("Nah, all these things you need to do:\n"
                         + "1.[T][ ] first\n"
                         + "2.[E][ ] third (from: Thu Aug 06 2026, 2.00pm"

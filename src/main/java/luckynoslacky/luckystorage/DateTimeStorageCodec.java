@@ -1,4 +1,4 @@
-package luckynoslacky.luckyparser;
+package luckynoslacky.luckystorage;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

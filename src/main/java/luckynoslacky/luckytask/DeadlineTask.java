@@ -1,9 +1,7 @@
 package luckynoslacky.luckytask;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-import luckynoslacky.luckyparser.DurationPeriod;
 
 /**
  * Represents a task that must be completed by a specified time.
@@ -103,25 +101,4 @@ public class DeadlineTask extends Task {
         times = TaskTimes.makeDeadlineTimes(newTimes.getEndTime());
     }
 
-    /**
-     * Returns the CSV fields for this deadline.
-     *
-     * @return deadline fields in CSV column order
-     */
-    @Override
-    public List<String> getCsvStorageFields() {
-        return createCsvStorageFields(
-                'D', times.getStartTime(), times.getEndTime());
-    }
-
-    /**
-     * Returns the deadline display representation.
-     *
-     * @return deadline type marker, common task representation, and deadline
-     */
-    @Override
-    public String toString() {
-        return "[D]" + super.toString()
-                + " (by: " + Task.formatDateTime(getEndTime()) + ")";
-    }
 }

@@ -1,7 +1,9 @@
 package luckynoslacky.luckycommand;
 
+import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
-import luckynoslacky.luckyui.LuckyNoMessages;
+import luckynoslacky.TextContent;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 
 /**
  * Represents a request to leave the chatbot.
@@ -19,8 +21,8 @@ public class LuckyNoByeCommand extends LuckyNoCommand {
      * @return goodbye message
      */
     @Override
-    public String execute() {
-        return LuckyNoMessages.goodbye();
+    protected ResponseContent executeContent() {
+        return new TextContent(LuckyNoMessages.goodbye());
     }
 
     /**
@@ -29,7 +31,7 @@ public class LuckyNoByeCommand extends LuckyNoCommand {
      * @return neutral response tone
      */
     @Override
-    public ResponseTone getResponseTone() {
+    protected ResponseTone responseTone() {
         return ResponseTone.NEUTRAL;
     }
 
@@ -39,7 +41,7 @@ public class LuckyNoByeCommand extends LuckyNoCommand {
      * @return true because the bye command requests termination
      */
     @Override
-    public boolean shouldExit() {
+    protected boolean shouldExit() {
         return true;
     }
 }

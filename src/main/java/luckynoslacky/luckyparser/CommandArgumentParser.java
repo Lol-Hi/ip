@@ -3,7 +3,7 @@ package luckynoslacky.luckyparser;
 import java.util.Locale;
 
 import luckynoslacky.luckyexception.LuckyNoInputException;
-import luckynoslacky.luckyui.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 
 /**
  * Parses syntax shared by multiple chatbot commands.

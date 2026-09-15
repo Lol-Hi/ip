@@ -18,8 +18,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import luckynoslacky.CommandResult;
 import luckynoslacky.LuckyNoSlacky;
-import luckynoslacky.luckyui.LuckyNoMessages;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 
 /** Shared FXML fixtures, node lookups, and chatbot doubles for GUI tests. */
 abstract class MainWindowTestSupport {
@@ -151,8 +152,8 @@ abstract class MainWindowTestSupport {
         }
 
         @Override
-        public ChatResponse getResponse(String userInput) {
-            return new ChatResponse(
+        public CommandResult getResponse(String userInput) {
+            return new CommandResult(
                     LuckyNoMessages.taskLimitMessage(), false);
         }
     }
@@ -165,8 +166,8 @@ abstract class MainWindowTestSupport {
         }
 
         @Override
-        public ChatResponse getResponse(String userInput) {
-            return new ChatResponse("scroll response", false);
+        public CommandResult getResponse(String userInput) {
+            return new CommandResult("scroll response", false);
         }
     }
 
@@ -178,17 +179,17 @@ abstract class MainWindowTestSupport {
         }
 
         @Override
-        public ChatResponse getResponse(String userInput) {
-            return new ChatResponse(LuckyNoMessages.goodbye(), true);
+        public CommandResult getResponse(String userInput) {
+            return new CommandResult(LuckyNoMessages.goodbye(), true);
         }
     }
 
     /** Supplies deterministic chatbot responses to GUI presentation tests. */
     protected static final class StubChatbot extends LuckyNoSlacky {
         private final boolean loadError;
-        private final ChatResponse response;
+        private final CommandResult response;
 
-        StubChatbot(boolean loadError, ChatResponse response) {
+        StubChatbot(boolean loadError, CommandResult response) {
             super();
             this.loadError = loadError;
             this.response = response;
@@ -200,7 +201,7 @@ abstract class MainWindowTestSupport {
         }
 
         @Override
-        public ChatResponse getResponse(String userInput) {
+        public CommandResult getResponse(String userInput) {
             return response;
         }
     }

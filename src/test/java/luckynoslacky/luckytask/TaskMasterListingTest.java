@@ -4,12 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 import luckynoslacky.luckystorage.CsvSaver;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /** Tests task-list display and search behavior provided by {@link TaskMaster}. */
 class TaskMasterListingTest {
@@ -66,9 +67,11 @@ class TaskMasterListingTest {
         TaskList earlierView = taskMaster.listTasks();
         taskMaster.addTask(new TodoTask("second task"));
 
-        assertEquals("1.[T][ ] first task", earlierView.toDisplayString());
-        assertEquals("1.[T][ ] first task\n2.[T][ ] second task",
-                taskMaster.listTasks().toDisplayString());
+        assertEquals(List.of("first task"),
+                earlierView.getTaskViews().stream().map(TaskView::description).toList());
+        assertEquals(List.of("first task", "second task"),
+                taskMaster.listTasks().getTaskViews().stream()
+                        .map(TaskView::description).toList());
     }
 
     /** Verifies that all supported task types are formatted in a list. */

@@ -14,10 +14,12 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+import luckynoslacky.CommandResult;
 import luckynoslacky.LuckyNoSlacky;
-import luckynoslacky.ResponseKind;
+import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
-import luckynoslacky.luckyui.LuckyNoMessages;
+import luckynoslacky.TextContent;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 
 /**
  * Controls the main LuckyNoSlacky JavaFX window.
@@ -103,15 +105,13 @@ public class MainWindow {
         }
         this.chatbot = chatbot;
         addChatbotMessage(
-                LuckyNoMessages.greeting(),
-                ResponseTone.NEUTRAL,
-                ResponseKind.PLAIN_TEXT);
+                new TextContent(LuckyNoMessages.greeting()),
+                ResponseTone.NEUTRAL);
 
         if (chatbot.hasLoadError()) {
             addChatbotMessage(
-                    LuckyNoMessages.loadErrorMessage(),
-                    ResponseTone.SYSTEM_ERROR,
-                    ResponseKind.PLAIN_TEXT);
+                    new TextContent(LuckyNoMessages.loadErrorMessage()),
+                    ResponseTone.SYSTEM_ERROR);
         }
     }
 
@@ -127,8 +127,8 @@ public class MainWindow {
         }
 
         addUserMessage(userInputText);
-        LuckyNoSlacky.ChatResponse response = chatbot.getResponse(userInputText);
-        addChatbotMessage(response.message(), response.tone(), response.kind());
+        CommandResult response = chatbot.getResponse(userInputText);
+        addChatbotMessage(response.content(), response.tone());
         userInput.clear();
 
         if (response.shouldExit() && !exitScheduled) {
@@ -183,21 +183,18 @@ public class MainWindow {
     /**
      * Adds an application message using the appropriate visual role.
      *
-     * @param message chatbot response
+     * @param responseContent structured chatbot response
      * @param responseTone semantic tone for the response
-     * @param responseKind structural content kind for the response
      */
     private void addChatbotMessage(
-            String message,
-            ResponseTone responseTone,
-            ResponseKind responseKind) {
+            ResponseContent responseContent,
+            ResponseTone responseTone) {
         dialogContainer.getChildren().add(
                 new DialogueBox(
-                        message,
                         chatbotImage,
                         DialogueBox.DialogueType.CHATBOT,
                         responseTone,
-                        responseKind));
+                        responseContent));
     }
 
     /** Adds stable semantic hooks consumed by the personality stylesheet. */

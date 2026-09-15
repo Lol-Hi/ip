@@ -1,11 +1,11 @@
 package luckynoslacky.luckycommand;
 
-import luckynoslacky.ResponseKind;
+import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
 import luckynoslacky.luckytask.TaskTimes;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Represents a request to replace the time or times of a timed task.
@@ -40,10 +40,10 @@ public class LuckyNoReschedCommand extends LuckyNoCommand {
      * @return rescheduling response
      */
     @Override
-    public String execute() {
+    protected ResponseContent executeContent() {
         Task updatedTask = taskMaster.rescheduleTask(
                 taskNumber, newTimes);
-        return LuckyNoMessages.rescheduledTaskMessage(updatedTask);
+        return LuckyNoMessages.rescheduledTaskContent(updatedTask);
     }
 
     /**
@@ -52,17 +52,8 @@ public class LuckyNoReschedCommand extends LuckyNoCommand {
      * @return success response tone
      */
     @Override
-    public ResponseTone getResponseTone() {
+    protected ResponseTone responseTone() {
         return ResponseTone.SUCCESS;
     }
 
-    /**
-     * Returns the task-content kind for the rescheduling response.
-     *
-     * @return task-content response kind
-     */
-    @Override
-    public ResponseKind getResponseKind() {
-        return ResponseKind.TASK_CONTENT;
-    }
 }

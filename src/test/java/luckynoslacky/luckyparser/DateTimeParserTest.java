@@ -292,18 +292,6 @@ class DateTimeParserTest {
                 Arguments.of("unsupported relative modifier", "previous Tuesday"));
     }
 
-    /** Verifies storage formatting round-trips through the CSV parser. */
-    @Test
-    void formatForStorage_validDateTime_roundTripsThroughStorageParser() {
-        LocalDateTime dateTime = LocalDateTime.of(2030, 10, 15, 14, 15);
-        String stored = DateTimeParser.formatForStorage(dateTime);
-
-        assertEquals("2030-10-15 14:15", stored);
-        assertEquals(dateTime, DateTimeParser.parseFromStorage(stored));
-        assertEquals("", DateTimeParser.formatForStorage(null));
-        assertEquals(null, DateTimeParser.parseFromStorage(""));
-    }
-
     /** Verifies that the parser reports the time from its injected clock. */
     @Test
     void now_fixedClock_returnsFixedTime() {

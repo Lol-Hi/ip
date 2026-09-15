@@ -1,9 +1,7 @@
 package luckynoslacky.luckytask;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-import luckynoslacky.luckyparser.DurationPeriod;
 
 /**
  * Represents a task without any date or time information.
@@ -27,16 +25,6 @@ public class TodoTask extends Task {
     @Override
     public TaskType getTaskType() {
         return TaskType.TODO;
-    }
-
-    /**
-     * Returns the CSV fields for this ToDo.
-     *
-     * @return ToDo fields in CSV column order
-     */
-    @Override
-    public List<String> getCsvStorageFields() {
-        return createCsvStorageFields('T', null, null);
     }
 
     /**
@@ -85,13 +73,4 @@ public class TodoTask extends Task {
         throw new IllegalArgumentException("Task has no ending time.");
     }
 
-    /**
-     * Returns the ToDo display representation.
-     *
-     * @return ToDo type marker followed by the common task representation
-     */
-    @Override
-    public String toString() {
-        return "[T]" + super.toString();
-    }
 }

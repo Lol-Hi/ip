@@ -2,6 +2,8 @@ package luckynoslacky.luckyui;
 
 import java.util.Scanner;
 
+import luckynoslacky.luckyresponse.LuckyNoMessages;
+
 /**
  * Handles direct command-line interaction with the user.
  */

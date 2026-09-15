@@ -1,6 +1,7 @@
 package luckynoslacky.luckycommand;
 
-import luckynoslacky.ResponseKind;
+import luckynoslacky.CommandResult;
+import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
 import luckynoslacky.luckytask.TaskMaster;
 
@@ -29,34 +30,35 @@ public abstract class LuckyNoCommand {
     }
 
     /**
-     * Executes this command and returns its user-facing reply.
+     * Executes this command and returns its complete response.
      *
-     * @return reply produced by the command
+     * @return result produced by the command
      */
-    public abstract String execute();
+    public final CommandResult execute() {
+        return new CommandResult(
+                executeContent(), shouldExit(), responseTone());
+    }
+
+    /**
+     * Executes the command-specific operation and returns its reply content.
+     *
+     * @return reply content produced by the command
+     */
+    protected abstract ResponseContent executeContent();
 
     /**
      * Returns the semantic tone for a successful execution of this command.
      *
      * @return response tone for the command's reply
      */
-    public abstract ResponseTone getResponseTone();
-
-    /**
-     * Returns the structural content kind for this command's reply.
-     *
-     * @return response content kind
-     */
-    public ResponseKind getResponseKind() {
-        return ResponseKind.PLAIN_TEXT;
-    }
+    protected abstract ResponseTone responseTone();
 
     /**
      * Indicates whether the chat loop should terminate after execution.
      *
      * @return true if the command requests termination
      */
-    public boolean shouldExit() {
+    protected boolean shouldExit() {
         return false;
     }
 }

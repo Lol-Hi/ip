@@ -1,9 +1,10 @@
 package luckynoslacky.luckycommand;
 
-import luckynoslacky.ResponseKind;
+import luckynoslacky.ResponseContent;
 import luckynoslacky.ResponseTone;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
+import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Represents a request to delete a task.
@@ -30,9 +31,9 @@ public class LuckyNoDeleteCommand extends LuckyNoCommand {
      * @return deletion response
      */
     @Override
-    public String execute() {
-        String deletedTask = this.taskMaster.deleteTask(taskNumber);
-        return LuckyNoMessages.deletedTaskMessage(
+    protected ResponseContent executeContent() {
+        Task deletedTask = this.taskMaster.deleteTask(taskNumber);
+        return LuckyNoMessages.deletedTaskContent(
                 deletedTask, this.taskMaster.getTaskCount());
     }
 
@@ -42,17 +43,8 @@ public class LuckyNoDeleteCommand extends LuckyNoCommand {
      * @return success response tone
      */
     @Override
-    public ResponseTone getResponseTone() {
+    protected ResponseTone responseTone() {
         return ResponseTone.SUCCESS;
     }
 
-    /**
-     * Returns the task-content kind for the task-deletion response.
-     *
-     * @return task-content response kind
-     */
-    @Override
-    public ResponseKind getResponseKind() {
-        return ResponseKind.TASK_CONTENT;
-    }
 }

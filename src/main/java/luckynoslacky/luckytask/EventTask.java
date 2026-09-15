@@ -1,9 +1,7 @@
 package luckynoslacky.luckytask;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-import luckynoslacky.luckyparser.DurationPeriod;
 
 /**
  * Represents a task with a specified start and end time.
@@ -105,26 +103,4 @@ public class EventTask extends Task {
                 newTimes.getStartTime(), newTimes.getEndTime());
     }
 
-    /**
-     * Returns the CSV fields for this event.
-     *
-     * @return event fields in CSV column order
-     */
-    @Override
-    public List<String> getCsvStorageFields() {
-        return createCsvStorageFields(
-                'E', times.getStartTime(), times.getEndTime());
-    }
-
-    /**
-     * Returns the event display representation.
-     *
-     * @return event type marker, common task representation, and event times
-     */
-    @Override
-    public String toString() {
-        return "[E]" + super.toString()
-                + " (from: " + Task.formatDateTime(getStartTime())
-                + " to: " + Task.formatDateTime(getEndTime()) + ")";
-    }
 }

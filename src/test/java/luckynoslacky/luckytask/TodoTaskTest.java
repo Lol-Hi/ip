@@ -8,27 +8,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import luckynoslacky.luckyparser.DurationPeriod;
 
 /**
  * Tests the ToDo task subclass and the common task state behavior it inherits.
  */
 class TodoTaskTest {
 
-    /** Verifies the initial status and storage/display form of a ToDo. */
+    /** Verifies the initial status and description of a ToDo. */
     @Test
     void todoTask_newTask_isNotDone() {
         TodoTask task = new TodoTask("read book");
 
         assertFalse(task.isDone());
-        assertEquals(" ", task.getStatusIcon());
-        assertEquals("[T][ ] read book", task.toString());
-        assertEquals(List.of("T", "0", "read book", "", ""),
-                task.getCsvStorageFields());
+        assertEquals("read book", task.getDescription());
     }
 
     /** Verifies null and blank descriptions use the exact validation message. */
@@ -50,8 +45,6 @@ class TodoTaskTest {
         task.markAsDone();
 
         assertTrue(task.isDone());
-        assertEquals("X", task.getStatusIcon());
-        assertEquals("[T][X] read book", task.toString());
     }
 
     /** Verifies that unmarking a done ToDo clears its status. */
@@ -63,8 +56,6 @@ class TodoTaskTest {
         task.unmarkAsUndone();
 
         assertFalse(task.isDone());
-        assertEquals(" ", task.getStatusIcon());
-        assertEquals("[T][ ] read book", task.toString());
     }
 
     /** Verifies that snoozing a ToDo is rejected. */

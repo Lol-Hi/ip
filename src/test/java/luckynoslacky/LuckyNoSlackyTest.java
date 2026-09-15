@@ -23,11 +23,11 @@ import org.junit.jupiter.api.Test;
 import luckynoslacky.luckyexception.LuckyNoConfigurationException;
 import luckynoslacky.luckyexception.LuckyNoStorageException;
 import luckynoslacky.luckyparser.DateTimeParser;
+import luckynoslacky.luckyresponse.LuckyNoMessages;
 import luckynoslacky.luckystorage.CsvSaver;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskList;
 import luckynoslacky.luckyui.LuckyNoCli;
-import luckynoslacky.luckyui.LuckyNoMessages;
 
 /**
  * Tests the public chatbot facade used by the graphical interface.
@@ -68,14 +68,14 @@ class LuckyNoSlackyTest {
     @Test
     void getResponse_unknownCommand_returnsUnknownCommandMessage() {
         LuckyNoSlacky chatbot = new LuckyNoSlacky();
-        LuckyNoSlacky.ChatResponse response = chatbot.getResponse("unknown command");
+        CommandResult response = chatbot.getResponse("unknown command");
 
         assertEquals(
                 LuckyNoMessages.unknownCommandMessage(),
                 response.message());
         assertFalse(response.shouldExit());
         assertEquals(ResponseTone.WARNING, response.tone());
-        assertEquals(ResponseKind.PLAIN_TEXT, response.kind());
+        assertInstanceOf(TextContent.class, response.content());
     }
 
     /** Verifies that malformed input returns the exact parser error response. */
@@ -83,7 +83,7 @@ class LuckyNoSlackyTest {
     void getResponse_missingTaskDescription_returnsExactInputError() {
         LuckyNoSlacky chatbot = new LuckyNoSlacky();
 
-        LuckyNoSlacky.ChatResponse response = chatbot.getResponse("todo");
+        CommandResult response = chatbot.getResponse("todo");
 
         assertEquals("You don't tell me what to do how I know what to do???",
                 response.message());
@@ -95,12 +95,12 @@ class LuckyNoSlackyTest {
     void getResponse_byeCommand_returnsGoodbyeAndExitStatus() {
         LuckyNoSlacky chatbot = new LuckyNoSlacky();
 
-        LuckyNoSlacky.ChatResponse response = chatbot.getResponse("bye");
+        CommandResult response = chatbot.getResponse("bye");
 
         assertEquals(LuckyNoMessages.goodbye(), response.message());
         assertTrue(response.shouldExit());
         assertEquals(ResponseTone.NEUTRAL, response.tone());
-        assertEquals(ResponseKind.PLAIN_TEXT, response.kind());
+        assertInstanceOf(TextContent.class, response.content());
     }
 
     /** Verifies that the chatbot rejects a missing date/time parser. */
@@ -300,7 +300,7 @@ class LuckyNoSlackyTest {
                 chatbot.getResponse("todo task " + taskNumber);
             }
 
-            LuckyNoSlacky.ChatResponse response = chatbot.getResponse(command);
+            CommandResult response = chatbot.getResponse(command);
 
             assertEquals(
                     LuckyNoMessages.taskLimitMessage(), response.message());
