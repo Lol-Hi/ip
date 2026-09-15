@@ -150,10 +150,49 @@
 
 ## Acceptance checks beyond `guiTest`
 
-These checks are intentionally broader than the deterministic Gradle task and
-may require a desktop automation capability or manual verification:
+These optional checks supplement the deterministic Gradle task with visual
+and end-to-end observations. They are non-blocking unless a failure reveals a
+serious functional regression.
 
-- Enter enough commands to verify that the conversation scrolls to the latest
-  message.
-- Resize the window and verify that message text and avatars remain readable.
-- Add a task, close the GUI, relaunch it, and verify that the task persists.
+### Test environment
+
+- Use Java 25 and the packaged GUI build.
+- Run the checks from a disposable copy of the project.
+- Use an isolated task-data file and do not modify normal application data.
+- Record the tested commit or build version.
+- Record screenshots only for failed or questionable checks.
+
+### Manual check: Conversation scrolling
+
+- Launch the GUI at 400 by 600 pixels.
+- Submit at least 20 short commands, such as `unknown`.
+- Confirm that the newest response remains visible after each submission.
+- Scroll upward after the final response.
+- Expected result: New content is shown automatically, earlier dialogue rows
+  remain available, and no message, avatar, or horizontal layout is clipped.
+
+### Manual check: Responsive sizing and readability
+
+- Inspect the GUI at 400 by 600, 320 by 480, and 800 by 600 pixels.
+- Inspect a shorter-than-default height when practical.
+- Expected result: The input field and Send button remain visible and usable;
+  the input expands horizontally; the Send button stays at the bottom-right;
+  long messages wrap; and labels, text, and avatars remain readable without
+  overlap or clipping.
+
+### Manual check: Persistence after relaunch
+
+- Start with the isolated task-data file empty.
+- Add `todo manual persistence check`.
+- Close the GUI using the window close control.
+- Relaunch the GUI from the same disposable copy and data file.
+- Submit `list`.
+- Expected result: The task is restored once with the same description and
+  type, and the relaunched GUI remains usable without unexpected errors.
+
+### Manual check reporting
+
+- Record a pass or fail result, window sizes, commands entered, and any
+  scrolling, readability, persistence, or error observations.
+- Capture screenshots only for failed or questionable checks.
+- Document confirmed defects as follow-up increments.
