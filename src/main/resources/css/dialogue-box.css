@@ -6,6 +6,14 @@
     -fx-font-weight: bold;
 }
 
+.user-dialogue .speaker-label {
+    -fx-text-fill: #1976d2;
+}
+
+.chatbot-dialogue .speaker-label {
+    -fx-text-fill: #388e3c;
+}
+
 .message-content {
     -fx-padding: 8px;
     -fx-background-radius: 8px;
@@ -13,75 +21,14 @@
     -fx-border-width: 1px;
 }
 
-.user-dialogue .speaker-label {
-    -fx-text-fill: #2563a8;
-}
-
-.chatbot-dialogue .speaker-label {
-    -fx-text-fill: #d38b08;
-}
-
-.prose-content {
-    -fx-font-family: "Patrick Hand";
-    -fx-font-size: 16px;
-}
-
 .user-dialogue .message-content {
     -fx-background-color: #e3f2fd;
-    -fx-border-color: #93c5fd;
+    -fx-border-color: #90caf9;
 }
 
-.neutral-dialogue .message-content {
-    -fx-background-color: #fff4b7;
-    -fx-border-color: #e3ba38;
-}
-
-.success-dialogue .speaker-label {
-    -fx-text-fill: #2f855a;
-}
-
-.success-dialogue .message-content {
-    -fx-background-color: #dcf4df;
-    -fx-border-color: #62a87a;
-}
-
-.information-dialogue .message-content {
-    -fx-background-color: #fff9de;
-    -fx-border-color: #e7d87a;
-}
-
-.warning-dialogue .speaker-label {
-    -fx-text-fill: #b94a3f;
-}
-
-.warning-dialogue .message-content {
-    -fx-background-color: #ffe2d8;
-    -fx-border-color: #d76a5d;
-}
-
-.system-error-dialogue .speaker-label {
-    -fx-text-fill: #a8322b;
-}
-
-.system-error-dialogue .message-content {
-    -fx-background-color: #fcdede;
-    -fx-border-color: #a8322b;
-}
-
-.task-content {
-    -fx-font-family: "Roboto Mono";
-    -fx-font-size: 13px;
-    -fx-padding: 0;
-    -fx-text-fill: #fff3b0;
-}
-
-.task-list {
-    -fx-background-color: #26352c;
-    -fx-background-radius: 6px;
-    -fx-border-color: #4f765c;
-    -fx-border-radius: 6px;
-    -fx-border-width: 1px;
-    -fx-padding: 8px;
+.chatbot-dialogue .message-content {
+    -fx-background-color: #e8f5e9;
+    -fx-border-color: #a5d6a7;
 }
 
 .avatar {

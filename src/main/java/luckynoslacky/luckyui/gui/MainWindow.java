@@ -7,7 +7,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import luckynoslacky.LuckyNoSlacky;
@@ -18,11 +17,6 @@ import luckynoslacky.luckyui.LuckyNoMessages;
  */
 public class MainWindow {
     private static final double EXIT_DELAY_SECONDS = 1.5;
-    private static final String NEUTRAL_DIALOGUE_STYLE = "neutral-dialogue";
-    private static final String SUCCESS_DIALOGUE_STYLE = "success-dialogue";
-    private static final String INFORMATION_DIALOGUE_STYLE = "information-dialogue";
-    private static final String WARNING_DIALOGUE_STYLE = "warning-dialogue";
-    private static final String SYSTEM_ERROR_DIALOGUE_STYLE = "system-error-dialogue";
 
     @FXML
     private ScrollPane scrollPane;
@@ -32,9 +26,6 @@ public class MainWindow {
 
     @FXML
     private TextField userInput;
-
-    @FXML
-    private ImageView brandAvatar;
 
     private LuckyNoSlacky chatbot;
 
@@ -56,7 +47,6 @@ public class MainWindow {
      */
     @FXML
     private void initialize() {
-        brandAvatar.setImage(chatbotImage);
         dialogContainer.heightProperty().addListener((observable, oldHeight, newHeight) ->
                         scrollPane.setVvalue(1.0));
     }
@@ -72,14 +62,10 @@ public class MainWindow {
             throw new IllegalArgumentException("Chatbot cannot be null.");
         }
         this.chatbot = chatbot;
-        addChatbotMessage(
-                LuckyNoMessages.greeting(),
-                LuckyNoSlacky.ResponseTone.NEUTRAL);
+        addChatbotMessage(LuckyNoMessages.greeting());
 
         if (chatbot.hasLoadError()) {
-            addChatbotMessage(
-                    LuckyNoMessages.loadErrorMessage(),
-                    LuckyNoSlacky.ResponseTone.SYSTEM_ERROR);
+            addChatbotMessage(LuckyNoMessages.loadErrorMessage());
         }
     }
 
@@ -95,7 +81,7 @@ public class MainWindow {
 
         addUserMessage(userInputText);
         LuckyNoSlacky.ChatResponse response = chatbot.getResponse(userInputText);
-        addChatbotMessage(response.message(), response.tone());
+        addChatbotMessage(response.message());
         userInput.clear();
 
         if (response.shouldExit()) {
@@ -128,43 +114,13 @@ public class MainWindow {
      *
      * @param message chatbot response
      */
-    private void addChatbotMessage(
-            String message, LuckyNoSlacky.ResponseTone responseTone) {
+    private void addChatbotMessage(String message) {
         dialogContainer.getChildren().add(
                 new DialogueBox(
-                        getChatbotSpeakerLabel(responseTone),
+                        "LuckyNoSlacky said:",
                         message,
                         chatbotImage,
                         Pos.CENTER_LEFT,
-                        DialogueBox.CHATBOT_DIALOGUE_STYLE,
-                        getToneStyle(responseTone)));
-    }
-
-    /**
-     * Returns the chatbot speaker label for the supplied response tone.
-     *
-     * @param responseTone visual tone of the chatbot response
-     * @return speaker label displayed above the chatbot message
-     */
-    private String getChatbotSpeakerLabel(LuckyNoSlacky.ResponseTone responseTone) {
-        return responseTone == LuckyNoSlacky.ResponseTone.SUCCESS
-                ? "🍀 LuckyNoSlacky said:"
-                : "LuckyNoSlacky said:";
-    }
-
-    /**
-     * Maps a response tone to the CSS class used by the dialogue row.
-     *
-     * @param responseTone visual tone of the chatbot response
-     * @return CSS class corresponding to the supplied tone
-     */
-    private String getToneStyle(LuckyNoSlacky.ResponseTone responseTone) {
-        return switch (responseTone) {
-            case NEUTRAL -> NEUTRAL_DIALOGUE_STYLE;
-            case SUCCESS -> SUCCESS_DIALOGUE_STYLE;
-            case INFORMATION -> INFORMATION_DIALOGUE_STYLE;
-            case WARNING -> WARNING_DIALOGUE_STYLE;
-            case SYSTEM_ERROR -> SYSTEM_ERROR_DIALOGUE_STYLE;
-        };
+                        DialogueBox.CHATBOT_DIALOGUE_STYLE));
     }
 }

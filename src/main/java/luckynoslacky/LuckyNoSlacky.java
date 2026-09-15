@@ -6,13 +6,6 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 
 import luckynoslacky.luckycommand.LuckyNoCommand;
-import luckynoslacky.luckycommand.LuckyNoDeleteCommand;
-import luckynoslacky.luckycommand.LuckyNoFindCommand;
-import luckynoslacky.luckycommand.LuckyNoListCommand;
-import luckynoslacky.luckycommand.LuckyNoMarkCommand;
-import luckynoslacky.luckycommand.LuckyNoReschedCommand;
-import luckynoslacky.luckycommand.LuckyNoSnoozeCommand;
-import luckynoslacky.luckycommand.LuckyNoTaskCommand;
 import luckynoslacky.luckyexception.LuckyNoInputException;
 import luckynoslacky.luckyexception.LuckyNoStorageException;
 import luckynoslacky.luckyparser.DateTimeParser;
@@ -29,31 +22,13 @@ public class LuckyNoSlacky {
     private static final String FIXED_NOW_PROPERTY =
             "luckynoslacky.fixedNow";
 
-    /** Describes the visual tone associated with a chatbot response. */
-    public enum ResponseTone {
-        /** Standard chatbot replies such as greetings and farewells. */
-        NEUTRAL,
-        /** Successful task changes. */
-        SUCCESS,
-        /** Task lists, search results, and other informational replies. */
-        INFORMATION,
-        /** Recoverable command and input problems. */
-        WARNING,
-        /** Storage and other system-level failures. */
-        SYSTEM_ERROR
-    }
-
     /**
      * Contains a chatbot reply and the action requested after displaying it.
      *
      * @param message user-facing reply
      * @param shouldExit whether the interface should close
-     * @param tone visual tone associated with the reply
      */
-    public record ChatResponse(
-            String message,
-            boolean shouldExit,
-            ResponseTone tone) {
+    public record ChatResponse(String message, boolean shouldExit) {
     }
 
     private final TaskMaster taskMaster;
@@ -72,24 +47,11 @@ public class LuckyNoSlacky {
      * @throws IllegalArgumentException if {@code dateTimeParser} is null
      */
     LuckyNoSlacky(DateTimeParser dateTimeParser) {
-        this(dateTimeParser, new CsvSaver());
-    }
-
-    /**
-     * Creates the chatbot with supplied parsing and storage dependencies.
-     *
-     * @param dateTimeParser parser used to interpret date and time input
-     * @param csvSaver storage used to load and save tasks
-     * @throws IllegalArgumentException if either argument is null
-     */
-    LuckyNoSlacky(DateTimeParser dateTimeParser, CsvSaver csvSaver) {
         if (dateTimeParser == null) {
             throw new IllegalArgumentException("Date-time parser cannot be null.");
         }
-        if (csvSaver == null) {
-            throw new IllegalArgumentException("CSV saver cannot be null.");
-        }
 
+        CsvSaver csvSaver = new CsvSaver();
         taskMaster = new TaskMaster(csvSaver);
 
         boolean hasLoadFailure = false;
@@ -137,40 +99,14 @@ public class LuckyNoSlacky {
             LuckyNoCommand command = parser.parseCommand(userInput);
             return new ChatResponse(
                     command.execute(),
-                    command.shouldExit(),
-                    getResponseTone(command));
+                    command.shouldExit());
         } catch (LuckyNoInputException exception) {
-            return new ChatResponse(
-                    exception.getMessage(), false, ResponseTone.WARNING);
+            return new ChatResponse(exception.getMessage(), false);
         } catch (LuckyNoStorageException exception) {
             return new ChatResponse(
                     LuckyNoMessages.saveErrorMessage(),
-                    false,
-                    ResponseTone.SYSTEM_ERROR);
+                    false);
         }
-    }
-
-    /**
-     * Maps a successfully parsed command to the visual tone of its reply.
-     *
-     * @param command command that produced the reply
-     * @return visual tone appropriate for the command response
-     */
-    private ResponseTone getResponseTone(LuckyNoCommand command) {
-        if (command instanceof LuckyNoTaskCommand
-                || command instanceof LuckyNoMarkCommand
-                || command instanceof LuckyNoDeleteCommand
-                || command instanceof LuckyNoSnoozeCommand
-                || command instanceof LuckyNoReschedCommand) {
-            return ResponseTone.SUCCESS;
-        }
-
-        if (command instanceof LuckyNoListCommand
-                || command instanceof LuckyNoFindCommand) {
-            return ResponseTone.INFORMATION;
-        }
-
-        return ResponseTone.NEUTRAL;
     }
 
     /**

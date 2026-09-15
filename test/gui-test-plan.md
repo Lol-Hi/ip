@@ -14,47 +14,15 @@
   alignment.
 - Test: `DialogueBoxTest.dialogueBox_userMessage_displaysBlueLabelOnRight`
 - Expected result: The row is right-aligned, displays `You said:`, preserves
-  the message text, applies the user dialogue CSS style, and uses the unified
-  handwritten interface font.
+  the message text, and applies the user dialogue CSS style.
 
 ## Test Case: DialogueBox displays chatbot messages
 
-- Aim: Verify that neutral chatbot messages use the pineapple-yellow palette
-  and left-side alignment.
-- Test: `DialogueBoxTest.dialogueBox_neutralChatbotMessage_displaysPineappleLabelOnLeft`
+- Aim: Verify that chatbot messages use the green speaker label and left-side
+  alignment.
+- Test: `DialogueBoxTest.dialogueBox_chatbotMessage_displaysGreenLabelOnLeft`
 - Expected result: The row is left-aligned, displays `LuckyNoSlacky said:`,
-  preserves the message text, applies the neutral chatbot dialogue CSS style,
-  and uses the unified handwritten interface font.
-
-## Test Case: DialogueBox applies semantic response tones
-
-- Aim: Verify that a successful task response can use the lucky green visual
-  treatment independently from its text.
-- Test: `DialogueBoxTest.dialogueBox_successTone_addsSuccessDialogueStyle`
-- Actions: Create a chatbot dialogue with the `success-dialogue` style.
-- Expected result: The dialogue retains its chatbot layout and includes the
-  `success-dialogue` CSS class for the green success palette.
-
-## Test Case: DialogueBox styles task lines as code
-
-- Aim: Verify that task display lines remain easy to scan using monospace text
-  inside a shared dark task-list panel.
-- Test: `DialogueBoxTest.dialogueBox_taskLine_usesMonospaceTaskStyle`
-- Actions: Create a chatbot dialogue containing `[T][ ] read book`.
-- Expected result: The task line receives the `task-content` style, uses the
-  bundled monospace font, and appears in a dark code-style block. The task
-  panel is contained within one outer dialogue bubble.
-
-## Test Case: DialogueBox groups numbered task lists
-
-- Aim: Verify that numbered task lines and their introduction remain in one
-  chatbot bubble while the task lines share one dark panel.
-- Test: `DialogueBoxTest.dialogueBox_numberedTaskList_groupsAdjacentLinesInOnePanel`
-- Actions: Create a chatbot dialogue containing prose followed by numbered
-  `[T]` and `[D]` task lines.
-- Expected result: The prose uses the handwritten content style, all adjacent
-  task lines are grouped into one `task-list` container, and the complete
-  response remains one outer dialogue row.
+  preserves the message text, and applies the chatbot dialogue CSS style.
 
 ## Test Case: Main window displays a conversation
 
@@ -63,31 +31,7 @@
 - Test: `MainWindowTest.mainWindow_unknownCommand_displaysBothSpeakerMessages`
 - Actions: Enter `unknown` in the command field and submit it.
 - Expected result: The conversation contains the greeting, a `You said:` row,
-  and a `LuckyNoSlacky said:` row. User messages use light blue, while chatbot
-  response tones use their configured neutral, success, information, warning,
-  or system-error palettes.
-
-## Test Case: Main window displays the branded header
-
-- Aim: Verify that the fixed header displays the approved LuckyNoSlacky
-  branding before the conversation.
-- Test: `MainWindowTest.mainWindow_brandHeader_displaysConfiguredBranding`
-- Actions: Launch the main window and inspect the branded header nodes.
-- Expected result: The header displays the supplied chatbot avatar,
-  `LuckyNoSlacky` as its title, and `Your lucky task buddy` as its tagline.
-  The header has the `brand-header` style and is outside the conversation
-  container.
-
-## Test Case: Main window displays the clover conversation background
-
-- Aim: Verify that the conversation viewport exposes the non-interactive
-  background layer used for the repeating clover pattern.
-- Test: `MainWindowTest.mainWindow_conversationBackground_usesConfiguredPattern`
-- Actions: Launch the main window and inspect the conversation ScrollPane.
-- Expected result: The ScrollPane has the `conversation-background` style class
-  and contains its standard viewport behind the transparent dialogue container.
-  The bundled clover pattern resource is verified by
-  `LuckyNoGuiTest.luckyNoGui_resourcePaths_areAvailable`.
+  and a `LuckyNoSlacky said:` row.
 
 ## Test Case: Main window remains usable after a normal command
 
@@ -123,11 +67,11 @@
 
 ## Test Case: GUI resources are packaged
 
-- Aim: Verify that the FXML layout, CSS stylesheets, avatar images, and bundled
-  fonts are available from the application classpath.
+- Aim: Verify that the FXML layout, CSS stylesheets, and both avatar images are
+  available from the application classpath.
 - Test: `LuckyNoGuiTest.luckyNoGui_resourcePaths_areAvailable`
-- Expected result: The layout, both CSS stylesheets, the two avatar resources,
-  the clover pattern resource, and both font resources are all found.
+- Expected result: The layout, both CSS stylesheets, chatbot avatar, and user
+  avatar resources are all found.
 
 ## Test Case: Main window preserves usable minimum dimensions
 
@@ -156,6 +100,4 @@ may require a desktop automation capability or manual verification:
 - Enter enough commands to verify that the conversation scrolls to the latest
   message.
 - Resize the window and verify that message text and avatars remain readable.
-- Verify that the branded header remains visible while the conversation
-  scrolls.
 - Add a task, close the GUI, relaunch it, and verify that the task persists.

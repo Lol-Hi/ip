@@ -16,6 +16,18 @@ handoffs required for controlled integration. It follows Specification B:
 - [ ] Integrate only approved personality resources into BetterGUI; do not
   merge this branch wholesale into `master`.
 
+## Recommended integration sequence
+
+1. [ ] Complete the personality-branch cleanup and ownership audit.
+2. [ ] Selectively transfer the cleaned resource package to
+   `branch-BetterGui`, which already contains stable integration hooks.
+3. [ ] Let BetterGUI apply shared GUI behavior and reconcile the canonical GUI
+   test plan.
+4. [ ] Run full validation on the integrated BetterGUI branch.
+5. [ ] Continue later personality work as standalone resource increments and
+   transfer each approved package to BetterGUI before the final merge to
+   `master`.
+
 ## Progress
 
 - [x] Replace the generic interface font with bundled Patrick Hand.
@@ -50,8 +62,11 @@ handoffs required for controlled integration. It follows Specification B:
 - [ ] Handoff the reviewed response wording to the BetterGUI/content owner;
   it is not a `branch-personality` implementation increment. See
   `docs/response-personality-message-review.md`.
-- [ ] Execute the branch cleanup and prepare the controlled integration
-  handoff. See `docs/personality-branch-cleanup-specification.md`.
+- [x] Execute the working-tree portion of the branch cleanup and prepare the
+  controlled integration handoff. See
+  `docs/personality-branch-cleanup-specification.md`.
+- [x] Commit the cleanup on `branch-personality`.
+- [ ] Selectively transfer the resource package to `branch-BetterGui`.
 - [ ] Let BetterGUI update functional tests and the canonical GUI test plan
   after shared integration.
 

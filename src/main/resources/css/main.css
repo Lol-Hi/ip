@@ -1,38 +1,8 @@
 @import "dialogue-box.css";
 
 .root {
-    -fx-background-color: #fffbe7;
-    -fx-font-family: "Patrick Hand";
-    -fx-font-size: 16px;
-}
-
-.brand-header {
-    -fx-background-color: #f6d365;
-    -fx-border-color: #2f855a;
-    -fx-border-width: 0 0 2px 0;
-    -fx-padding: 10px 14px;
-}
-
-.brand-avatar {
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 4, 0.3, 0, 1);
-}
-
-.brand-title {
-    -fx-font-family: "Patrick Hand";
-    -fx-font-size: 26px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #8a5300;
-}
-
-.brand-tagline {
-    -fx-font-family: "Patrick Hand";
-    -fx-font-size: 16px;
-    -fx-text-fill: #3d2b1f;
-}
-
-.brand-accent {
-    -fx-font-size: 22px;
-    -fx-text-fill: #2f855a;
+    -fx-background-color: #fff8e7;
+    -fx-font-family: "Arial";
 }
 
 .dialog-container {
@@ -44,43 +14,27 @@
     -fx-background-color: transparent;
 }
 
-.conversation-background {
-    -fx-background-color: #eaf7e7;
-}
-
-.conversation-background .viewport {
-    -fx-background-color: #eaf7e7;
-    -fx-background-image: url("../images/clover-pattern.png");
-    -fx-background-position: 0 0;
-    -fx-background-repeat: repeat;
-}
-
 .text-field {
-    -fx-font-family: "Patrick Hand";
-    -fx-font-size: 16px;
     -fx-background-radius: 4px;
-    -fx-background-color: #fffef3;
-    -fx-border-color: #d8c26a;
+    -fx-border-color: #cccccc;
     -fx-border-radius: 4px;
     -fx-border-width: 1px;
 }
 
 .text-field:focused {
-    -fx-border-color: #d38b08;
+    -fx-border-color: #1976d2;
 }
 
 .button {
-    -fx-background-color: #174ea6;
+    -fx-background-color: #1976d2;
     -fx-background-radius: 4px;
-    -fx-font-family: "Patrick Hand";
-    -fx-font-size: 16px;
     -fx-text-fill: white;
 }
 
 .button:hover {
-    -fx-background-color: #123b82;
+    -fx-background-color: #1565c0;
 }
 
 .button:pressed {
-    -fx-background-color: #0f3069;
+    -fx-background-color: #0d47a1;
 }

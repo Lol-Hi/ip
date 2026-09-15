@@ -36,7 +36,7 @@ class LuckyNoGuiTest {
         assertNotNull(stage.getScene().getRoot());
     }
 
-    /** Verifies that the FXML, image, and font resources are packaged for the GUI. */
+    /** Verifies that the FXML and avatar resources are packaged for the GUI. */
     @Test
     void luckyNoGui_resourcePaths_areAvailable() {
         assertNotNull(LuckyNoGui.class.getResource("/view/MainWindow.fxml"));
@@ -44,8 +44,5 @@ class LuckyNoGuiTest {
         assertNotNull(LuckyNoGui.class.getResource("/css/dialogue-box.css"));
         assertNotNull(LuckyNoGui.class.getResource("/images/luckynoslacky.jpg"));
         assertNotNull(LuckyNoGui.class.getResource("/images/user.png"));
-        assertNotNull(LuckyNoGui.class.getResource("/images/clover-pattern.png"));
-        assertNotNull(LuckyNoGui.class.getResource("/fonts/PatrickHand-Regular.ttf"));
-        assertNotNull(LuckyNoGui.class.getResource("/fonts/RobotoMono-Regular.ttf"));
     }
 }
