@@ -1,9 +1,6 @@
 package luckynoslacky.luckyui.gui;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Pos;
@@ -12,8 +9,6 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
@@ -52,29 +47,6 @@ public class DialogueBox extends HBox {
     private static final String CHATBOT_ACCESSIBLE_PREFIX = "LuckyNoSlacky: ";
     private static final String WARNING_ACCESSIBLE_PREFIX =
             "Bodoh sia like that also can kena warning ";
-    private static final Pattern TASK_LINE_PATTERN = Pattern.compile(
-            "^\\s*(?:(\\d+)\\.)?\\[([TDE])\\]\\[([ X])\\]\\s+(.+)$");
-    private static final Pattern DEADLINE_DETAILS_PATTERN = Pattern.compile(
-            "^(.*?)\\s*\\(by:\\s*(.+)\\)$");
-    private static final Pattern EVENT_DETAILS_PATTERN = Pattern.compile(
-            "^(.*?)\\s*\\(from:\\s*(.+?)\\s+to:\\s*(.+)\\)$");
-
-    /** Structured data used to render one task card. */
-    private record TaskDisplayData(
-            Integer taskNumber,
-            String typeLabel,
-            String typeEmoji,
-            String typeStyle,
-            String statusEmoji,
-            String title,
-            List<String> details,
-            String accessibleDescription) {
-    }
-
-    /** Structured schedule details extracted from a task line. */
-    private record TaskDetails(String title, List<String> details) {
-    }
-
     /** Identifies the speaker and visual treatment of a dialogue row. */
     public enum DialogueType {
         /** A LuckyNoSlacky response. */
@@ -208,9 +180,11 @@ public class DialogueBox extends HBox {
         VBox taskList = new VBox();
         taskList.getStyleClass().add("personality-task-list");
         for (String line : message.split("\\R", -1)) {
-            Optional<TaskDisplayData> task = parseTaskLine(line);
+            Optional<TaskLineParser.TaskDisplayData> task =
+                    TaskLineParser.parse(line);
             if (task.isPresent()) {
-                taskList.getChildren().add(createTaskCard(task.get()));
+                taskList.getChildren().add(
+                        TaskCardRenderer.createTaskCard(task.get()));
             } else {
                 if (!line.isBlank()) {
                     taskList.getChildren().add(
@@ -222,40 +196,6 @@ public class DialogueBox extends HBox {
             }
         }
         messageContainer.getChildren().add(taskList);
-    }
-
-    /** Creates one semantic task card from parsed task data. */
-    private static VBox createTaskCard(TaskDisplayData task) {
-        VBox taskCard = new VBox();
-        taskCard.getStyleClass().addAll(
-                "personality-task-card",
-                "personality-task-card-" + task.typeStyle());
-
-        Label typeLabel = createTextLabel(
-                task.typeLabel() + " " + task.typeEmoji(),
-                "personality-task-type");
-        HBox typeRow = new HBox(typeLabel);
-        typeRow.getStyleClass().add("personality-task-type-row");
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        typeRow.getChildren().add(spacer);
-        if (task.taskNumber() != null) {
-            typeRow.getChildren().add(createTextLabel(
-                    "#" + task.taskNumber(), "personality-task-number"));
-        }
-        Label statusLabel = createTextLabel(
-                task.statusEmoji(), "personality-task-status");
-        Label titleLabel = createTextLabel(
-                task.title(), "personality-task-title");
-        HBox titleRow = new HBox(statusLabel, titleLabel);
-        titleRow.getStyleClass().add("personality-task-title-row");
-
-        taskCard.getChildren().addAll(typeRow, titleRow);
-        for (String detail : task.details()) {
-            taskCard.getChildren().add(
-                    createTextLabel(detail, "personality-task-details"));
-        }
-        return taskCard;
     }
 
     /** Adds ordinary response text to a single visible prose label. */
@@ -325,85 +265,6 @@ public class DialogueBox extends HBox {
         label.setFocusTraversable(false);
         label.getStyleClass().addAll(styles);
         return label;
-    }
-
-    /** Parses a task-list line into display data when it follows the output contract. */
-    private static Optional<TaskDisplayData> parseTaskLine(String line) {
-        Matcher matcher = TASK_LINE_PATTERN.matcher(line);
-        if (!matcher.matches()) {
-            return Optional.empty();
-        }
-
-        String taskType = matcher.group(2);
-        Integer taskNumber = matcher.group(1) == null
-                ? null
-                : Integer.valueOf(matcher.group(1));
-        String status = matcher.group(3);
-        TaskDetails taskDetails = parseTaskDetails(taskType, matcher.group(4).trim());
-        String typeLabel = switch (taskType) {
-            case "T" -> "TODO";
-            case "D" -> "DEADLINE";
-            case "E" -> "EVENT";
-            default -> throw new IllegalStateException("Unknown task type: " + taskType);
-        };
-        String typeEmoji = switch (taskType) {
-            case "T" -> "📌";
-            case "D" -> "⏳";
-            case "E" -> "📆";
-            default -> "";
-        };
-        String typeStyle = switch (taskType) {
-            case "T" -> "todo";
-            case "D" -> "deadline";
-            case "E" -> "event";
-            default -> "";
-        };
-        String statusEmoji = status.equals("X") ? "✅" : "❗";
-        String statusDescription = status.equals("X")
-                ? "completed"
-                : "incomplete";
-        String taskNumberDescription = taskNumber == null
-                ? ""
-                : ", task " + taskNumber;
-        String accessibleDescription = typeLabel + taskNumberDescription + ", "
-                + statusDescription + ", " + taskDetails.title();
-        if (!taskDetails.details().isEmpty()) {
-            accessibleDescription += ", "
-                    + String.join(", ", taskDetails.details());
-        }
-        return Optional.of(new TaskDisplayData(
-                taskNumber,
-                typeLabel,
-                typeEmoji,
-                typeStyle,
-                statusEmoji,
-                taskDetails.title(),
-                taskDetails.details(),
-                accessibleDescription));
-    }
-
-    /** Extracts schedule details while leaving the task title unchanged. */
-    private static TaskDetails parseTaskDetails(
-            String taskType,
-            String rawTaskText) {
-        if (taskType.equals("D")) {
-            Matcher matcher = DEADLINE_DETAILS_PATTERN.matcher(rawTaskText);
-            if (matcher.matches()) {
-                return new TaskDetails(
-                        matcher.group(1).trim(),
-                        List.of("by " + matcher.group(2).trim()));
-            }
-        } else if (taskType.equals("E")) {
-            Matcher matcher = EVENT_DETAILS_PATTERN.matcher(rawTaskText);
-            if (matcher.matches()) {
-                return new TaskDetails(
-                        matcher.group(1).trim(),
-                        List.of(
-                                "from " + matcher.group(2).trim(),
-                                "to " + matcher.group(3).trim()));
-            }
-        }
-        return new TaskDetails(rawTaskText, List.of());
     }
 
     /**
@@ -525,8 +386,8 @@ public class DialogueBox extends HBox {
     /** Replaces internal task markers and decorative emojis with spoken labels. */
     private static String getAccessibleTaskMessage(String message) {
         return message.lines()
-                .map(line -> parseTaskLine(line)
-                        .map(TaskDisplayData::accessibleDescription)
+                .map(line -> TaskLineParser.parse(line)
+                        .map(TaskLineParser.TaskDisplayData::accessibleDescription)
                         .orElse(line.trim()))
                 .filter(line -> !line.isEmpty())
                 .reduce((first, second) -> first + ". " + second)
