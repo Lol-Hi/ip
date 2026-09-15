@@ -56,6 +56,24 @@
 - Actions: Click `Send` without entering a command.
 - Expected result: The greeting remains the only dialogue row.
 
+## Test Case: Main window scrolls to the latest dialogue
+
+- Aim: Verify that a conversation exceeding the visible area automatically
+  scrolls to its newest response.
+- Test: `MainWindowTest.mainWindow_manyMessages_scrollsToLatestDialogue`
+- Actions: Enter `unknown` eight times.
+- Expected result: All generated dialogue rows remain present, the latest
+  response is displayed, and the scroll position is at the bottom.
+
+## Test Case: Main window preserves responsive layout invariants
+
+- Aim: Verify that resizing does not make the command controls unusable.
+- Test: `MainWindowTest.mainWindow_resizeWindow_preservesLayoutInvariants`
+- Actions: Resize the window larger, then attempt to resize it below its
+  supported bounds.
+- Expected result: The controls remain visible within the scene, have positive
+  bounds, and the window and scene remain non-zero after the small resize.
+
 ## Test Case: JavaFX application starts correctly
 
 - Aim: Verify that the production JavaFX application creates the expected
@@ -85,10 +103,31 @@
 
 - Aim: Verify that the input field and Send button are placed in a responsive
   bottom control row.
-- Test: Manual acceptance check
-- Actions: Resize the window horizontally and vertically.
+- Test: Covered by
+  `MainWindowTest.mainWindow_resizeWindow_preservesLayoutInvariants`
+- Actions: Review the automated layout-invariant test, then inspect the visual
+  arrangement manually when a desktop is available.
 - Expected result: The input field expands with the window, while the Send
   button remains at the bottom-right with a stable width.
+
+## Test Case: GUI goodbye is visible before delayed exit
+
+- Aim: Verify that the goodbye response and disabled-input state are observable
+  before the GUI process exits.
+- Test: `LuckyNoGuiSubprocessTest.guiProcess_byeCommand_delaysExitAfterShowingGoodbye`
+- Actions: Launch an isolated GUI subprocess and submit `bye`.
+- Expected result: The exact goodbye message is shown, the input is empty and
+  disabled, the process remains alive for the configured delay, and then exits
+  successfully.
+
+## Test Case: GUI task persists across relaunches
+
+- Aim: Verify persistence through two complete GUI application launches.
+- Test: `LuckyNoGuiSubprocessTest.guiProcess_taskAcrossRelaunches_loadsPersistedTask`
+- Actions: Launch the GUI in an isolated directory, create a task, terminate
+  it, relaunch it in the same directory, and submit `list`.
+- Expected result: The second process reports no startup load error and lists
+  the task created by the first process.
 
 ## Acceptance checks beyond `guiTest`
 
@@ -97,7 +136,6 @@ may require a desktop automation capability or manual verification:
 
 - Enter `bye` and verify that the goodbye message is visible before the window
   closes after the configured delay.
-- Enter enough commands to verify that the conversation scrolls to the latest
-  message.
 - Resize the window and verify that message text and avatars remain readable.
-- Add a task, close the GUI, relaunch it, and verify that the task persists.
+- Verify the automated persistence scenario against a desktop build when
+  visual confirmation is available.

@@ -12,13 +12,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
+import org.testfx.util.WaitForAsyncUtils;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Bounds;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import luckynoslacky.LuckyNoSlacky;
@@ -28,10 +35,12 @@ import luckynoslacky.luckyui.LuckyNoMessages;
 @ExtendWith(ApplicationExtension.class)
 class MainWindowTest {
     private MainWindow controller;
+    private Stage stage;
 
     /** Loads the production FXML window before each test. */
     @Start
     void start(Stage stage) throws IOException {
+        this.stage = stage;
         FXMLLoader loader = new FXMLLoader(
                 MainWindow.class.getResource("/view/MainWindow.fxml"));
         Parent root = loader.load();
@@ -87,6 +96,70 @@ class MainWindowTest {
         robot.clickOn("#sendButton");
 
         assertEquals(1, dialogueContainer.getChildren().size());
+    }
+
+    /** Verifies that a long conversation scrolls to its latest response. */
+    @Test
+    void mainWindow_manyMessages_scrollsToLatestDialogue(FxRobot robot) {
+        TextField inputField = robot.lookup("#userInput").query();
+
+        for (int messageNumber = 0; messageNumber < 8; messageNumber++) {
+            robot.interact(() -> {
+                inputField.setText("unknown");
+                inputField.fireEvent(new ActionEvent());
+            });
+        }
+        WaitForAsyncUtils.waitForFxEvents();
+
+        VBox dialogueContainer = robot.lookup("#dialogContainer").query();
+        ScrollPane scrollPane = robot.lookup("#scrollPane").query();
+        DialogueBox latestDialogue = (DialogueBox) dialogueContainer.getChildren()
+                .get(dialogueContainer.getChildren().size() - 1);
+
+        assertEquals(17, dialogueContainer.getChildren().size());
+        assertEquals(
+                LuckyNoMessages.unknownCommandMessage(),
+                getMessageText(latestDialogue, 1));
+        assertEquals(1.0, scrollPane.getVvalue(), 0.0001);
+    }
+
+    /** Verifies that resizing keeps the input controls within the scene. */
+    @Test
+    void mainWindow_resizeWindow_preservesLayoutInvariants(FxRobot robot) {
+        AnchorPane root = (AnchorPane) stage.getScene().getRoot();
+        Scene scene = stage.getScene();
+        TextField inputField = robot.lookup("#userInput").query();
+        Button sendButton = robot.lookup("#sendButton").query();
+
+        robot.interact(() -> {
+            stage.setWidth(800.0);
+            stage.setHeight(700.0);
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertTrue(root.getWidth() > 400.0);
+        assertTrue(root.getHeight() > 0.0);
+        assertNodeWithinScene(scene, inputField);
+        assertNodeWithinScene(scene, sendButton);
+
+        robot.interact(() -> {
+            stage.setWidth(1.0);
+            stage.setHeight(1.0);
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertTrue(stage.getWidth() >= stage.getMinWidth());
+        assertTrue(stage.getHeight() >= stage.getMinHeight());
+        assertTrue(scene.getWidth() > 0.0);
+        assertTrue(scene.getHeight() > 0.0);
+        assertNodeWithinScene(scene, inputField);
+        assertNodeWithinScene(scene, sendButton);
+
+        robot.interact(() -> {
+            stage.setWidth(400.0);
+            stage.setHeight(600.0);
+        });
+        WaitForAsyncUtils.waitForFxEvents();
     }
 
     /** Verifies that a parser error is displayed as a chatbot message. */
@@ -161,6 +234,20 @@ class MainWindowTest {
     private String getMessageText(DialogueBox dialogue, int dialogueIndex) {
         VBox messageContainer = (VBox) dialogue.getChildren().get(dialogueIndex);
         return ((Label) messageContainer.getChildren().get(1)).getText();
+    }
+
+    /** Verifies that a control remains inside the visible scene bounds. */
+    private void assertNodeWithinScene(Scene scene, Node node) {
+        Bounds sceneBounds = scene.getRoot().localToScene(
+                scene.getRoot().getBoundsInLocal());
+        Bounds nodeBounds = node.localToScene(node.getBoundsInLocal());
+
+        assertTrue(nodeBounds.getMinX() >= sceneBounds.getMinX());
+        assertTrue(nodeBounds.getMinY() >= sceneBounds.getMinY());
+        assertTrue(nodeBounds.getMaxX() <= sceneBounds.getMaxX());
+        assertTrue(nodeBounds.getMaxY() <= sceneBounds.getMaxY());
+        assertTrue(nodeBounds.getWidth() > 0.0);
+        assertTrue(nodeBounds.getHeight() > 0.0);
     }
 
     /** Supplies deterministic chatbot responses to GUI presentation tests. */

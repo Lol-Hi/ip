@@ -62,11 +62,12 @@
 
 ## Improvement 6: Deterministic GUI automation
 
-- [ ] Automate conversation scrolling behavior.
-- [ ] Automate goodbye visibility and delayed exit behavior.
-- [ ] Automate responsive resizing behavior where reliable.
-- [ ] Automate GUI persistence across relaunches.
-- [ ] Keep cross-platform, resolution, and OS-locale checks documented as manual acceptance checks.
+- [x] Automate conversation scrolling behavior.
+- [x] Automate goodbye visibility and delayed exit behavior.
+- [x] Automate responsive resizing behavior where reliable.
+- [x] Automate GUI persistence across relaunches.
+- [x] Keep cross-platform, resolution, and OS-locale checks documented as manual acceptance checks.
+- [ ] Run the full verification pipeline and resolve or report any discrepancies.
 
 ## Improvement 7: Shared test infrastructure and coverage
 
