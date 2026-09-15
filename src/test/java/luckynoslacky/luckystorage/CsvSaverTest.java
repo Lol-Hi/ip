@@ -20,9 +20,11 @@ import java.time.Period;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -42,12 +44,20 @@ import luckynoslacky.luckyui.LuckyNoMessages;
  * Tests CSV persistence of task lists.
  */
 class CsvSaverTest {
+    private static final List<String> CSV_HEADER = List.of(
+            "Task type",
+            "isCompleted",
+            "Description",
+            "startTime",
+            "endTime");
     private static final LocalDateTime DEADLINE =
             LocalDateTime.of(2026, 12, 6, 23, 59);
     private static final LocalDateTime EVENT_START =
             LocalDateTime.of(2026, 8, 6, 14, 0);
     private static final LocalDateTime EVENT_END =
             LocalDateTime.of(2026, 8, 6, 16, 0);
+    private static final int LARGE_CSV_TASK_COUNT = 4;
+    private static final int LARGE_DESCRIPTION_LENGTH = 1_000_000;
     @TempDir
     Path temporaryDirectory;
 
@@ -420,6 +430,29 @@ class CsvSaverTest {
         assertTrue(saver.load().isEmpty());
     }
 
+    /** Verifies that a bounded physically large CSV remains reloadable. */
+    @Test
+    void load_boundedLargeCsv_returnsAllTasks() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("large.csv");
+        String largeDescription = "x".repeat(LARGE_DESCRIPTION_LENGTH);
+        List<List<String>> records = IntStream.range(
+                        0, LARGE_CSV_TASK_COUNT)
+                .mapToObj(index -> List.of(
+                        "T", "0", largeDescription, "", ""))
+                .toList();
+        writeCsvRecords(dataFile, records);
+
+        assertTrue(Files.size(dataFile)
+                >= (long) LARGE_DESCRIPTION_LENGTH * LARGE_CSV_TASK_COUNT);
+
+        List<Task> loadedTasks = new CsvSaver(dataFile).load();
+
+        assertEquals(LARGE_CSV_TASK_COUNT, loadedTasks.size());
+        assertEquals(records.get(0), loadedTasks.get(0).getCsvStorageFields());
+        assertEquals(records.get(records.size() - 1),
+                loadedTasks.get(loadedTasks.size() - 1).getCsvStorageFields());
+    }
+
     /** Verifies valid CSV records restore tasks and completion statuses. */
     @Test
     void load_validCsv_returnsTasksAndStatuses() {
@@ -444,9 +477,48 @@ class CsvSaverTest {
                 LuckyNoMessages.listTasksMessage(restored.listTasks()));
     }
 
+    /** Verifies that a mixed list remains equivalent after mutation and reload. */
+    @Test
+    void save_mutatedMixedTaskList_reloadsEquivalentState() {
+        Path dataFile = temporaryDirectory.resolve("mutated-tasks.csv");
+        CsvSaver saver = new CsvSaver(dataFile);
+        TaskMaster original = new TaskMaster(3, saver);
+        original.addTask(new TodoTask("read, book"));
+        original.addTask(new DeadlineTask("return \"book\"", DEADLINE));
+        original.addTask(new EventTask("project/meeting", EVENT_START, EVENT_END));
+        original.markTaskDone(1);
+        original.snoozeTaskBy(
+                2, new DurationPeriod(Period.ZERO, Duration.ofHours(2)));
+        original.snoozeTaskTo(3, LocalDateTime.of(2026, 8, 7, 18, 0));
+
+        List<List<String>> expectedRecords = original.listTasks()
+                .getCsvStorageRecords();
+        List<Task> loadedTasks = saver.load();
+        TaskMaster restored = new TaskMaster(3, saver);
+        restored.loadTasksFromCsvStorageRecord(loadedTasks);
+
+        assertEquals(expectedRecords,
+                restored.listTasks().getCsvStorageRecords());
+        assertEquals(original.listTasks().toDisplayString(),
+                restored.listTasks().toDisplayString());
+    }
+
+    /** Verifies that deleting the final task persists an empty list. */
+    @Test
+    void deleteTask_lastTask_reloadsEmptyList() {
+        Path dataFile = temporaryDirectory.resolve("empty-after-delete.csv");
+        CsvSaver saver = new CsvSaver(dataFile);
+        TaskMaster taskMaster = new TaskMaster(1, saver);
+        taskMaster.addTask(new TodoTask("temporary task"));
+
+        taskMaster.deleteTask(1);
+
+        assertTrue(saver.load().isEmpty());
+    }
+
     /** Verifies unknown task types are rejected during loading. */
     @Test
-    void load_unknownTaskType_throwsStorageException() throws Exception {
+    void load_unknownTaskType_throwsExactRowMessage() throws Exception {
         Path dataFile = temporaryDirectory.resolve("invalid.csv");
         Files.writeString(dataFile,
                 "Task type,isCompleted,Description,startTime,endTime\n"
@@ -454,7 +526,11 @@ class CsvSaverTest {
                 StandardCharsets.UTF_8);
         CsvSaver saver = new CsvSaver(dataFile);
 
-        assertThrows(LuckyNoStorageException.class, saver::load);
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, saver::load);
+        assertEquals(
+                "Invalid task record at row 2: unknown task type",
+                exception.getMessage());
     }
 
     /** Verifies invalid completion flags are rejected during loading. */
@@ -467,7 +543,11 @@ class CsvSaverTest {
                 StandardCharsets.UTF_8);
         CsvSaver saver = new CsvSaver(dataFile);
 
-        assertThrows(LuckyNoStorageException.class, saver::load);
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, saver::load);
+        assertEquals(
+                "Invalid task record at row 2: invalid completion status",
+                exception.getMessage());
     }
 
     /** Verifies invalid CSV headers are rejected during loading. */
@@ -479,12 +559,14 @@ class CsvSaverTest {
                 StandardCharsets.UTF_8);
         CsvSaver saver = new CsvSaver(dataFile);
 
-        assertThrows(LuckyNoStorageException.class, saver::load);
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, saver::load);
+        assertEquals("Invalid task data header.", exception.getMessage());
     }
 
     /** Verifies malformed task records are rejected during loading. */
     @Test
-    void load_malformedTaskRecord_throwsStorageException() throws Exception {
+    void load_malformedTaskRecord_throwsExactRowMessage() throws Exception {
         Path dataFile = temporaryDirectory.resolve("malformed-record.csv");
         Files.writeString(dataFile,
                 "Task type,isCompleted,Description,startTime,endTime\n"
@@ -492,7 +574,9 @@ class CsvSaverTest {
                 StandardCharsets.UTF_8);
         CsvSaver saver = new CsvSaver(dataFile);
 
-        assertThrows(LuckyNoStorageException.class, saver::load);
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, saver::load);
+        assertEquals("Invalid task data at row 2", exception.getMessage());
     }
 
     /** Verifies records with missing fields are rejected during loading. */
@@ -505,7 +589,74 @@ class CsvSaverTest {
                 StandardCharsets.UTF_8);
         CsvSaver saver = new CsvSaver(dataFile);
 
-        assertThrows(LuckyNoStorageException.class, saver::load);
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, saver::load);
+        assertEquals(
+                "Invalid task record at row 2: incorrect number of fields",
+                exception.getMessage());
+    }
+
+    /** Verifies records with extra fields are rejected during loading. */
+    @Test
+    void load_recordWithExtraFields_throwsExactStorageException() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("extra-fields.csv");
+        Files.writeString(dataFile,
+                "Task type,isCompleted,Description,startTime,endTime\n"
+                        + "T,0,read book,,,unexpected\n",
+                StandardCharsets.UTF_8);
+        CsvSaver saver = new CsvSaver(dataFile);
+
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, saver::load);
+        assertEquals(
+                "Invalid task record at row 2: incorrect number of fields",
+                exception.getMessage());
+    }
+
+    /** Verifies blank descriptions are rejected during loading. */
+    @Test
+    void load_blankDescription_throwsExactStorageException() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("blank-description.csv");
+        Files.writeString(dataFile,
+                "Task type,isCompleted,Description,startTime,endTime\n"
+                        + "T,0,   ,,\n",
+                StandardCharsets.UTF_8);
+        CsvSaver saver = new CsvSaver(dataFile);
+
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, saver::load);
+        assertEquals("Invalid task data at row 2", exception.getMessage());
+    }
+
+    /** Verifies syntactically malformed CSV is converted to a storage error. */
+    @Test
+    void load_malformedCsvSyntax_throwsExactStorageException() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("malformed-syntax.csv");
+        Files.writeString(dataFile,
+                "Task type,isCompleted,Description,startTime,endTime\n"
+                        + "T,0,\"unterminated description,,\n",
+                StandardCharsets.UTF_8);
+        CsvSaver saver = new CsvSaver(dataFile);
+
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, saver::load);
+        assertEquals("Unable to load tasks.", exception.getMessage());
+    }
+
+    /** Verifies that a malformed later record prevents partial loading. */
+    @Test
+    void load_validThenMalformedRecord_throwsExactLaterRowMessage() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("malformed-later-record.csv");
+        Files.writeString(dataFile,
+                "Task type,isCompleted,Description,startTime,endTime\n"
+                        + "T,0,valid task,,\n"
+                        + "D,0,invalid task,,2030-13-01 10:00\n",
+                StandardCharsets.UTF_8);
+        CsvSaver saver = new CsvSaver(dataFile);
+
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, saver::load);
+        assertEquals("Invalid task data at row 3", exception.getMessage());
     }
 
     /** Verifies saving a null task list is rejected. */
@@ -529,9 +680,15 @@ class CsvSaverTest {
         Files.createDirectory(dataPath);
         CsvSaver saver = new CsvSaver(dataPath);
 
-        assertThrows(LuckyNoStorageException.class, saver::load);
-        assertThrows(LuckyNoStorageException.class, () ->
+        LuckyNoStorageException loadException = assertThrows(
+                LuckyNoStorageException.class, saver::load);
+        assertEquals(
+                "The task data path is not a regular file.",
+                loadException.getMessage());
+        LuckyNoStorageException saveException = assertThrows(
+                LuckyNoStorageException.class, () ->
                 saver.save(new TaskList()));
+        assertEquals("Unable to save tasks.", saveException.getMessage());
     }
 
     /** Verifies loading beyond task capacity is rejected. */
@@ -541,10 +698,60 @@ class CsvSaverTest {
         CsvSaver saver = new CsvSaver(dataFile);
         TaskMaster taskMaster = new TaskMaster(1, saver);
 
-        assertThrows(LuckyNoStorageException.class, () ->
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, () ->
                 taskMaster.loadTasksFromCsvStorageRecord(List.of(
                         new TodoTask("first"),
                         new TodoTask("second"))));
+        assertEquals(
+                "Saved task list exceeds the maximum capacity.",
+                exception.getMessage());
+    }
+
+    /** Verifies that loading exactly the configured capacity succeeds. */
+    @Test
+    void load_tasksAtCapacity_replacesTaskList() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("at-capacity.csv");
+        writeCsvRecords(dataFile, List.of(
+                List.of("T", "0", "first", "", ""),
+                List.of("D", "1", "second", "", "2026-12-06 23:59")));
+        CsvSaver saver = new CsvSaver(dataFile);
+        TaskMaster taskMaster = new TaskMaster(2, saver);
+
+        taskMaster.loadTasksFromCsvStorageRecord(saver.load());
+
+        assertEquals(2, taskMaster.getTaskCount());
+        assertEquals(Task.TaskType.TODO, taskMaster.getTaskType(1));
+        assertEquals(Task.TaskType.DEADLINE, taskMaster.getTaskType(2));
+        assertTrue(taskMaster.listTasks().getTask(2).isDone());
+    }
+
+    /** Verifies that an oversized import preserves existing in-memory tasks. */
+    @Test
+    void load_tasksOverCapacity_preservesExistingTaskList() throws Exception {
+        Path dataFile = temporaryDirectory.resolve("over-capacity.csv");
+        writeCsvRecords(dataFile, List.of(
+                List.of("T", "0", "first", "", ""),
+                List.of("E", "1", "second",
+                        "2026-08-06 14:00", "2026-08-06 16:00"),
+                List.of("D", "0", "third", "", "2026-12-06 23:59")));
+        CsvSaver saver = new CsvSaver(dataFile);
+        TaskMaster taskMaster = new TaskMaster(2, saver);
+        taskMaster.loadTasksFromCsvStorageRecord(
+                List.of(new TodoTask("existing task")));
+        List<List<String>> recordsBefore = readCsvValues(dataFile);
+
+        LuckyNoStorageException exception = assertThrows(
+                LuckyNoStorageException.class, () ->
+                taskMaster.loadTasksFromCsvStorageRecord(saver.load()));
+
+        assertEquals(
+                "Saved task list exceeds the maximum capacity.",
+                exception.getMessage());
+        assertEquals(1, taskMaster.getTaskCount());
+        assertEquals("existing task", taskMaster.listTasks().getTask(1)
+                .getCsvStorageFields().get(2));
+        assertEquals(recordsBefore, readCsvValues(dataFile));
     }
 
     /** Creates a task list containing one task for save-failure tests. */
@@ -664,6 +871,13 @@ class CsvSaverTest {
         }
     }
 
+    /** Reads CSV records as value lists for semantic comparisons. */
+    private List<List<String>> readCsvValues(Path dataFile) throws Exception {
+        return readCsvRecords(dataFile).stream()
+                .map(CSVRecord::toList)
+                .toList();
+    }
+
     /** Verifies the first saved task record after the CSV header. */
     private void assertCsvRecord(
             Path dataFile,
@@ -671,6 +885,21 @@ class CsvSaverTest {
             throws Exception {
         List<CSVRecord> records = readCsvRecords(dataFile);
         assertEquals(expectedRecord, records.get(1).toList());
+    }
+
+    /** Writes a CSV header followed by the supplied records. */
+    private void writeCsvRecords(
+            Path dataFile,
+            List<List<String>> records)
+            throws Exception {
+        try (BufferedWriter writer = Files.newBufferedWriter(
+                dataFile, StandardCharsets.UTF_8);
+             CSVPrinter printer = new CSVPrinter(writer, CSVFormat.DEFAULT)) {
+            printer.printRecord(CSV_HEADER);
+            for (List<String> record : records) {
+                printer.printRecord(record);
+            }
+        }
     }
 
     /** Loads a task master from the supplied CSV file. */

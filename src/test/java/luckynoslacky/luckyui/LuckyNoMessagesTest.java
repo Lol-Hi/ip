@@ -79,6 +79,15 @@ class LuckyNoMessagesTest {
                 LuckyNoMessages.invalidDurationMessage("1h30min"));
     }
 
+    /** Verifies the configured snooze-duration overflow message. */
+    @Test
+    void snoozeOverflowMessage_noArguments_returnsConfiguredMessage() {
+        assertEquals(
+                "Siao ah delay so long, by that time your great grandson also die already la! "
+                        + "Can be more reasonable anot!",
+                LuckyNoMessages.snoozeOverflowMessage());
+    }
+
     /** Verifies that the banner retains its multiline layout. */
     @Test
     void banner_multipleLines_preservesExpectedLayout() {

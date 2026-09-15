@@ -101,7 +101,9 @@ class TaskMasterMutationTest {
         TaskMaster taskMaster = createTaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
 
-        assertThrows(IllegalArgumentException.class, () -> taskMaster.deleteTask(2));
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class, () -> taskMaster.deleteTask(2));
+        assertEquals("Invalid task number.", exception.getMessage());
         assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
                 LuckyNoMessages.listTasksMessage(taskMaster.listTasks()));
     }
@@ -127,7 +129,9 @@ class TaskMasterMutationTest {
     void deleteTask_emptyList_throwsIllegalArgumentException() {
         TaskMaster taskMaster = createTaskMaster();
 
-        assertThrows(IllegalArgumentException.class, () -> taskMaster.deleteTask(1));
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class, () -> taskMaster.deleteTask(1));
+        assertEquals("Invalid task number.", exception.getMessage());
     }
 
     /** Verifies that invalid numbers are rejected when marking tasks. */
@@ -136,8 +140,12 @@ class TaskMasterMutationTest {
         TaskMaster taskMaster = createTaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
 
-        assertThrows(IllegalArgumentException.class, () -> taskMaster.markTaskDone(0));
-        assertThrows(IllegalArgumentException.class, () -> taskMaster.markTaskDone(2));
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class, () -> taskMaster.markTaskDone(0));
+        assertEquals("Invalid task number.", exception.getMessage());
+        exception = assertThrows(
+                IllegalArgumentException.class, () -> taskMaster.markTaskDone(2));
+        assertEquals("Invalid task number.", exception.getMessage());
     }
 
     /** Verifies that invalid numbers are rejected when unmarking tasks. */
@@ -146,8 +154,12 @@ class TaskMasterMutationTest {
         TaskMaster taskMaster = createTaskMaster();
         taskMaster.addTask(new TodoTask("read book"));
 
-        assertThrows(IllegalArgumentException.class, () -> taskMaster.unmarkTaskUndone(0));
-        assertThrows(IllegalArgumentException.class, () -> taskMaster.unmarkTaskUndone(2));
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class, () -> taskMaster.unmarkTaskUndone(0));
+        assertEquals("Invalid task number.", exception.getMessage());
+        exception = assertThrows(
+                IllegalArgumentException.class, () -> taskMaster.unmarkTaskUndone(2));
+        assertEquals("Invalid task number.", exception.getMessage());
     }
 
     /** Verifies invalid status changes do not alter another task's state. */

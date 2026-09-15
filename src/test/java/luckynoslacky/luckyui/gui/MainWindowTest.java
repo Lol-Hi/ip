@@ -174,6 +174,58 @@ class MainWindowTest {
         assertEquals(1, dialogueContainer.getChildren().size());
     }
 
+    /** Verifies that a parser error is displayed as a chatbot message. */
+    @Test
+    void mainWindow_parseErrorResponse_displaysExactReply(FxRobot robot) {
+        StubChatbot chatbot = new StubChatbot(
+                false,
+                new LuckyNoSlacky.ChatResponse("exact parse error", false));
+        showWindowWithChatbot(robot, chatbot);
+
+        robot.clickOn("#userInput").write("trigger parse error")
+                .push(KeyCode.ENTER);
+
+        VBox dialogueContainer = robot.lookup("#dialogContainer").query();
+        DialogueBox chatbotDialogue = (DialogueBox) dialogueContainer.getChildren()
+                .get(dialogueContainer.getChildren().size() - 1);
+        assertEquals("exact parse error", getMessageText(chatbotDialogue, 1));
+        assertFalse(robot.lookup("#userInput").query().isDisabled());
+    }
+
+    /** Verifies that a save error is displayed as a chatbot message. */
+    @Test
+    void mainWindow_saveErrorResponse_displaysExactReply(FxRobot robot) {
+        StubChatbot chatbot = new StubChatbot(
+                false,
+                new LuckyNoSlacky.ChatResponse(
+                        LuckyNoMessages.saveErrorMessage(), false));
+        showWindowWithChatbot(robot, chatbot);
+
+        robot.clickOn("#userInput").write("trigger save error")
+                .push(KeyCode.ENTER);
+
+        VBox dialogueContainer = robot.lookup("#dialogContainer").query();
+        DialogueBox chatbotDialogue = (DialogueBox) dialogueContainer.getChildren()
+                .get(dialogueContainer.getChildren().size() - 1);
+        assertEquals(LuckyNoMessages.saveErrorMessage(),
+                getMessageText(chatbotDialogue, 1));
+        assertFalse(robot.lookup("#userInput").query().isDisabled());
+    }
+
+    /** Verifies that a startup load error is displayed after the greeting. */
+    @Test
+    void mainWindow_loadErrorChatbot_displaysExactStartupError(FxRobot robot) {
+        showWindowWithChatbot(robot, new StubChatbot(
+                true,
+                new LuckyNoSlacky.ChatResponse("unused response", false)));
+
+        VBox dialogueContainer = robot.lookup("#dialogContainer").query();
+        DialogueBox chatbotDialogue = (DialogueBox) dialogueContainer.getChildren()
+                .get(dialogueContainer.getChildren().size() - 1);
+        assertEquals(LuckyNoMessages.loadErrorMessage(),
+                getMessageText(chatbotDialogue, 1));
+    }
+
     /** Verifies that the layout exposes stable visual integration regions. */
     @Test
     void mainWindow_layoutRegions_exposeStableIntegrationHooks(FxRobot robot) {
@@ -505,6 +557,30 @@ class MainWindowTest {
         @Override
         public ChatResponse getResponse(String userInput) {
             return new ChatResponse(LuckyNoMessages.goodbye(), true);
+        }
+    }
+
+    /** Supplies deterministic chatbot responses to GUI presentation tests. */
+    private static final class StubChatbot extends LuckyNoSlacky {
+        private final boolean loadError;
+        private final ChatResponse response;
+
+        StubChatbot(boolean loadError, ChatResponse response) {
+            super();
+            this.loadError = loadError;
+            this.response = response;
+        }
+
+        /** Returns the configured startup-load result. */
+        @Override
+        public boolean hasLoadError() {
+            return loadError;
+        }
+
+        /** Returns the configured response for any submitted command. */
+        @Override
+        public ChatResponse getResponse(String userInput) {
+            return response;
         }
     }
 

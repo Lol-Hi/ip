@@ -52,17 +52,28 @@ bye
 - Program: Java 25 with the compiled application classes and CSV runtime dependencies
 - Main class: `luckynoslacky.LuckyNoSlacky`
 - Working directory: project root
+- Automated command: `./gradlew clitest` (also included by `./gradlew check`)
+- Each case is represented by a Java fixture in
+  `src/test/java/luckynoslacky/luckyui/CliTestCaseFixtures.java` and links to
+  its corresponding test-plan section.
 - Data isolation: reset `data/luckyNoSlacky.csv` before each test case
+- Automated cases run in isolated temporary working directories, so the
+  repository's data file is not modified.
 - Deterministic clock: run with
   `-Dluckynoslacky.fixedNow=2026-08-25T10:00:00Z` so relative dates are stable
 - Recommended execution: build `luckyNoSlacky-CLI.jar`, then run the bundled
   UI runner with `--reset-file data/luckyNoSlacky.csv` and the built JAR as the
   program. This supplies all runtime dependencies and resets persisted state
   before every case.
+- CLI tests do not impose an artificial timeout; each case must terminate with
+  `bye` or end-of-file.
+- Date output comparison normalizes line endings and localized day, month, and
+  meridiem names while preserving all other formatting.
 - Storage failure cases are covered by unit tests using prepared data files
 - Compact `HHMM` fallback and date-dependent resolution are covered by
   `DateTimeParserTest` with a fixed clock
-- Comparison: exact output, ignoring only line-ending differences and one final newline
+- Comparison: exact output, ignoring line endings, incidental trailing
+  whitespace, and one final newline
 - Failure policy: stop immediately after the first failed test case
 - Startup load failures are covered deterministically by
   `LuckyNoSlackyTest`; the CLI continues in degraded empty-list mode after
@@ -259,7 +270,8 @@ bye
 ## Test Case: Invalid decimal and combined snooze durations
 
 - Aim: Verify decimal calendar units, duplicate units, non-canonical order,
-  abbreviations, extra markers, and negative components are rejected.
+  abbreviations, extra markers, negative components, and arithmetic overflow
+  are rejected.
 
 ### Input
 
@@ -272,6 +284,7 @@ snooze 1 /by 1m
 snooze 1 /by 1h30min
 snooze 1 /by 1 hour /to tomorrow
 snooze 1 /by -30 minutes
+snooze 1 /by 1000000000 years
 list
 bye
 ```
@@ -317,6 +330,9 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Siao ah time where got negative one
+  ____________________________________________________________
+  ____________________________________________________________
+  Siao ah delay so long, by that time your great grandson also die already la! Can be more reasonable anot!
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:

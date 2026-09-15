@@ -780,20 +780,21 @@ public class LuckyNoParser {
      * @param taskNumber one-based task number
      * @param amount snooze amount
      * @param taskMaster task master containing the task
-     * @throws LuckyNoInputException if a deadline would remain in the past
+     * @throws LuckyNoInputException if a deadline would remain in the past or
+     *     the resulting time exceeds the supported date range
      */
     private void validateSnoozeAmount(
             int taskNumber, DurationPeriod amount, TaskMaster taskMaster)
             throws LuckyNoInputException {
-        if (taskMaster.getTaskType(taskNumber) == Task.TaskType.DEADLINE) {
-            try {
-                if (amount.addTo(taskMaster.getTaskEndTime(taskNumber))
-                        .isBefore(dateTimeParser.now())) {
-                    throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
-                }
-            } catch (DateTimeException exception) {
-                throw invalidSnoozeFormat();
+        try {
+            LocalDateTime snoozedEndTime = amount.addTo(
+                    taskMaster.getTaskEndTime(taskNumber));
+            if (taskMaster.getTaskType(taskNumber) == Task.TaskType.DEADLINE
+                    && snoozedEndTime.isBefore(dateTimeParser.now())) {
+                throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
             }
+        } catch (DateTimeException exception) {
+            throw new LuckyNoInputException(LuckyNoMessages.snoozeOverflowMessage());
         }
     }
 

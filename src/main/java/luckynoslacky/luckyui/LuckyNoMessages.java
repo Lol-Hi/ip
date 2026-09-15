@@ -291,6 +291,16 @@ public final class LuckyNoMessages {
     }
 
     /**
+     * Returns the message shown when a snooze duration exceeds the supported date range.
+     *
+     * @return snooze-duration overflow message
+     */
+    public static String snoozeOverflowMessage() {
+        return "Siao ah delay so long, by that time your great grandson also die already la! "
+                + "Can be more reasonable anot!";
+    }
+
+    /**
      * Returns the message shown when a task's time order is impossible.
      *
      * @return time-order error message

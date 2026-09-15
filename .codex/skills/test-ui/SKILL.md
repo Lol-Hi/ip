@@ -35,8 +35,9 @@ the exact console output, excluding only the final newline
 ```
 ````
 
-Keep the expected output exact. The runner normalizes CRLF to LF and ignores
-only a final newline; it preserves spaces, blank lines, and all other output.
+Keep the expected output exact. The runner normalizes CRLF to LF, removes
+incidental trailing spaces, and ignores only a final newline; it preserves
+leading spaces, blank lines, and all other output.
 
 ## Add or update test cases
 

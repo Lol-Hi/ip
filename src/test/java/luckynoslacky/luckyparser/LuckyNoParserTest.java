@@ -664,6 +664,24 @@ class LuckyNoParserTest {
                 "snooze 1 /by 2 hours /extra", 1);
     }
 
+    /** Verifies unrepresentable deadline and event snoozes use the dedicated error. */
+    @Test
+    void parseCommand_snoozeDurationOverflowForTimedTask_throwsDedicatedInputException() {
+        taskMaster.loadTasksFromCsvStorageRecord(java.util.List.of(
+                new DeadlineTask("return book", LocalDateTime.of(2026, 8, 26, 12, 0)),
+                new EventTask(
+                        "project meeting",
+                        LocalDateTime.of(2026, 8, 26, 12, 0),
+                        LocalDateTime.of(2026, 8, 26, 13, 0))));
+
+        assertInputError(
+                LuckyNoMessages.snoozeOverflowMessage(),
+                "snooze 1 /by 1000000000 years", 1);
+        assertInputError(
+                LuckyNoMessages.snoozeOverflowMessage(),
+                "snooze 2 /by 1000000000 years", 2);
+    }
+
     /** Verifies invalid rescheduling formats depend on the selected task type. */
     @Test
     void parseCommand_rescheduleMissingFormat_usesTaskTypeFormat() {

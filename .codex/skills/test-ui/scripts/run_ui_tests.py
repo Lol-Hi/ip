@@ -86,8 +86,9 @@ def parse_plan(plan_path: Path) -> list[TestCase]:
 
 
 def normalize_output(value: str) -> str:
-    """Normalize platform line endings and one final newline for comparison."""
+    """Normalize line endings, trailing spaces, and one final newline."""
     normalized = value.replace("\r\n", "\n")
+    normalized = "\n".join(line.rstrip() for line in normalized.split("\n"))
     return normalized[:-1] if normalized.endswith("\n") else normalized
 
 

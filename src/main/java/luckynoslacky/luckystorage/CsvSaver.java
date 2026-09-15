@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -273,22 +274,19 @@ public class CsvSaver {
 
         String taskType = record.get(0);
         String description = record.get(2);
-        String startTimeText = record.get(3);
-        String endTimeText = record.get(4);
 
         Task.TaskStatus completionStatus = parseCompletionStatus(record);
 
         Task task;
         try {
-            TaskTimes times = createTaskTimes(
-                    taskType, startTimeText, endTimeText);
+            TaskTimes times = createTaskTimes(record);
             task = switch (taskType) {
                 case "T" -> new TodoTask(description);
                 case "D" -> new DeadlineTask(description, times);
                 case "E" -> new EventTask(description, times);
                 default -> throw invalidRecord(record, "unknown task type");
             };
-        } catch (IllegalArgumentException exception) {
+        } catch (DateTimeParseException | IllegalArgumentException exception) {
             throw new LuckyNoStorageException(
                     "Invalid task data at row "
                             + record.getRecordNumber(),
@@ -305,15 +303,14 @@ public class CsvSaver {
     /**
      * Converts the time columns of a CSV record into task timing information.
      *
-     * @param taskType stored task type marker
-     * @param startTimeText stored start time
-     * @param endTimeText stored end time
+     * @param record CSV task record containing the stored task type and times
      * @return timing information represented by the record
      */
-    private TaskTimes createTaskTimes(
-            String taskType,
-            String startTimeText,
-        String endTimeText) {
+    private TaskTimes createTaskTimes(CSVRecord record) {
+        String taskType = record.get(0);
+        String startTimeText = record.get(3);
+        String endTimeText = record.get(4);
+
         return switch (taskType) {
             case "T" -> TaskTimes.none();
             case "D" -> TaskTimes.makeDeadlineTimes(
@@ -321,8 +318,7 @@ public class CsvSaver {
             case "E" -> TaskTimes.makeEventTimes(
                     DateTimeParser.parseFromStorage(startTimeText),
                     DateTimeParser.parseFromStorage(endTimeText));
-            default -> throw new IllegalArgumentException(
-                    "Unknown task type: " + taskType);
+            default -> throw invalidRecord(record, "unknown task type");
         };
     }
 

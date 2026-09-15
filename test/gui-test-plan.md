@@ -318,8 +318,6 @@ serious functional regression.
 
 - Enter `bye` and verify that the goodbye message is visible before the window
   closes after the configured delay.
-- Enter enough commands to verify that the conversation scrolls to the latest
-  message.
 - Resize the window and verify that message text and avatars remain readable.
 - Verify that both existing avatar assets are displayed as circular images.
 - Add a task, close the GUI, relaunch it, and verify that the task persists.
@@ -367,9 +365,30 @@ serious functional regression.
 - Expected result: The task is restored once with the same description and
   type, and the relaunched GUI remains usable without unexpected errors.
 
+## Test Case: GUI goodbye is visible before delayed exit
+
+- Aim: Verify that the goodbye response and disabled-input state are observable
+  before the GUI process exits.
+- Test: `LuckyNoGuiSubprocessTest.guiProcess_byeCommand_delaysExitAfterShowingGoodbye`
+- Actions: Launch an isolated GUI subprocess and submit `bye`.
+- Expected result: The exact goodbye message is shown, the input is empty and
+  disabled, the process remains alive for the configured delay, and then exits
+  successfully.
+
+## Test Case: GUI task persists across relaunches
+
+- Aim: Verify persistence through two complete GUI application launches.
+- Test: `LuckyNoGuiSubprocessTest.guiProcess_taskAcrossRelaunches_loadsPersistedTask`
+- Actions: Launch the GUI in an isolated directory, create a task, terminate
+  it, relaunch it in the same directory, and submit `list`.
+- Expected result: The second process reports no startup load error and lists
+  the task created by the first process.
+
 ### Manual check reporting
 
 - Record a pass or fail result, window sizes, commands entered, and any
   scrolling, readability, persistence, or error observations.
 - Capture screenshots only for failed or questionable checks.
 - Document confirmed defects as follow-up increments.
+- Verify the automated persistence scenario against a desktop build when
+  visual confirmation is available.

@@ -37,8 +37,10 @@ class EventTaskTest {
         LocalDateTime start = LocalDateTime.of(2026, 8, 6, 16, 0);
         LocalDateTime end = LocalDateTime.of(2026, 8, 6, 14, 0);
 
-        assertThrows(IllegalArgumentException.class, () ->
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 new EventTask("project meeting", start, end));
+
+        assertEquals("Event end cannot be before its start.", exception.getMessage());
     }
 
     /** Verifies that snoozing changes only the event end time. */
@@ -53,6 +55,20 @@ class EventTaskTest {
 
         assertEquals(start, task.getStartTime());
         assertEquals(LocalDateTime.of(2026, 8, 6, 18, 0), task.getEndTime());
+    }
+
+    /** Verifies a null snooze amount uses the exact validation message. */
+    @Test
+    void snoozeBy_nullAmount_throwsExactException() {
+        EventTask task = new EventTask(
+                "project meeting",
+                LocalDateTime.of(2026, 8, 6, 14, 0),
+                LocalDateTime.of(2026, 8, 6, 16, 0));
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class, () -> task.snoozeBy(null));
+
+        assertEquals("Snooze amount cannot be null.", exception.getMessage());
     }
 
     /** Verifies that an end-time schedule preserves the event start time. */
@@ -85,6 +101,20 @@ class EventTaskTest {
         assertEquals(newEnd, task.getEndTime());
     }
 
+    /** Verifies an invalid event replacement uses the exact message. */
+    @Test
+    void reschedule_nullTimes_throwsExactException() {
+        EventTask task = new EventTask(
+                "project meeting",
+                LocalDateTime.of(2026, 8, 6, 14, 0),
+                LocalDateTime.of(2026, 8, 6, 16, 0));
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class, () -> task.reschedule(null));
+
+        assertEquals("Invalid event times.", exception.getMessage());
+    }
+
     /** Verifies that invalid event rescheduling leaves both times unchanged. */
     @Test
     void reschedule_endBeforeStart_preservesOriginalTimes() {
@@ -107,8 +137,10 @@ class EventTaskTest {
         TaskTimes deadlineTimes = TaskTimes.makeDeadlineTimes(
                 LocalDateTime.of(2026, 8, 26, 13, 0));
 
-        assertThrows(IllegalArgumentException.class, () ->
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 new EventTask("project meeting", deadlineTimes));
+
+        assertEquals("Invalid event times.", exception.getMessage());
     }
 
 }
