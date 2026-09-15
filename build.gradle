@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'checkstyle'
+    id 'jacoco'
     id 'com.gradleup.shadow' version '9.5.1'
 }
 
@@ -44,6 +45,10 @@ java {
 
 checkstyle {
     toolVersion = '11.0.0'
+}
+
+jacoco {
+    toolVersion = '0.8.15'
 }
 
 def javaFxTestJvmArgs = [
@@ -124,6 +129,28 @@ tasks.register('guiTest', Test) {
     }
     filter {
         includeTestsMatching 'luckynoslacky.luckyui.gui.*Test'
+    }
+}
+
+def coverageTestTasks = [
+        tasks.named('test').get(),
+        tasks.named('clitest').get(),
+        tasks.named('guiTest').get()
+]
+
+tasks.register('coverageReport', JacocoReport) {
+    group = 'verification'
+    description = 'Generates the aggregate JaCoCo coverage report.'
+    dependsOn coverageTestTasks
+    executionData files(
+            "$buildDir/jacoco/test.exec",
+            "$buildDir/jacoco/clitest.exec",
+            "$buildDir/jacoco/guiTest.exec")
+    sourceSets sourceSets.main
+    reports {
+        html.required = true
+        xml.required = true
+        csv.required = false
     }
 }
 

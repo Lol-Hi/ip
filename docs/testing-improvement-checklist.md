@@ -71,7 +71,9 @@
 
 ## Improvement 7: Shared test infrastructure and coverage
 
-- [ ] Generalize date/time normalization across other tests.
-- [ ] Add JaCoCo measurement after expanding the test suite.
-- [ ] Record updated line, branch, and method coverage.
-- [ ] Decide whether coverage thresholds are appropriate.
+- [x] Generalize date/time normalization across other tests without weakening exact assertions.
+- [x] Add a standalone aggregate JaCoCo measurement task.
+- [x] Record provisional line, branch, and method coverage in `docs/testing-coverage.md`.
+- [x] Keep the coverage report independent from `check`.
+- [x] Keep coverage report-only without enforcing thresholds.
+- [ ] Resolve the known Increment 4 discrepancies and refresh the coverage baseline.

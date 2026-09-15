@@ -12,6 +12,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import luckynoslacky.testutil.TestOutputNormalizer;
+
 /** Runs the documented command-line test plan against the real application. */
 class CliIntegrationTest {
     private static final String FIXED_NOW = "2026-08-25T10:00:00Z";
@@ -48,8 +50,8 @@ class CliIntegrationTest {
             String failureMessage = testCase.markdownReference()
                     + "\nstandard error:\n" + errorOutput;
             assertEquals(
-                    normalize(testCase.expectedOutput()),
-                    normalize(actualOutput),
+                    TestOutputNormalizer.normalize(testCase.expectedOutput()),
+                    TestOutputNormalizer.normalize(actualOutput),
                     failureMessage);
         } finally {
             deleteTemporaryDirectory(temporaryDirectory);
@@ -77,21 +79,6 @@ class CliIntegrationTest {
                 "luckynoslacky.LuckyNoSlacky")
                 .directory(workingDirectory.toFile())
                 .start();
-    }
-
-    /** Normalizes only platform-dependent portions of CLI output. */
-    private static String normalize(String output) {
-        String normalized = output.replace("\r\n", "\n")
-                .replace('\r', '\n');
-        normalized = normalized.replaceAll(
-                "(?i)\\b(?:mon|tue|wed|thu|fri|sat|sun)\\b", "DAY");
-        normalized = normalized.replaceAll(
-                "(?i)\\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\\b",
-                "MONTH");
-        normalized = normalized.replaceAll("(?i)\\b(?:am|pm)\\b", "MERIDIEM");
-        return normalized.endsWith("\n")
-                ? normalized.substring(0, normalized.length() - 1)
-                : normalized;
     }
 
     /** Deletes a temporary CLI test directory. */
