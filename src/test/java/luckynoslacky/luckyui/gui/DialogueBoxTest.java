@@ -16,9 +16,11 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
+import luckynoslacky.ResponseKind;
 import luckynoslacky.ResponseTone;
 
 /** Tests the reusable JavaFX dialogue message component. */
@@ -46,14 +48,18 @@ class DialogueBoxTest {
 
             VBox messageContainer = (VBox) dialogue.getChildren().get(0);
             Label messageLabel = (Label) messageContainer.getChildren().get(0);
-            ImageView imageView = (ImageView) dialogue.getChildren().get(1);
+            StackPane avatarFrame = (StackPane) dialogue.getChildren().get(1);
+            ImageView imageView = (ImageView) avatarFrame.getChildren().get(0);
 
             assertEquals(Pos.CENTER_RIGHT, dialogue.getAlignment());
             assertEquals("todo read book", messageLabel.getText());
             assertTrue(dialogue.getStyleClass().contains(
                 DialogueBox.USER_DIALOGUE_STYLE));
-            assertTrue(messageLabel.getStyleClass().contains("message-content"));
+            assertTrue(messageContainer.getStyleClass().contains("message-content"));
             assertTrue(imageView.getClip() instanceof Circle);
+            assertTrue(avatarFrame.getStyleClass().contains(
+                    "personality-user-avatar-frame"));
+            assertEquals(48.0, avatarFrame.getPrefWidth());
             assertEquals("You: todo read book", dialogue.getAccessibleText());
             assertFalse(imageView.isFocusTraversable());
         });
@@ -78,7 +84,9 @@ class DialogueBoxTest {
             assertEquals("Got it.", messageLabel.getText());
             assertTrue(dialogue.getStyleClass().contains(
                 DialogueBox.CHATBOT_DIALOGUE_STYLE));
-            assertTrue(messageLabel.getStyleClass().contains("message-content"));
+            assertTrue(messageContainer.getStyleClass().contains("message-content"));
+            assertTrue(((StackPane) dialogue.getChildren().get(0)).getStyleClass()
+                    .contains("personality-chatbot-avatar-frame"));
             assertEquals("LuckyNoSlacky: Got it.", dialogue.getAccessibleText());
         });
     }
@@ -89,11 +97,13 @@ class DialogueBoxTest {
         robot.interact(() -> {
             DialogueBox dialogue = createChatbotDialogue(
                     "Task added.", ResponseTone.SUCCESS);
-            Label messageLabel = getMessageLabel(dialogue);
 
             assertTrue(dialogue.getStyleClass().contains(
                     DialogueBox.SUCCESS_DIALOGUE_STYLE));
-            assertEquals("🍀", ((Label) messageLabel.getGraphic()).getText());
+            VBox messageContainer = getMessageContainer(dialogue, 1);
+            assertEquals("🍀", ((Label) messageContainer.getChildren().get(0)).getText());
+            assertTrue(messageContainer.getStyleClass().contains(
+                    "personality-response-success"));
             assertEquals("LuckyNoSlacky: Task added.", dialogue.getAccessibleText());
         });
     }
@@ -133,9 +143,8 @@ class DialogueBoxTest {
                     "Bodoh sia like that also can kena warning "
                             + "That command needs more detail.",
                     dialogue.getAccessibleText());
-            Label messageLabel = (Label) ((VBox) dialogue.getChildren().get(1))
-                    .getChildren().get(0);
-            assertEquals("⚠", ((Label) messageLabel.getGraphic()).getText());
+            VBox messageContainer = getMessageContainer(dialogue, 1);
+            assertEquals("⚠", ((Label) messageContainer.getChildren().get(0)).getText());
         });
     }
 
@@ -145,12 +154,41 @@ class DialogueBoxTest {
         robot.interact(() -> {
             DialogueBox dialogue = createChatbotDialogue(
                     "Unable to save tasks.", ResponseTone.SYSTEM_ERROR);
-            Label messageLabel = getMessageLabel(dialogue);
 
             assertTrue(dialogue.getStyleClass().contains(
                     DialogueBox.SYSTEM_ERROR_DIALOGUE_STYLE));
-            assertEquals("⛔", ((Label) messageLabel.getGraphic()).getText());
+            VBox messageContainer = getMessageContainer(dialogue, 1);
+            assertEquals("⛔", ((Label) messageContainer.getChildren().get(0)).getText());
             assertEquals("LuckyNoSlacky: Unable to save tasks.",
+                    dialogue.getAccessibleText());
+        });
+    }
+
+    /** Verifies that task responses group formatted lines inside one bubble. */
+    @Test
+    void dialogueBox_taskContent_groupsFormattedLinesInsideMessageBubble(FxRobot robot) {
+        robot.interact(() -> {
+            String message = "[T][ ] buy groceries\n[E][X] team meeting";
+            DialogueBox dialogue = new DialogueBox(
+                    message,
+                    new WritableImage(45, 45),
+                    DialogueBox.DialogueType.CHATBOT,
+                    ResponseTone.INFO,
+                    ResponseKind.TASK_CONTENT);
+
+            VBox messageContainer = getMessageContainer(dialogue, 1);
+            VBox taskBlock = (VBox) messageContainer.getChildren().get(0);
+
+            assertTrue(taskBlock.getStyleClass().contains(
+                    "personality-task-block"));
+            assertEquals(2, taskBlock.getChildren().size());
+            Label firstTaskLine = (Label) taskBlock.getChildren().get(0);
+            Label secondTaskLine = (Label) taskBlock.getChildren().get(1);
+            assertEquals("[T][ ] buy groceries",
+                    firstTaskLine.getText());
+            assertEquals("[E][X] team meeting",
+                    secondTaskLine.getText());
+            assertEquals("LuckyNoSlacky: " + message,
                     dialogue.getAccessibleText());
         });
     }
@@ -168,7 +206,17 @@ class DialogueBoxTest {
 
     /** Returns the message label from a chatbot dialogue. */
     private Label getMessageLabel(DialogueBox dialogue) {
-        return (Label) ((VBox) dialogue.getChildren().get(1))
-                .getChildren().get(0);
+        VBox messageContainer = getMessageContainer(dialogue, 1);
+        return messageContainer.getChildren().stream()
+                .filter(Label.class::isInstance)
+                .map(Label.class::cast)
+                .filter(label -> !label.getText().isEmpty())
+                .findFirst()
+                .orElseThrow();
+    }
+
+    /** Returns the message bubble at the given row position. */
+    private VBox getMessageContainer(DialogueBox dialogue, int dialogueIndex) {
+        return (VBox) dialogue.getChildren().get(dialogueIndex);
     }
 }

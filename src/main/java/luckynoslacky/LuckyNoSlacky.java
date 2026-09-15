@@ -29,11 +29,27 @@ public class LuckyNoSlacky {
      * @param message user-facing reply
      * @param shouldExit whether the interface should close
      * @param tone semantic tone for presenting the reply
+     * @param kind structural content kind for presenting the reply
      */
     public record ChatResponse(
             String message,
             boolean shouldExit,
-            ResponseTone tone) {
+            ResponseTone tone,
+            ResponseKind kind) {
+        /**
+         * Creates a response whose content is ordinary conversational text.
+         *
+         * @param message user-facing reply
+         * @param shouldExit whether the interface should close
+         * @param tone semantic tone for presenting the reply
+         */
+        public ChatResponse(
+                String message,
+                boolean shouldExit,
+                ResponseTone tone) {
+            this(message, shouldExit, tone, ResponseKind.PLAIN_TEXT);
+        }
+
         /**
          * Creates a neutral response for callers that do not need to specify a
          * presentation tone.
@@ -115,7 +131,8 @@ public class LuckyNoSlacky {
             return new ChatResponse(
                     command.execute(),
                     command.shouldExit(),
-                    command.getResponseTone());
+                    command.getResponseTone(),
+                    command.getResponseKind());
         } catch (LuckyNoInputException exception) {
             return new ChatResponse(
                     exception.getMessage(),

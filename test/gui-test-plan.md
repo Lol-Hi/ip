@@ -14,17 +14,18 @@
   circular user avatar.
 - Test: `DialogueBoxTest.dialogueBox_userMessage_displaysCircularAvatarOnRight`
 - Expected result: The row is right-aligned, displays only the raw message
-  text, applies the user dialogue CSS style, clips the avatar circularly, and
-  exposes the accessible text `You: <message>` without making the avatar
-  keyboard-focusable.
+  text, applies the user dialogue CSS style, displays the existing user image
+  inside a 48-pixel circular avatar frame, and exposes the accessible text
+  `You: <message>` without making the avatar keyboard-focusable.
 
 ## Test Case: DialogueBox displays chatbot messages
 
 - Aim: Verify that application messages use a wider left-aligned bubble.
 - Test: `DialogueBoxTest.dialogueBox_chatbotMessage_displaysBubbleOnLeft`
 - Expected result: The row is left-aligned, preserves the application message
-  text, applies the chatbot dialogue CSS style, and exposes the accessible text
-  `LuckyNoSlacky: <message>`.
+  text, applies the chatbot dialogue CSS style, displays the existing chatbot
+  image inside a circular avatar frame with the green accent, and exposes the
+  accessible text `LuckyNoSlacky: <message>`.
 
 ## Test Case: DialogueBox displays warning messages
 
@@ -39,8 +40,8 @@
 - Aim: Verify that successful task changes use a clover-green chatbot bubble.
 - Test: `DialogueBoxTest.dialogueBox_successMessage_displaysCloverMarker`
 - Expected result: The response remains left-aligned, applies the success
-  dialogue CSS style, and shows a visible `🍀` marker without changing the
-  response text.
+  dialogue CSS style, shows the green personality treatment, and shows a
+  visible `🍀` marker without changing the response text.
 
 ## Test Case: DialogueBox displays information responses
 
@@ -70,9 +71,11 @@
 - Aim: Verify that future personality visuals can be inserted without
   replacing the functional conversation or command regions.
 - Test: `MainWindowTest.mainWindow_layoutRegions_exposeStableIntegrationHooks`
-- Expected result: The production layout exposes a hidden, unmanaged brand
+- Expected result: The production layout exposes a visible managed brand
   header slot, a conversation region, and a command row with stable IDs and
-  CSS classes. The hidden header slot does not change the current layout.
+  CSS classes. The integrated header slot contains the LuckyNoSlacky title,
+  tagline, existing chatbot image, and clover accent; the conversation region
+  also exposes the personality background layer.
 
 ## Test Case: Main window focuses the command field on startup
 
@@ -156,7 +159,18 @@
   available from the application classpath.
 - Test: `LuckyNoGuiTest.luckyNoGui_resourcePaths_areAvailable`
 - Expected result: The layout, both CSS stylesheets, chatbot avatar, and user
-  avatar resources are all found.
+  avatar resources, branded header, clover pattern, and bundled fonts are all
+  found, and the two personality font families are registered before FXML
+  styling.
+
+## Test Case: DialogueBox groups task content
+
+- Aim: Verify that structured task output remains one response bubble while
+  task lines receive the monospace task treatment.
+- Test: `DialogueBoxTest.dialogueBox_taskContent_groupsFormattedLinesInsideMessageBubble`
+- Expected result: Formatted task lines are placed in one
+  `personality-task-block`, remain in their original order, and the outer
+  dialogue retains the complete accessible response text.
 
 ## Test Case: Main window preserves usable minimum dimensions
 
@@ -174,7 +188,9 @@
 - Actions: Resize the window horizontally and vertically.
 - Expected result: The input field expands with the window, the Send button
   remains at the bottom-right with a stable width, and message bubbles wrap
-  without clipping or horizontal scrolling.
+  without clipping or horizontal scrolling. The patterned background fills the
+  complete visible conversation viewport, including empty space below the
+  newest message, and continues to do so after each resize.
 
 ## Test Case: Sample task conversation uses actual chatbot responses
 
@@ -194,6 +210,15 @@
   and the warning `Eh mr blur sotong this task don't even have time for you to
   snooze la`. It does not display `Got it — I'll help you stay on track` or
   `You said:`.
+
+## Integrated visual resources
+
+The production GUI loads `personality.css` after `main.css`, loads Patrick Hand
+and Roboto Mono before FXML construction, includes `BrandHeader.fxml` in the
+visible header slot, and places the clover pattern behind the conversation.
+These resources are visual dependencies only: command behavior, response
+tones, accessibility text, focus traversal, and minimum window dimensions
+remain owned and tested by BetterGUI.
 
 ## Acceptance checks beyond `guiTest`
 

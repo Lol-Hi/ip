@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import luckynoslacky.ResponseKind;
 import luckynoslacky.ResponseTone;
 import luckynoslacky.luckyparser.DurationPeriod;
 import luckynoslacky.luckystorage.CsvSaver;
@@ -42,6 +43,7 @@ class LuckyNoCommandTest {
         assertEquals(1, taskMaster.getTaskCount());
         assertFalse(command.shouldExit());
         assertEquals(ResponseTone.SUCCESS, command.getResponseTone());
+        assertEquals(ResponseKind.TASK_CONTENT, command.getResponseKind());
     }
 
     /** Verifies that a mark command marks an incomplete task. */
@@ -98,6 +100,7 @@ class LuckyNoCommandTest {
                 LuckyNoMessages.listTasksMessage(taskMaster.listTasks()),
                 command.execute());
         assertEquals(ResponseTone.INFO, command.getResponseTone());
+        assertEquals(ResponseKind.TASK_CONTENT, command.getResponseKind());
     }
 
     /** Verifies that a find command returns matching dated tasks. */
@@ -112,6 +115,7 @@ class LuckyNoCommandTest {
                 LuckyNoMessages.listTasksMessage(taskMaster.findTasks(SEARCH_DATE)),
                 command.execute());
         assertEquals(ResponseTone.INFO, command.getResponseTone());
+        assertEquals(ResponseKind.TASK_CONTENT, command.getResponseKind());
     }
 
     /** Verifies that a snooze command extends a deadline and returns its reply. */
@@ -160,6 +164,7 @@ class LuckyNoCommandTest {
         assertEquals(LuckyNoMessages.goodbye(), command.execute());
         assertTrue(command.shouldExit());
         assertEquals(ResponseTone.NEUTRAL, command.getResponseTone());
+        assertEquals(ResponseKind.PLAIN_TEXT, command.getResponseKind());
     }
 
     /** Verifies that task commands reject a missing task master. */

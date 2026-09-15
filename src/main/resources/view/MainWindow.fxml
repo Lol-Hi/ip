@@ -5,6 +5,8 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox prefHeight="600.0"
@@ -22,9 +24,11 @@
     <children>
         <VBox fx:id="brandHeaderSlot"
               id="brandHeaderSlot"
-              managed="false"
-              visible="false"
-              styleClass="brand-header-slot" />
+              styleClass="brand-header-slot">
+            <children>
+                <fx:include source="BrandHeader.fxml" />
+            </children>
+        </VBox>
 
         <ScrollPane fx:id="scrollPane"
                     id="scrollPane"
@@ -37,11 +41,20 @@
                     styleClass="conversation-region"
                     VBox.vgrow="ALWAYS">
             <content>
-                <VBox fx:id="dialogContainer"
-                      id="dialogContainer"
-                      spacing="12.0"
-                      fillWidth="true"
-                      styleClass="dialog-container" />
+                <StackPane fx:id="personalityBackground"
+                           id="personalityBackground"
+                           styleClass="personality-background">
+                    <children>
+                        <Region mouseTransparent="true"
+                                focusTraversable="false"
+                                styleClass="personality-background-layer" />
+                        <VBox fx:id="dialogContainer"
+                              id="dialogContainer"
+                              spacing="12.0"
+                              fillWidth="true"
+                              styleClass="dialog-container" />
+                    </children>
+                </StackPane>
             </content>
         </ScrollPane>
 

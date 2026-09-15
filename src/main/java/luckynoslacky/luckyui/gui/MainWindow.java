@@ -2,6 +2,7 @@ package luckynoslacky.luckyui.gui;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -10,9 +11,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import luckynoslacky.LuckyNoSlacky;
+import luckynoslacky.ResponseKind;
 import luckynoslacky.ResponseTone;
 import luckynoslacky.luckyui.LuckyNoMessages;
 
@@ -27,6 +30,9 @@ public class MainWindow {
 
     @FXML
     private VBox dialogContainer;
+
+    @FXML
+    private StackPane personalityBackground;
 
     @FXML
     private TextField userInput;
@@ -54,6 +60,8 @@ public class MainWindow {
      */
     @FXML
     private void initialize() {
+        addPersonalityStyleClasses();
+        bindConversationBackgroundHeight();
         dialogContainer.heightProperty().addListener((observable, oldHeight, newHeight) ->
                         scrollPane.setVvalue(1.0));
         configureKeyboardTraversal();
@@ -73,12 +81,14 @@ public class MainWindow {
         this.chatbot = chatbot;
         addChatbotMessage(
                 LuckyNoMessages.greeting(),
-                ResponseTone.NEUTRAL);
+                ResponseTone.NEUTRAL,
+                ResponseKind.PLAIN_TEXT);
 
         if (chatbot.hasLoadError()) {
             addChatbotMessage(
                     LuckyNoMessages.loadErrorMessage(),
-                    ResponseTone.SYSTEM_ERROR);
+                    ResponseTone.SYSTEM_ERROR,
+                    ResponseKind.PLAIN_TEXT);
         }
     }
 
@@ -95,7 +105,7 @@ public class MainWindow {
 
         addUserMessage(userInputText);
         LuckyNoSlacky.ChatResponse response = chatbot.getResponse(userInputText);
-        addChatbotMessage(response.message(), response.tone());
+        addChatbotMessage(response.message(), response.tone(), response.kind());
         userInput.clear();
 
         if (response.shouldExit()) {
@@ -129,17 +139,36 @@ public class MainWindow {
      * Adds an application message using the appropriate visual role.
      *
      * @param message chatbot response
-     * @param dialogueType visual role for the response
+     * @param responseTone semantic tone for the response
+     * @param responseKind structural content kind for the response
      */
     private void addChatbotMessage(
             String message,
-            ResponseTone responseTone) {
+            ResponseTone responseTone,
+            ResponseKind responseKind) {
         dialogContainer.getChildren().add(
                 new DialogueBox(
                         message,
                         chatbotImage,
                         DialogueBox.DialogueType.CHATBOT,
-                        responseTone));
+                        responseTone,
+                        responseKind));
+    }
+
+    /** Adds stable semantic hooks consumed by the personality stylesheet. */
+    private void addPersonalityStyleClasses() {
+        userInput.getStyleClass().add("personality-interface-text");
+        userInput.getStyleClass().add("personality-input-field");
+        sendButton.getStyleClass().add("personality-interface-text");
+        sendButton.getStyleClass().add("personality-send-button");
+    }
+
+    /** Keeps the patterned conversation background at least as tall as its viewport. */
+    private void bindConversationBackgroundHeight() {
+        personalityBackground.minHeightProperty().bind(
+                Bindings.createDoubleBinding(() ->
+                        scrollPane.getViewportBounds().getHeight(),
+                        scrollPane.viewportBoundsProperty()));
     }
 
     /** Configures keyboard traversal for the main interactive controls. */

@@ -2,6 +2,7 @@ package luckynoslacky.luckyui.gui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -14,6 +15,7 @@ import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -22,6 +24,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import luckynoslacky.LuckyNoSlacky;
@@ -182,10 +185,19 @@ class MainWindowTest {
 
         assertTrue(brandHeaderSlot.getStyleClass().contains(
                 "brand-header-slot"));
-        assertFalse(brandHeaderSlot.isManaged());
-        assertFalse(brandHeaderSlot.isVisible());
+        assertTrue(brandHeaderSlot.isManaged());
+        assertTrue(brandHeaderSlot.isVisible());
+        assertNotNull(robot.lookup("#brandTitle").query());
         assertTrue(conversationRegion.getStyleClass().contains(
                 "conversation-region"));
+        StackPane background = robot.lookup("#personalityBackground").query();
+        assertTrue(background.getStyleClass().contains("personality-background"));
+        assertTrue(background.getMinHeight()
+                >= conversationRegion.getViewportBounds().getHeight());
+        assertTrue(lookupTextField().getStyleClass().contains(
+                "personality-input-field"));
+        assertTrue(lookupButton().getStyleClass().contains(
+                "personality-send-button"));
         assertTrue(commandRow.getStyleClass().contains("command-row"));
     }
 
@@ -201,7 +213,29 @@ class MainWindowTest {
     /** Returns the message text from a dialogue row's text container. */
     private String getMessageText(DialogueBox dialogue, int dialogueIndex) {
         VBox messageContainer = (VBox) dialogue.getChildren().get(dialogueIndex);
-        return ((Label) messageContainer.getChildren().get(0)).getText();
+        return messageContainer.getChildren().stream()
+                .map(this::findVisibleMessageText)
+                .filter(text -> !text.isEmpty())
+                .findFirst()
+                .orElseThrow();
+    }
+
+    /** Finds the first visible response text while skipping tone markers. */
+    private String findVisibleMessageText(Node node) {
+        if (node instanceof Label label) {
+            return switch (label.getText()) {
+                case "🍀", "⚠", "⛔" -> "";
+                default -> label.getText();
+            };
+        }
+        if (node instanceof javafx.scene.Parent parent) {
+            return parent.getChildrenUnmodifiable().stream()
+                    .map(this::findVisibleMessageText)
+                    .filter(text -> !text.isEmpty())
+                    .findFirst()
+                    .orElse("");
+        }
+        return "";
     }
 
     /** Returns the command input from the production FXML scene. */

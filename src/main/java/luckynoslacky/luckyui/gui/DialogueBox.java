@@ -7,8 +7,10 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
+import luckynoslacky.ResponseKind;
 import luckynoslacky.ResponseTone;
 
 /**
@@ -34,7 +36,8 @@ public class DialogueBox extends HBox {
     public static final String SYSTEM_ERROR_DIALOGUE_STYLE =
             "system-error-dialogue";
 
-    private static final double AVATAR_SIZE = 45.0;
+    private static final double AVATAR_FRAME_SIZE = 48.0;
+    private static final double AVATAR_IMAGE_SIZE = 40.0;
     private static final double CHATBOT_BUBBLE_WIDTH_FRACTION = 0.86;
     private static final double USER_BUBBLE_WIDTH_FRACTION = 0.70;
     private static final double DIALOGUE_SPACING = 8.0;
@@ -62,7 +65,8 @@ public class DialogueBox extends HBox {
             String message,
             Image avatar,
             DialogueType dialogueType) {
-        this(message, avatar, dialogueType, ResponseTone.NEUTRAL);
+        this(message, avatar, dialogueType, ResponseTone.NEUTRAL,
+                ResponseKind.PLAIN_TEXT);
     }
 
     /**
@@ -79,28 +83,31 @@ public class DialogueBox extends HBox {
             Image avatar,
             DialogueType dialogueType,
             ResponseTone responseTone) {
-        Label messageLabel = new Label(message);
-        messageLabel.getStyleClass().add("message-content");
-        messageLabel.setWrapText(true);
+        this(message, avatar, dialogueType, responseTone,
+                ResponseKind.PLAIN_TEXT);
+    }
 
-        if (dialogueType == DialogueType.CHATBOT) {
-            addToneMarker(messageLabel, responseTone);
-        }
-
-        VBox messageContainer = new VBox(messageLabel);
+    /**
+     * Creates a dialogue row with a semantic tone and content structure.
+     *
+     * @param message message content
+     * @param avatar speaker profile image
+     * @param dialogueType speaker role
+     * @param responseTone semantic tone of a chatbot response
+     * @param responseKind structural kind of a chatbot response
+     */
+    public DialogueBox(
+            String message,
+            Image avatar,
+            DialogueType dialogueType,
+            ResponseTone responseTone,
+            ResponseKind responseKind) {
+        VBox messageContainer = createMessageContainer(
+                message, dialogueType, responseTone, responseKind);
         messageContainer.setMinWidth(0.0);
 
-        ImageView imageView = new ImageView(avatar);
-        imageView.setFitWidth(AVATAR_SIZE);
-        imageView.setFitHeight(AVATAR_SIZE);
-        imageView.setPreserveRatio(true);
-        imageView.setClip(new Circle(
-                AVATAR_SIZE / 2.0,
-                AVATAR_SIZE / 2.0,
-                AVATAR_SIZE / 2.0));
-        imageView.setAccessibleText("");
-        imageView.setFocusTraversable(false);
-        imageView.getStyleClass().add("avatar");
+        StackPane avatarFrame = createAvatarFrame(
+                avatar, dialogueType);
 
         setMaxWidth(Double.MAX_VALUE);
         setAccessibleRole(AccessibleRole.TEXT);
@@ -121,19 +128,159 @@ public class DialogueBox extends HBox {
         messageContainer.maxWidthProperty().bind(
                 Bindings.createDoubleBinding(() -> {
                     double availableWidth = getWidth()
-                            - AVATAR_SIZE - DIALOGUE_SPACING;
+                            - AVATAR_FRAME_SIZE - DIALOGUE_SPACING;
                     return Math.max(
                             0.0,
                             availableWidth * bubbleWidthFraction);
                 },
                         widthProperty()));
-        messageLabel.maxWidthProperty().bind(messageContainer.maxWidthProperty());
-
         if (dialogueType == DialogueType.USER) {
-            getChildren().addAll(messageContainer, imageView);
+            getChildren().addAll(messageContainer, avatarFrame);
         } else {
-            getChildren().addAll(imageView, messageContainer);
+            getChildren().addAll(avatarFrame, messageContainer);
         }
+    }
+
+    /** Creates the styled outer message bubble and its content children. */
+    private static VBox createMessageContainer(
+            String message,
+            DialogueType dialogueType,
+            ResponseTone responseTone,
+            ResponseKind responseKind) {
+        VBox messageContainer = new VBox();
+        messageContainer.getStyleClass().add("message-content");
+        if (dialogueType == DialogueType.CHATBOT) {
+            messageContainer.getStyleClass().add(
+                    getPersonalityToneStyle(responseTone));
+            String toneLabelStyle = getToneLabelStyle(responseTone);
+            if (!toneLabelStyle.isEmpty()) {
+                messageContainer.getStyleClass().add(toneLabelStyle);
+            }
+            if (responseKind == ResponseKind.TASK_CONTENT) {
+                addTaskContent(messageContainer, message, responseTone);
+            } else {
+                addProseContent(messageContainer, message, responseTone);
+            }
+        } else {
+            messageContainer.getStyleClass().add("personality-user-message");
+            Label messageLabel = createTextLabel(message, "personality-user-label");
+            messageContainer.getChildren().add(messageLabel);
+        }
+        return messageContainer;
+    }
+
+    /** Adds task lines as one grouped block while preserving their order. */
+    private static void addTaskContent(
+            VBox messageContainer,
+            String message,
+            ResponseTone responseTone) {
+        addToneMarker(messageContainer, responseTone);
+        VBox taskBlock = new VBox();
+        taskBlock.getStyleClass().add("personality-task-block");
+        VBox proseBlock = new VBox();
+        for (String line : message.split("\\R", -1)) {
+            if (isTaskLine(line)) {
+                if (!proseBlock.getChildren().isEmpty()) {
+                    messageContainer.getChildren().add(proseBlock);
+                    proseBlock = new VBox();
+                }
+                taskBlock.getChildren().add(
+                        createTextLabel(line, "personality-task-content"));
+            } else {
+                if (!taskBlock.getChildren().isEmpty()) {
+                    messageContainer.getChildren().add(taskBlock);
+                    taskBlock = new VBox();
+                    taskBlock.getStyleClass().add("personality-task-block");
+                }
+                if (!line.isBlank()) {
+                    proseBlock.getChildren().add(
+                            createTextLabel(
+                                    line,
+                                    "personality-prose",
+                                    getToneLabelStyle(responseTone)));
+                }
+            }
+        }
+        if (!taskBlock.getChildren().isEmpty()) {
+            messageContainer.getChildren().add(taskBlock);
+        }
+        if (!proseBlock.getChildren().isEmpty()) {
+            messageContainer.getChildren().add(proseBlock);
+        }
+    }
+
+    /** Adds ordinary response text to a single visible prose label. */
+    private static void addProseContent(
+            VBox messageContainer,
+            String message,
+            ResponseTone responseTone) {
+        addToneMarker(messageContainer, responseTone);
+        messageContainer.getChildren().add(
+                createTextLabel(message,
+                        "personality-prose",
+                        getToneLabelStyle(responseTone)));
+    }
+
+    /** Creates a non-interactive circular avatar frame. */
+    private static StackPane createAvatarFrame(
+            Image avatar,
+            DialogueType dialogueType) {
+        StackPane avatarFrame = new StackPane();
+        avatarFrame.getStyleClass().addAll(
+                "avatar-frame",
+                "personality-avatar-frame",
+                dialogueType == DialogueType.USER
+                        ? "personality-user-avatar-frame"
+                        : "personality-chatbot-avatar-frame");
+        avatarFrame.setMinSize(AVATAR_FRAME_SIZE, AVATAR_FRAME_SIZE);
+        avatarFrame.setPrefSize(AVATAR_FRAME_SIZE, AVATAR_FRAME_SIZE);
+        avatarFrame.setMaxSize(AVATAR_FRAME_SIZE, AVATAR_FRAME_SIZE);
+        avatarFrame.setMouseTransparent(true);
+        avatarFrame.setFocusTraversable(false);
+        avatarFrame.setAccessibleRole(AccessibleRole.NODE);
+        avatarFrame.setAccessibleText("");
+
+        ImageView imageView = new ImageView(avatar);
+        imageView.setFitWidth(AVATAR_IMAGE_SIZE);
+        imageView.setFitHeight(AVATAR_IMAGE_SIZE);
+        imageView.setPreserveRatio(true);
+        imageView.setClip(new Circle(
+                AVATAR_IMAGE_SIZE / 2.0,
+                AVATAR_IMAGE_SIZE / 2.0,
+                AVATAR_IMAGE_SIZE / 2.0));
+        imageView.setAccessibleRole(AccessibleRole.NODE);
+        imageView.setAccessibleText("");
+        imageView.setFocusTraversable(false);
+        imageView.setMouseTransparent(true);
+        imageView.getStyleClass().addAll("avatar", "personality-avatar-image");
+        avatarFrame.getChildren().add(imageView);
+
+        if (dialogueType == DialogueType.CHATBOT) {
+            StackPane accent = new StackPane();
+            accent.getStyleClass().add("personality-chatbot-avatar-accent");
+            accent.setMouseTransparent(true);
+            accent.setFocusTraversable(false);
+            accent.setAccessibleRole(AccessibleRole.NODE);
+            accent.setAccessibleText("");
+            avatarFrame.getChildren().add(accent);
+        }
+        return avatarFrame;
+    }
+
+    /** Creates a wrapped text node with hidden child semantics. */
+    private static Label createTextLabel(String text, String... styles) {
+        Label label = new Label(text);
+        label.setWrapText(true);
+        label.setAccessibleRole(AccessibleRole.NODE);
+        label.setAccessibleText("");
+        label.setFocusTraversable(false);
+        label.getStyleClass().addAll(styles);
+        return label;
+    }
+
+    /** Returns whether a line follows the task-list output contract. */
+    private static boolean isTaskLine(String line) {
+        return line.matches("^\\s*(?:\\d+\\.)?\\[[TDE]\\]\\[[ X]\\]\\s+.*$");
     }
 
     /**
@@ -172,7 +319,7 @@ public class DialogueBox extends HBox {
 
     /** Adds a non-colour marker for tones that require extra emphasis. */
     private static void addToneMarker(
-            Label messageLabel,
+            VBox messageContainer,
             ResponseTone responseTone) {
         String markerText = switch (responseTone) {
             case SUCCESS -> "🍀";
@@ -185,9 +332,31 @@ public class DialogueBox extends HBox {
             marker.getStyleClass().add(getMarkerStyle(responseTone));
             marker.setAccessibleText("");
             marker.setFocusTraversable(false);
-            messageLabel.setGraphic(marker);
-            messageLabel.setGraphicTextGap(6.0);
+            marker.setMouseTransparent(true);
+            messageContainer.getChildren().add(marker);
         }
+    }
+
+    /** Returns the personality stylesheet class for a response tone. */
+    private static String getPersonalityToneStyle(ResponseTone responseTone) {
+        return switch (responseTone) {
+            case NEUTRAL -> "personality-response-neutral";
+            case SUCCESS -> "personality-response-success";
+            case INFO -> "personality-response-information";
+            case WARNING -> "personality-response-warning";
+            case SYSTEM_ERROR -> "personality-response-system-error";
+        };
+    }
+
+    /** Returns the personality label class for a response tone. */
+    private static String getToneLabelStyle(ResponseTone responseTone) {
+        return switch (responseTone) {
+            case NEUTRAL -> "personality-response-neutral-label";
+            case SUCCESS -> "personality-response-success-label";
+            case INFO -> "personality-response-information-label";
+            case WARNING -> "personality-response-warning-label";
+            case SYSTEM_ERROR -> "personality-response-system-error-label";
+        };
     }
 
     /**

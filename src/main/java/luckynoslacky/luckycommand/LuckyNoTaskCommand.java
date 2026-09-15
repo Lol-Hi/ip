@@ -1,5 +1,6 @@
 package luckynoslacky.luckycommand;
 
+import luckynoslacky.ResponseKind;
 import luckynoslacky.ResponseTone;
 import luckynoslacky.luckytask.Task;
 import luckynoslacky.luckytask.TaskMaster;
@@ -47,5 +48,15 @@ public class LuckyNoTaskCommand extends LuckyNoCommand {
     @Override
     public ResponseTone getResponseTone() {
         return ResponseTone.SUCCESS;
+    }
+
+    /**
+     * Returns the task-content kind for the task-creation response.
+     *
+     * @return task-content response kind
+     */
+    @Override
+    public ResponseKind getResponseKind() {
+        return ResponseKind.TASK_CONTENT;
     }
 }

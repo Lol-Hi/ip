@@ -2,6 +2,7 @@ package luckynoslacky.luckycommand;
 
 import java.time.LocalDateTime;
 
+import luckynoslacky.ResponseKind;
 import luckynoslacky.ResponseTone;
 import luckynoslacky.luckytask.TaskMaster;
 import luckynoslacky.luckyui.LuckyNoMessages;
@@ -69,5 +70,15 @@ public class LuckyNoFindCommand extends LuckyNoCommand {
     @Override
     public ResponseTone getResponseTone() {
         return ResponseTone.INFO;
+    }
+
+    /**
+     * Returns the task-content kind for the search response.
+     *
+     * @return task-content response kind
+     */
+    @Override
+    public ResponseKind getResponseKind() {
+        return ResponseKind.TASK_CONTENT;
     }
 }

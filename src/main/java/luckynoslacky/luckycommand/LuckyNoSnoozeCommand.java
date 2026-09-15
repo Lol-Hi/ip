@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
 
+import luckynoslacky.ResponseKind;
 import luckynoslacky.ResponseTone;
 import luckynoslacky.luckyparser.DurationPeriod;
 import luckynoslacky.luckytask.Task;
@@ -90,5 +91,15 @@ public class LuckyNoSnoozeCommand extends LuckyNoCommand {
     @Override
     public ResponseTone getResponseTone() {
         return ResponseTone.SUCCESS;
+    }
+
+    /**
+     * Returns the task-content kind for the snooze response.
+     *
+     * @return task-content response kind
+     */
+    @Override
+    public ResponseKind getResponseKind() {
+        return ResponseKind.TASK_CONTENT;
     }
 }
