@@ -49,6 +49,15 @@
 - Actions: Enter `unknown` and click `Send`.
 - Expected result: A user dialogue row and chatbot response row are added.
 
+## Test Case: Main window scrolls to the latest dialogue
+
+- Aim: Verify that a long conversation automatically reveals its newest
+  dialogue.
+- Test: `MainWindowTest.mainWindow_manyMessages_scrollsToLatestDialogue`
+- Actions: Submit 20 deterministic commands through the input field.
+- Expected result: All dialogue rows are retained and the scroll pane is at
+  its maximum vertical position.
+
 ## Test Case: Main window ignores blank input
 
 - Aim: Verify that submitting an empty command does not add dialogue rows.
@@ -106,10 +115,28 @@
 
 - Aim: Verify that the input field and Send button are placed in a responsive
   bottom control row.
-- Test: Manual acceptance check
-- Actions: Resize the window horizontally and vertically.
+- Test: `MainWindowTest.mainWindow_widenedWindow_expandsInputAndPreservesButtonWidth`
+- Actions: Resize the window from 400 by 600 to 800 by 600.
 - Expected result: The input field expands with the window, while the Send
   button remains at the bottom-right with a stable width.
+
+## Test Case: Main window keeps controls usable at minimum size
+
+- Aim: Verify that the input controls remain inside the scene at the minimum
+  supported dimensions.
+- Test: `MainWindowTest.mainWindow_minimumWindow_keepsControlsWithinScene`
+- Actions: Resize the window to 320 by 480.
+- Expected result: The input field and Send button remain visible, usable, and
+  inside the scene bounds.
+
+## Test Case: Main window preserves tasks across relaunch
+
+- Aim: Verify that a task added through the GUI is restored after closing and
+  relaunching the application.
+- Test: `GuiPersistenceTest.luckyNoGui_taskSavedThenRelaunched_restoresTask`
+- Actions: Add `todo persisted gui task`, close the stage, relaunch the GUI
+  with the same isolated data file, then submit `list`.
+- Expected result: The task appears in the relaunched conversation.
 
 ## Acceptance checks beyond `guiTest`
 
