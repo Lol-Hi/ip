@@ -45,7 +45,8 @@
                        onAction="#handleUserInput"
                        HBox.hgrow="ALWAYS" />
 
-            <Button id="sendButton"
+            <Button fx:id="sendButton"
+                    id="sendButton"
                     text="Send"
                     prefHeight="41.0"
                     prefWidth="70.0"

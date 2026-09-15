@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +28,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import luckynoslacky.LuckyNoSlacky;
 import luckynoslacky.luckyui.LuckyNoMessages;
 
@@ -129,6 +131,46 @@ class MainWindowTest {
                 getMessageText(chatbotDialogue, 1));
     }
 
+    /** Verifies that goodbye is visible before the delayed exit is triggered. */
+    @Test
+    void mainWindow_byeCommand_displaysGoodbyeBeforeDelayedExit(
+            FxRobot robot) {
+        RecordingExitScheduler scheduler = new RecordingExitScheduler();
+        AtomicBoolean exitTriggered = new AtomicBoolean();
+        Runnable exitAction = () -> exitTriggered.set(true);
+        showWindowWithChatbot(robot, new GoodbyeChatbot(), scheduler, exitAction);
+
+        robot.clickOn("#userInput").write("bye").push(KeyCode.ENTER);
+
+        VBox dialogueContainer = robot.lookup("#dialogContainer").query();
+        DialogueBox chatbotDialogue =
+                (DialogueBox) dialogueContainer.getChildren().get(2);
+        TextField inputField = robot.lookup("#userInput").query();
+        Button sendButton = robot.lookup("#sendButton").query();
+        assertEquals(3, dialogueContainer.getChildren().size());
+        assertEquals(
+                LuckyNoMessages.goodbye(),
+                getMessageText(chatbotDialogue, 1));
+        assertTrue(stage.isShowing());
+        assertTrue(inputField.isDisabled());
+        assertTrue(sendButton.isDisabled());
+        assertEquals(1, scheduler.scheduleCount);
+        assertEquals(1500.0, scheduler.delay.toMillis());
+        assertFalse(exitTriggered.get());
+
+        robot.interact(scheduler::trigger);
+        assertTrue(exitTriggered.get());
+    }
+
+    /** Verifies that exit dependencies cannot be missing. */
+    @Test
+    void construct_nullExitDependencies_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new MainWindow(null, () -> { }));
+        assertThrows(IllegalArgumentException.class, () ->
+                new MainWindow((delay, action) -> { }, null));
+    }
+
     /** Verifies that a long conversation scrolls to its newest message. */
     @Test
     void mainWindow_manyMessages_scrollsToLatestDialogue(FxRobot robot) {
@@ -227,12 +269,41 @@ class MainWindowTest {
         });
     }
 
+    /** Replaces the current window with a chatbot and test exit behavior. */
+    private void showWindowWithChatbot(
+            FxRobot robot,
+            LuckyNoSlacky chatbot,
+            MainWindow.ExitScheduler exitScheduler,
+            Runnable exitAction) {
+        robot.interact(() -> {
+            try {
+                loadWindow(chatbot, new MainWindow(exitScheduler, exitAction));
+            } catch (IOException exception) {
+                throw new IllegalStateException(
+                        "Unable to load the test window.", exception);
+            }
+        });
+    }
+
     /** Loads the production window with the supplied chatbot. */
     private void loadWindow(LuckyNoSlacky chatbot) throws IOException {
+        loadWindow(chatbot, new MainWindow());
+    }
+
+    /** Loads the production window with a supplied controller. */
+    private void loadWindow(
+            LuckyNoSlacky chatbot,
+            MainWindow controller) throws IOException {
         FXMLLoader loader = new FXMLLoader(
                 MainWindow.class.getResource("/view/MainWindow.fxml"));
+        loader.setControllerFactory(type -> {
+            if (type == MainWindow.class) {
+                return controller;
+            }
+            throw new IllegalArgumentException(
+                    "Unexpected FXML controller type.");
+        });
         Parent root = loader.load();
-        MainWindow controller = loader.getController();
         controller.setChatbot(chatbot);
         stage.setScene(new Scene(root, 400.0, 600.0));
         stage.show();
@@ -281,6 +352,42 @@ class MainWindowTest {
         @Override
         public ChatResponse getResponse(String userInput) {
             return new ChatResponse("scroll response", false);
+        }
+    }
+
+    /** Simulates a chatbot response that requests application exit. */
+    private static final class GoodbyeChatbot extends LuckyNoSlacky {
+        /** Keeps the test window free of startup warnings. */
+        @Override
+        public boolean hasLoadError() {
+            return false;
+        }
+
+        /** Returns the production goodbye response for every command. */
+        @Override
+        public ChatResponse getResponse(String userInput) {
+            return new ChatResponse(LuckyNoMessages.goodbye(), true);
+        }
+    }
+
+    /** Records delayed exit scheduling so tests can trigger it deterministically. */
+    private static final class RecordingExitScheduler
+            implements MainWindow.ExitScheduler {
+        private Duration delay;
+        private Runnable exitAction;
+        private int scheduleCount;
+
+        /** Records a scheduled exit action and its delay. */
+        @Override
+        public void schedule(Duration delay, Runnable exitAction) {
+            this.delay = delay;
+            this.exitAction = exitAction;
+            scheduleCount++;
+        }
+
+        /** Runs the recorded action to simulate the completed delay. */
+        private void trigger() {
+            exitAction.run();
         }
     }
 }

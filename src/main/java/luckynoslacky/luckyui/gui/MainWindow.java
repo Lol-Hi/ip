@@ -4,6 +4,7 @@ import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -27,7 +28,13 @@ public class MainWindow {
     @FXML
     private TextField userInput;
 
+    @FXML
+    private Button sendButton;
+
     private LuckyNoSlacky chatbot;
+    private final ExitScheduler exitScheduler;
+    private final Runnable exitAction;
+    private boolean exitScheduled;
 
     private final Image chatbotImage = new Image(
             MainWindow.class.getResourceAsStream(
@@ -37,9 +44,29 @@ public class MainWindow {
             MainWindow.class.getResourceAsStream("/images/user.png"));
 
     /**
-     * Creates the main-window controller.
+     * Creates the main-window controller with the production exit behavior.
      */
     public MainWindow() {
+        this(MainWindow::scheduleExit, Platform::exit);
+    }
+
+    /**
+     * Creates the main-window controller with injectable exit behavior.
+     *
+     * <p>The package-private dependencies allow GUI tests to observe delayed
+     * exit without terminating the JavaFX test toolkit.</p>
+     *
+     * @param exitScheduler scheduler used to delay application exit
+     * @param exitAction action performed after the delay
+     * @throws IllegalArgumentException if either dependency is null
+     */
+    MainWindow(ExitScheduler exitScheduler, Runnable exitAction) {
+        if (exitScheduler == null || exitAction == null) {
+            throw new IllegalArgumentException(
+                    "Exit scheduler and action cannot be null.");
+        }
+        this.exitScheduler = exitScheduler;
+        this.exitAction = exitAction;
     }
 
     /**
@@ -84,14 +111,37 @@ public class MainWindow {
         addChatbotMessage(response.message());
         userInput.clear();
 
-        if (response.shouldExit()) {
+        if (response.shouldExit() && !exitScheduled) {
+            exitScheduled = true;
             userInput.setDisable(true);
-
-            PauseTransition pause = new PauseTransition(
-                    Duration.seconds(EXIT_DELAY_SECONDS));
-            pause.setOnFinished(event -> Platform.exit());
-            pause.play();
+            sendButton.setDisable(true);
+            exitScheduler.schedule(
+                    Duration.seconds(EXIT_DELAY_SECONDS), exitAction);
         }
+    }
+
+    /**
+     * Schedules an action on the JavaFX timeline after the requested delay.
+     *
+     * @param delay delay before running the action
+     * @param action action to run after the delay
+     */
+    private static void scheduleExit(Duration delay, Runnable action) {
+        PauseTransition pause = new PauseTransition(delay);
+        pause.setOnFinished(event -> action.run());
+        pause.play();
+    }
+
+    /** Schedules a delayed action used by the main window's exit flow. */
+    @FunctionalInterface
+    interface ExitScheduler {
+        /**
+         * Schedules an action to run after a delay.
+         *
+         * @param delay delay before running the action
+         * @param action action to run after the delay
+         */
+        void schedule(Duration delay, Runnable action);
     }
 
     /**

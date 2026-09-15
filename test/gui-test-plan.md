@@ -86,6 +86,16 @@
 - Expected result: The approved task-limit message is displayed, the rejected
   task is not added, and the input field and Send button remain enabled.
 
+## Test Case: Main window displays goodbye before delayed exit
+
+- Aim: Verify that the goodbye message remains visible while the application
+  waits before exiting.
+- Test: `MainWindowTest.mainWindow_byeCommand_displaysGoodbyeBeforeDelayedExit`
+- Actions: Enter `bye` in the command field and submit it.
+- Expected result: The goodbye message is displayed, both the input field and
+  Send button are disabled, the window remains visible, and the exit callback
+  runs only after the configured 1.5-second delay.
+
 ## Test Case: JavaFX application starts correctly
 
 - Aim: Verify that the production JavaFX application creates the expected
@@ -143,8 +153,6 @@
 These checks are intentionally broader than the deterministic Gradle task and
 may require a desktop automation capability or manual verification:
 
-- Enter `bye` and verify that the goodbye message is visible before the window
-  closes after the configured delay.
 - Enter enough commands to verify that the conversation scrolls to the latest
   message.
 - Resize the window and verify that message text and avatars remain readable.
