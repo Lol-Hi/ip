@@ -77,3 +77,12 @@
 - [x] Keep the coverage report independent from `check`.
 - [x] Keep coverage report-only without enforcing thresholds.
 - [ ] Resolve the known Increment 4 discrepancies and refresh the coverage baseline.
+
+## Improvement 9: Final coverage baseline and policy
+
+- [x] Set the optional line, branch, and method thresholds to 90%, 80%, and 95%.
+- [x] Add the separate aggregate `coverageVerification` task.
+- [x] Keep `coverageVerification` independent from `check`.
+- [x] Keep the GitHub Actions workflow unchanged.
+- [ ] Resolve Increment 8 and generate the final coverage baseline normally.
+- [ ] Update coverage documentation with the final baseline commit and figures.

@@ -462,6 +462,15 @@ The HTML report is generated at
 `build/reports/jacoco/coverageReport/html/index.html`. Coverage is currently
 reported for review and is not used as a `check` threshold.
 
+Check the aggregate report against the current optional thresholds with:
+
+```bash
+./gradlew coverageVerification
+```
+
+The thresholds are 90% for lines, 80% for branches, and 95% for methods. This
+task is separate from `check` and does not change the CI workflow.
+
 ## Development notes
 
 ### AI declaration

@@ -137,20 +137,49 @@ def coverageTestTasks = [
         tasks.named('clitest').get(),
         tasks.named('guiTest').get()
 ]
+def coverageExecutionData = files(
+        "$buildDir/jacoco/test.exec",
+        "$buildDir/jacoco/clitest.exec",
+        "$buildDir/jacoco/guiTest.exec")
 
 tasks.register('coverageReport', JacocoReport) {
     group = 'verification'
     description = 'Generates the aggregate JaCoCo coverage report.'
     dependsOn coverageTestTasks
-    executionData files(
-            "$buildDir/jacoco/test.exec",
-            "$buildDir/jacoco/clitest.exec",
-            "$buildDir/jacoco/guiTest.exec")
+    executionData coverageExecutionData
     sourceSets sourceSets.main
     reports {
         html.required = true
         xml.required = true
         csv.required = false
+    }
+}
+
+tasks.register('coverageVerification', JacocoCoverageVerification) {
+    group = 'verification'
+    description = 'Checks aggregate JaCoCo coverage against minimum thresholds.'
+    dependsOn coverageTestTasks
+    executionData coverageExecutionData
+    sourceSets sourceSets.main
+    violationRules {
+        rule {
+            element = 'BUNDLE'
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.90
+            }
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                minimum = 0.80
+            }
+            limit {
+                counter = 'METHOD'
+                value = 'COVEREDRATIO'
+                minimum = 0.95
+            }
+        }
     }
 }
 

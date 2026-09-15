@@ -6,7 +6,9 @@ This is a provisional Increment 7 baseline. The production source is
 unchanged from commit `c387fc4`; Increment 7 changes only test infrastructure,
 Gradle configuration, and documentation.
 
-Coverage is reported for review and is not enforced as a build threshold.
+Coverage is reported for review during normal builds and is not enforced by
+`check` or CI. An optional `coverageVerification` task checks the approved
+thresholds when invoked explicitly.
 
 ## Measurement configuration
 
@@ -28,6 +30,23 @@ The HTML report is available at:
 ```text
 build/reports/jacoco/coverageReport/html/index.html
 ```
+
+## Optional threshold verification
+
+Run the separate verification task with:
+
+```text
+./gradlew coverageVerification
+```
+
+The task checks the aggregate report against these minimums:
+
+- Lines: 90%.
+- Branches: 80%.
+- Methods: 95%.
+
+The task is not a dependency of `check`, and the GitHub Actions workflow is
+unchanged.
 
 ## Provisional results
 
@@ -55,5 +74,6 @@ resolved.
 - `clitest` passes.
 - `guiTest` passes.
 - Checkstyle and Javadoc pass.
-- `test` reports 285 tests completed with the two known Increment 4 failures.
+- `test` reports 285 tests completed with the three pending Increment 8
+  contract failures.
 - Exact-message assertions remain unchanged.
