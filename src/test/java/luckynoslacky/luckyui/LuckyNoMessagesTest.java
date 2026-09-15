@@ -153,4 +153,13 @@ class LuckyNoMessagesTest {
                         + "some tasks before adding more.",
                 LuckyNoMessages.taskLimitMessage());
     }
+
+    /** Verifies the configured invalid-configuration error message. */
+    @Test
+    void configurationErrorMessage_noArguments_returnsConfiguredMessage() {
+        assertEquals(
+                "Eh your configured clock not making sense lah! Remove or fix "
+                        + "`luckynoslacky.fixedNow` and try again.",
+                LuckyNoMessages.configurationErrorMessage());
+    }
 }

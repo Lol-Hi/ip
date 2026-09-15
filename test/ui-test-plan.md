@@ -66,6 +66,9 @@ bye
 - Task-capacity overflow is covered deterministically by
   `LuckyNoSlackyTest`; the CLI displays the task-limit message and continues
   accepting commands after the list reaches its maximum size.
+- Invalid non-blank `luckynoslacky.fixedNow` values are covered by
+  `LuckyNoSlackyTest`; the CLI displays the configuration warning and returns
+  cleanly without entering the command loop.
 
 ## Test Case: Start and exit
 

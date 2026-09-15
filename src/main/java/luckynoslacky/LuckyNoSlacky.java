@@ -6,6 +6,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 
 import luckynoslacky.luckycommand.LuckyNoCommand;
+import luckynoslacky.luckyexception.LuckyNoConfigurationException;
 import luckynoslacky.luckyexception.LuckyNoInputException;
 import luckynoslacky.luckyexception.LuckyNoStorageException;
 import luckynoslacky.luckyexception.LuckyNoTaskLimitException;
@@ -20,6 +21,7 @@ import luckynoslacky.luckyui.LuckyNoMessages;
  * Starts the LuckyNoSlacky chatbot.
  */
 public class LuckyNoSlacky {
+    private static final long CONFIGURATION_ERROR_DELAY_MILLIS = 1500L;
     private static final String FIXED_NOW_PROPERTY =
             "luckynoslacky.fixedNow";
 
@@ -145,9 +147,15 @@ public class LuckyNoSlacky {
      * @param args command-line arguments, which are not currently used
      */
     public static void main(String[] args) {
-        LuckyNoSlacky chatbot = new LuckyNoSlacky(createDateTimeParser());
         LuckyNoCli commandLineInterface = new LuckyNoCli();
-        run(chatbot, commandLineInterface);
+        try {
+            LuckyNoSlacky chatbot = new LuckyNoSlacky(createDateTimeParser());
+            run(chatbot, commandLineInterface);
+        } catch (LuckyNoConfigurationException exception) {
+            commandLineInterface.showGreeting();
+            commandLineInterface.showConfigurationError();
+            waitBeforeConfigurationExit();
+        }
     }
 
     /**
@@ -174,14 +182,15 @@ public class LuckyNoSlacky {
     }
 
     /**
-     * Creates the parser used by the application entry point.
+     * Creates the parser configured by the optional fixed-now property.
      *
-     * <p>The optional fixed-now property is used by deterministic UI tests.
-     * Normal launches omit it and continue to use the system clock.</p>
+     * <p>The property is used by deterministic UI tests. Normal launches omit
+     * it and continue to use the system clock.</p>
      *
      * @return parser configured for the current run
+     * @throws LuckyNoConfigurationException if the fixed-now value is invalid
      */
-    private static DateTimeParser createDateTimeParser() {
+    static DateTimeParser createDateTimeParser() {
         String fixedNow = System.getProperty(FIXED_NOW_PROPERTY);
         if (fixedNow == null || fixedNow.isBlank()) {
             return new DateTimeParser();
@@ -192,9 +201,18 @@ public class LuckyNoSlacky {
             return new DateTimeParser(
                     Clock.fixed(instant, ZoneOffset.UTC));
         } catch (DateTimeParseException exception) {
-            throw new IllegalArgumentException(
+            throw new LuckyNoConfigurationException(
                     "Fixed application time must be an ISO-8601 instant.",
                     exception);
+        }
+    }
+
+    /** Pauses briefly so the configuration error remains readable. */
+    private static void waitBeforeConfigurationExit() {
+        try {
+            Thread.sleep(CONFIGURATION_ERROR_DELAY_MILLIS);
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
         }
     }
 }

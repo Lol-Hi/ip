@@ -252,6 +252,16 @@ public final class LuckyNoMessages {
     }
 
     /**
+     * Returns the message shown when application configuration is invalid.
+     *
+     * @return configuration error message
+     */
+    public static String configurationErrorMessage() {
+        return "Eh your configured clock not making sense lah! Remove or fix "
+                + "`luckynoslacky.fixedNow` and try again.";
+    }
+
+    /**
      * Returns the message shown for an invalid date or time.
      *
      * @return invalid date/time message

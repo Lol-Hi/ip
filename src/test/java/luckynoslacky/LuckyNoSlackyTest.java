@@ -2,6 +2,8 @@ package luckynoslacky;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -9,12 +11,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import luckynoslacky.luckyexception.LuckyNoConfigurationException;
 import luckynoslacky.luckyexception.LuckyNoStorageException;
 import luckynoslacky.luckyparser.DateTimeParser;
 import luckynoslacky.luckystorage.CsvSaver;
@@ -27,15 +32,20 @@ import luckynoslacky.luckyui.LuckyNoMessages;
  * Tests the public chatbot facade used by the graphical interface.
  */
 class LuckyNoSlackyTest {
+    private static final String FIXED_NOW_PROPERTY =
+            "luckynoslacky.fixedNow";
+
     private InputStream originalInput;
     private PrintStream originalOutput;
     private ByteArrayOutputStream capturedOutput;
+    private String originalFixedNow;
 
     /** Redirects standard input and output before each CLI integration test. */
     @BeforeEach
     void setUp() {
         originalInput = System.in;
         originalOutput = System.out;
+        originalFixedNow = System.getProperty(FIXED_NOW_PROPERTY);
         capturedOutput = new ByteArrayOutputStream();
         System.setOut(new PrintStream(
                 capturedOutput, true, StandardCharsets.UTF_8));
@@ -46,6 +56,11 @@ class LuckyNoSlackyTest {
     void tearDown() {
         System.setIn(originalInput);
         System.setOut(originalOutput);
+        if (originalFixedNow == null) {
+            System.clearProperty(FIXED_NOW_PROPERTY);
+        } else {
+            System.setProperty(FIXED_NOW_PROPERTY, originalFixedNow);
+        }
     }
 
     /** Verifies that invalid GUI input is returned as a chatbot reply. */
@@ -82,6 +97,54 @@ class LuckyNoSlackyTest {
     void construct_nullCsvSaver_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () ->
                 new LuckyNoSlacky(new DateTimeParser(), null));
+    }
+
+    /** Verifies a valid fixed-now property creates the configured clock. */
+    @Test
+    void createDateTimeParser_validFixedNow_usesConfiguredTime() {
+        System.setProperty(
+                FIXED_NOW_PROPERTY, "2026-08-25T10:00:00Z");
+
+        assertEquals(
+                LocalDateTime.of(2026, 8, 25, 10, 0),
+                LuckyNoSlacky.createDateTimeParser().now());
+    }
+
+    /** Verifies a blank fixed-now property falls back to the system clock. */
+    @Test
+    void createDateTimeParser_blankFixedNow_usesSystemClock() {
+        System.setProperty(FIXED_NOW_PROPERTY, " ");
+
+        assertNotNull(LuckyNoSlacky.createDateTimeParser());
+    }
+
+    /** Verifies an invalid fixed-now property becomes a configuration error. */
+    @Test
+    void createDateTimeParser_invalidFixedNow_throwsConfigurationException() {
+        System.setProperty(FIXED_NOW_PROPERTY, "not-a-time");
+
+        LuckyNoConfigurationException exception = assertThrows(
+                LuckyNoConfigurationException.class,
+                LuckyNoSlacky::createDateTimeParser);
+
+        assertEquals(
+                "Fixed application time must be an ISO-8601 instant.",
+                exception.getMessage());
+        assertInstanceOf(DateTimeParseException.class, exception.getCause());
+    }
+
+    /** Verifies invalid startup configuration is reported before returning. */
+    @Test
+    void main_invalidFixedNow_reportsErrorAndReturns() {
+        System.setProperty(FIXED_NOW_PROPERTY, "not-a-time");
+
+        LuckyNoSlacky.main(new String[0]);
+
+        String output = capturedOutput.toString(StandardCharsets.UTF_8);
+        assertTrue(output.contains(LuckyNoMessages.greeting()));
+        assertTrue(output.contains(
+                LuckyNoMessages.configurationErrorMessage()));
+        assertFalse(output.contains(LuckyNoMessages.goodbye()));
     }
 
     /** Verifies that a load failure leaves the chatbot in degraded mode. */
