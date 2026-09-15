@@ -419,7 +419,7 @@ class CsvSaverTest {
 
     /** Verifies unknown task types are rejected during loading. */
     @Test
-    void load_unknownTaskType_throwsStorageException() throws Exception {
+    void load_unknownTaskType_throwsExactRowMessage() throws Exception {
         Path dataFile = temporaryDirectory.resolve("invalid.csv");
         Files.writeString(dataFile,
                 "Task type,isCompleted,Description,startTime,endTime\n"
@@ -467,7 +467,7 @@ class CsvSaverTest {
 
     /** Verifies malformed task records are rejected during loading. */
     @Test
-    void load_malformedTaskRecord_throwsStorageException() throws Exception {
+    void load_malformedTaskRecord_throwsExactRowMessage() throws Exception {
         Path dataFile = temporaryDirectory.resolve("malformed-record.csv");
         Files.writeString(dataFile,
                 "Task type,isCompleted,Description,startTime,endTime\n"
@@ -546,7 +546,7 @@ class CsvSaverTest {
 
     /** Verifies that a malformed later record prevents partial loading. */
     @Test
-    void load_validThenMalformedRecord_throwsExactStorageException() throws Exception {
+    void load_validThenMalformedRecord_throwsExactLaterRowMessage() throws Exception {
         Path dataFile = temporaryDirectory.resolve("malformed-later-record.csv");
         Files.writeString(dataFile,
                 "Task type,isCompleted,Description,startTime,endTime\n"
@@ -557,7 +557,7 @@ class CsvSaverTest {
 
         LuckyNoStorageException exception = assertThrows(
                 LuckyNoStorageException.class, saver::load);
-        assertEquals("Unable to load tasks.", exception.getMessage());
+        assertEquals("Invalid task data at row 3", exception.getMessage());
     }
 
     /** Verifies saving a null task list is rejected. */
