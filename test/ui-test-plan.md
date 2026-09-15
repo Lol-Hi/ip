@@ -69,6 +69,8 @@ bye
 - Invalid non-blank `luckynoslacky.fixedNow` values are covered by
   `LuckyNoSlackyTest`; the CLI displays the configuration warning and returns
   cleanly without entering the command loop.
+- End-of-file is a supported clean termination path; the CLI processes all
+  available input and displays the goodbye message exactly once.
 
 ## Test Case: Start and exit
 
@@ -94,6 +96,40 @@ bye
   LuckyNoSlacky is here to help!
   ____________________________________________________________
   Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
+## Test Case: End-of-file exit
+
+- Aim: Verify that the CLI processes an invalid command before input ends and
+  displays one goodbye message when EOF is reached without `bye`.
+
+### Input
+
+```text
+unknown command
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  What talking you? I only understand todo, deadline, event, list, mark, unmark, delete, find, snooze, resched, or bye, ok?
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!

@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -147,6 +148,88 @@ class LuckyNoSlackyTest {
         assertFalse(output.contains(LuckyNoMessages.goodbye()));
     }
 
+    /** Verifies that empty input exits with one goodbye message. */
+    @Test
+    void run_emptyInput_displaysGreetingAndSingleGoodbye() {
+        setInput("");
+        LuckyNoSlacky chatbot = new LuckyNoSlacky(
+                new DateTimeParser(), new EmptySaver());
+
+        LuckyNoSlacky.run(chatbot, new LuckyNoCli());
+
+        String output = capturedOutput.toString(StandardCharsets.UTF_8);
+        int greetingIndex = output.indexOf(LuckyNoMessages.greeting());
+        int goodbyeIndex = output.indexOf(LuckyNoMessages.goodbye());
+        assertTrue(greetingIndex >= 0);
+        assertTrue(goodbyeIndex > greetingIndex);
+        assertEquals(1, countOccurrences(output, LuckyNoMessages.goodbye()));
+    }
+
+    /** Verifies that commands before EOF are processed before goodbye. */
+    @Test
+    void run_commandThenEndOfFile_processesCommandAndDisplaysSingleGoodbye() {
+        setInput("todo task before eof\n");
+        LuckyNoSlacky chatbot = new LuckyNoSlacky(
+                new DateTimeParser(), new EmptySaver());
+
+        LuckyNoSlacky.run(chatbot, new LuckyNoCli());
+
+        String output = capturedOutput.toString(StandardCharsets.UTF_8);
+        int taskIndex = output.indexOf("task before eof");
+        int goodbyeIndex = output.indexOf(LuckyNoMessages.goodbye());
+        assertTrue(taskIndex >= 0);
+        assertTrue(goodbyeIndex > taskIndex);
+        assertEquals(1, countOccurrences(output, LuckyNoMessages.goodbye()));
+    }
+
+    /** Verifies that an invalid command before EOF still exits cleanly. */
+    @Test
+    void run_invalidCommandThenEndOfFile_displaysErrorAndSingleGoodbye() {
+        setInput("unknown command\n");
+        LuckyNoSlacky chatbot = new LuckyNoSlacky(
+                new DateTimeParser(), new EmptySaver());
+
+        LuckyNoSlacky.run(chatbot, new LuckyNoCli());
+
+        String output = capturedOutput.toString(StandardCharsets.UTF_8);
+        int errorIndex = output.indexOf(
+                LuckyNoMessages.unknownCommandMessage());
+        int goodbyeIndex = output.indexOf(LuckyNoMessages.goodbye());
+        assertTrue(errorIndex >= 0);
+        assertTrue(goodbyeIndex > errorIndex);
+        assertEquals(1, countOccurrences(output, LuckyNoMessages.goodbye()));
+    }
+
+    /** Verifies that a load warning precedes goodbye when input reaches EOF. */
+    @Test
+    void run_loadFailureThenEndOfFile_displaysWarningAndSingleGoodbye() {
+        setInput("");
+        LuckyNoSlacky chatbot = new LuckyNoSlacky(
+                new DateTimeParser(), new LoadFailingSaver());
+
+        LuckyNoSlacky.run(chatbot, new LuckyNoCli());
+
+        String output = capturedOutput.toString(StandardCharsets.UTF_8);
+        int warningIndex = output.indexOf(LuckyNoMessages.loadErrorMessage());
+        int goodbyeIndex = output.indexOf(LuckyNoMessages.goodbye());
+        assertTrue(warningIndex >= 0);
+        assertTrue(goodbyeIndex > warningIndex);
+        assertEquals(1, countOccurrences(output, LuckyNoMessages.goodbye()));
+    }
+
+    /** Verifies that explicit bye produces one goodbye message. */
+    @Test
+    void run_explicitBye_displaysSingleGoodbye() {
+        setInput("bye\n");
+        LuckyNoSlacky chatbot = new LuckyNoSlacky(
+                new DateTimeParser(), new EmptySaver());
+
+        LuckyNoSlacky.run(chatbot, new LuckyNoCli());
+
+        String output = capturedOutput.toString(StandardCharsets.UTF_8);
+        assertEquals(1, countOccurrences(output, LuckyNoMessages.goodbye()));
+    }
+
     /** Verifies that a load failure leaves the chatbot in degraded mode. */
     @Test
     void construct_loadFailure_setsLoadErrorState() {
@@ -229,6 +312,38 @@ class LuckyNoSlackyTest {
         assertTrue(output.contains(LuckyNoMessages.taskLimitMessage()));
         assertTrue(output.contains(LuckyNoMessages.goodbye()));
         assertEquals(100, saver.getSaveCount());
+    }
+
+    /** Supplies deterministic standard input to a CLI integration test. */
+    private void setInput(String input) {
+        System.setIn(new ByteArrayInputStream(
+                input.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    /** Counts non-overlapping occurrences of a message in captured output. */
+    private static int countOccurrences(String text, String message) {
+        int count = 0;
+        int searchStart = 0;
+        int messageIndex;
+        while ((messageIndex = text.indexOf(message, searchStart)) >= 0) {
+            count++;
+            searchStart = messageIndex + message.length();
+        }
+        return count;
+    }
+
+    /** Simulates an empty task store without accessing the repository data file. */
+    private static final class EmptySaver extends CsvSaver {
+        /** Returns an empty task list for isolated CLI tests. */
+        @Override
+        public List<Task> load() {
+            return List.of();
+        }
+
+        /** Ignores saves because these tests focus on CLI termination. */
+        @Override
+        public void save(TaskList taskList) {
+        }
     }
 
     /** Simulates a storage source that cannot load but can save new tasks. */
