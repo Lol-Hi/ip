@@ -8,6 +8,10 @@
 - Data isolation: reset `data/luckyNoSlacky.csv` before each test case
 - Deterministic clock: run with
   `-Dluckynoslacky.fixedNow=2026-08-25T10:00:00Z` so relative dates are stable
+- Recommended execution: build `luckyNoSlacky-CLI.jar`, then run the bundled
+  UI runner with `--reset-file data/luckyNoSlacky.csv` and the built JAR as the
+  program. This supplies all runtime dependencies and resets persisted state
+  before every case.
 - Storage failure cases are covered by unit tests using prepared data files
 - Compact `HHMM` fallback and date-dependent resolution are covered by
   `DateTimeParserTest` with a fixed clock

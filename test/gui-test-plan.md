@@ -65,6 +65,15 @@
 - Expected result: Each control exposes its configured accessible text and the
   command field and Send button expose their keyboard-use help text.
 
+## Test Case: Main window exposes visual integration regions
+
+- Aim: Verify that future personality visuals can be inserted without
+  replacing the functional conversation or command regions.
+- Test: `MainWindowTest.mainWindow_layoutRegions_exposeStableIntegrationHooks`
+- Expected result: The production layout exposes a hidden, unmanaged brand
+  header slot, a conversation region, and a command row with stable IDs and
+  CSS classes. The hidden header slot does not change the current layout.
+
 ## Test Case: Main window focuses the command field on startup
 
 - Aim: Verify that keyboard users can start typing immediately.

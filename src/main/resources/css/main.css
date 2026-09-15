@@ -6,6 +6,22 @@
     -fx-font-size: 14px;
 }
 
+.main-window {
+    -fx-background-color: #fff8e7;
+}
+
+.brand-header-slot {
+    -fx-padding: 0;
+}
+
+.conversation-region {
+    -fx-background-color: transparent;
+}
+
+.command-row {
+    -fx-background-color: transparent;
+}
+
 .dialog-container {
     -fx-padding: 12px;
 }

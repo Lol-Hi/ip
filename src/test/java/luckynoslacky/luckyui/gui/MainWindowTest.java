@@ -21,6 +21,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import luckynoslacky.LuckyNoSlacky;
@@ -170,6 +171,22 @@ class MainWindowTest {
         robot.clickOn("#sendButton");
 
         assertEquals(1, dialogueContainer.getChildren().size());
+    }
+
+    /** Verifies that the layout exposes stable visual integration regions. */
+    @Test
+    void mainWindow_layoutRegions_exposeStableIntegrationHooks(FxRobot robot) {
+        VBox brandHeaderSlot = robot.lookup("#brandHeaderSlot").query();
+        ScrollPane conversationRegion = robot.lookup("#scrollPane").query();
+        HBox commandRow = robot.lookup("#commandRow").query();
+
+        assertTrue(brandHeaderSlot.getStyleClass().contains(
+                "brand-header-slot"));
+        assertFalse(brandHeaderSlot.isManaged());
+        assertFalse(brandHeaderSlot.isVisible());
+        assertTrue(conversationRegion.getStyleClass().contains(
+                "conversation-region"));
+        assertTrue(commandRow.getStyleClass().contains("command-row"));
     }
 
     /** Verifies that the main window rejects a missing chatbot dependency. */
