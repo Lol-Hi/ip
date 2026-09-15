@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import luckynoslacky.luckyexception.LuckyNoStorageException;
+import luckynoslacky.luckyexception.LuckyNoTaskLimitException;
 import luckynoslacky.luckyparser.DurationPeriod;
 import luckynoslacky.luckystorage.CsvSaver;
 
@@ -72,7 +73,7 @@ public class TaskMaster {
      */
     public void addTask(Task task) {
         if (tasks.size() >= maxTasks) {
-            throw new IllegalStateException("The task list is full.");
+            throw new LuckyNoTaskLimitException("The task list is full.");
         }
 
         if (task == null) {

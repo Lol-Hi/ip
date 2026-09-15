@@ -196,6 +196,21 @@ class DurationParserTest {
                 DurationParser.parse("  1   HoUr 30 minutes please"));
     }
 
+    /** Verifies ordinary slash text is accepted in trailing commentary. */
+    @Test
+    void parse_trailingTextWithOrdinarySlash_returnsExpectedAmount()
+            throws LuckyNoInputException {
+        assertEquals(new DurationPeriod(Period.ZERO, Duration.ofHours(2)),
+                DurationParser.parse("2 hours see a/b results"));
+    }
+
+    /** Verifies marker-like slash text is rejected in trailing commentary. */
+    @Test
+    void parse_trailingTextWithMarkerLikeSlash_throwsInputException() {
+        assertThrows(LuckyNoInputException.class, () ->
+                DurationParser.parse("2 hours /later"));
+    }
+
     /** Verifies negative values receive the dedicated error. */
     @Test
     void parse_negativeComponent_throwsDedicatedInputException() {

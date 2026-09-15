@@ -2,6 +2,7 @@ package luckynoslacky.luckyui.gui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -57,5 +58,12 @@ class LuckyNoGuiTest {
         assertNotNull(LuckyNoGui.class.getResource("/fonts/RobotoMono-Regular.ttf"));
         assertTrue(Font.getFamilies().contains("Patrick Hand"));
         assertTrue(Font.getFamilies().contains("Roboto Mono"));
+    }
+
+    /** Verifies that the testable chatbot factory cannot be null. */
+    @Test
+    void construct_nullChatbotFactory_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new LuckyNoGui(null));
     }
 }

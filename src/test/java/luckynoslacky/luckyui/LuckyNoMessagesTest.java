@@ -144,4 +144,22 @@ class LuckyNoMessagesTest {
                 "Honggan la your system abit rabs ah, I cannot save your task",
                 LuckyNoMessages.saveErrorMessage());
     }
+
+    /** Verifies the configured task-capacity error message. */
+    @Test
+    void taskLimitMessage_noArguments_returnsConfiguredMessage() {
+        assertEquals(
+                "Eh your task list too full already lah! Finish or delete "
+                        + "some tasks before adding more.",
+                LuckyNoMessages.taskLimitMessage());
+    }
+
+    /** Verifies the configured invalid-configuration error message. */
+    @Test
+    void configurationErrorMessage_noArguments_returnsConfiguredMessage() {
+        assertEquals(
+                "Eh your configured clock not making sense lah! Remove or fix "
+                        + "`luckynoslacky.fixedNow` and try again.",
+                LuckyNoMessages.configurationErrorMessage());
+    }
 }

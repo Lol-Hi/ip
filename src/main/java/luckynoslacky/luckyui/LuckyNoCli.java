@@ -66,6 +66,11 @@ public class LuckyNoCli {
         showReply(LuckyNoMessages.saveErrorMessage());
     }
 
+    /** Displays the message shown when application configuration is invalid. */
+    public void showConfigurationError() {
+        showReply(LuckyNoMessages.configurationErrorMessage());
+    }
+
     /**
      * Echoes input using the normal chatbot reply formatting.
      *

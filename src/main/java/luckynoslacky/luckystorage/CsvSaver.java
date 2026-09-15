@@ -42,6 +42,7 @@ public class CsvSaver {
             Paths.get("data", "luckyNoSlacky.csv");
 
     private final Path dataFile;
+    private final FileOperations fileOperations;
 
     /**
      * Creates a saver that writes to the application's default data file.
@@ -57,10 +58,25 @@ public class CsvSaver {
      * @throws IllegalArgumentException if {@code dataFile} is null
      */
     public CsvSaver(Path dataFile) {
+        this(dataFile, new NioFileOperations());
+    }
+
+    /**
+     * Creates a saver with explicit filesystem operations.
+     *
+     * @param dataFile destination CSV file
+     * @param fileOperations filesystem operations used to access the data file
+     * @throws IllegalArgumentException if either argument is null
+     */
+    CsvSaver(Path dataFile, FileOperations fileOperations) {
         if (dataFile == null) {
             throw new IllegalArgumentException("Data file cannot be null.");
         }
+        if (fileOperations == null) {
+            throw new IllegalArgumentException("File operations cannot be null.");
+        }
         this.dataFile = dataFile;
+        this.fileOperations = fileOperations;
     }
 
     /**
@@ -74,16 +90,21 @@ public class CsvSaver {
         }
 
         Path temporaryFile = null;
+        LuckyNoStorageException saveFailure = null;
         try {
             createParentDirectory();
             temporaryFile = createTemporaryFile();
             writeCsvFile(taskList, temporaryFile);
             replaceDataFile(temporaryFile);
-        } catch (IOException | IllegalArgumentException exception) {
-            throw new LuckyNoStorageException(
+        } catch (IOException | IllegalArgumentException | SecurityException exception) {
+            saveFailure = new LuckyNoStorageException(
                     "Unable to save tasks.", exception);
         } finally {
-            deleteTemporaryFile(temporaryFile);
+            saveFailure = deleteTemporaryFile(temporaryFile, saveFailure);
+        }
+
+        if (saveFailure != null) {
+            throw saveFailure;
         }
     }
 
@@ -96,7 +117,7 @@ public class CsvSaver {
         Path parent = dataFile.getParent();
 
         if (parent != null) {
-            Files.createDirectories(parent);
+            fileOperations.createDirectories(parent);
         }
     }
 
@@ -109,9 +130,7 @@ public class CsvSaver {
     private Path createTemporaryFile() throws IOException {
         Path parent = dataFile.getParent();
 
-        return parent == null
-                ? Files.createTempFile("luckyNoSlacky-", ".tmp")
-                : Files.createTempFile(parent, "luckyNoSlacky-", ".tmp");
+        return fileOperations.createTemporaryFile(parent);
     }
 
     /**
@@ -123,8 +142,7 @@ public class CsvSaver {
      */
     private void writeCsvFile(TaskList taskList, Path outputFile)
             throws IOException {
-        try (BufferedWriter writer = Files.newBufferedWriter(
-                outputFile, StandardCharsets.UTF_8);
+        try (BufferedWriter writer = fileOperations.newBufferedWriter(outputFile);
              CSVPrinter printer = new CSVPrinter(writer, CSVFormat.DEFAULT)) {
             printer.printRecord(CSV_HEADER);
 
@@ -144,33 +162,37 @@ public class CsvSaver {
      */
     private void replaceDataFile(Path temporaryFile) throws IOException {
         try {
-            Files.move(
-                    temporaryFile,
-                    dataFile,
-                    StandardCopyOption.REPLACE_EXISTING,
-                    StandardCopyOption.ATOMIC_MOVE);
+            fileOperations.moveAtomically(temporaryFile, dataFile);
         } catch (AtomicMoveNotSupportedException exception) {
-            Files.move(
-                    temporaryFile,
-                    dataFile,
-                    StandardCopyOption.REPLACE_EXISTING);
+            fileOperations.moveReplacing(temporaryFile, dataFile);
         }
     }
 
     /**
-     * Deletes a temporary file after a save attempt.
+     * Deletes a temporary file after a save attempt and combines cleanup
+     * failures with any earlier save failure.
      *
      * @param temporaryFile temporary file to delete, or null if none was made
+     * @param saveFailure primary save failure, or null when saving succeeded
+     * @return the primary failure, cleanup failure, or null when neither failed
      */
-    private void deleteTemporaryFile(Path temporaryFile) {
+    private LuckyNoStorageException deleteTemporaryFile(
+            Path temporaryFile, LuckyNoStorageException saveFailure) {
         if (temporaryFile == null) {
-            return;
+            return saveFailure;
         }
 
         try {
-            Files.deleteIfExists(temporaryFile);
-        } catch (IOException exception) {
-            // The original save error, if any, is more useful to the caller.
+            fileOperations.deleteIfExists(temporaryFile);
+            return saveFailure;
+        } catch (IOException | SecurityException exception) {
+            LuckyNoStorageException cleanupFailure = new LuckyNoStorageException(
+                    "Unable to save tasks.", exception);
+            if (saveFailure != null) {
+                saveFailure.addSuppressed(cleanupFailure);
+                return saveFailure;
+            }
+            return cleanupFailure;
         }
     }
 
@@ -180,17 +202,36 @@ public class CsvSaver {
      * @return tasks stored in the file, or an empty list if the file is absent
      */
     public List<Task> load() {
-        if (Files.notExists(dataFile)) {
-            return List.of();
-        }
+        try {
+            if (fileOperations.notExists(dataFile)) {
+                return List.of();
+            }
 
-        if (!Files.isRegularFile(dataFile)) {
+            if (!fileOperations.isRegularFile(dataFile)) {
+                throw new LuckyNoStorageException(
+                        "The task data path is not a regular file.");
+            }
+
+            return readCsvFile();
+        } catch (IOException | SecurityException exception) {
             throw new LuckyNoStorageException(
-                    "The task data path is not a regular file.");
+                    "Unable to load tasks.", exception);
+        } catch (LuckyNoStorageException exception) {
+            throw exception;
+        } catch (RuntimeException exception) {
+            throw new LuckyNoStorageException(
+                    "Unable to load tasks.", exception);
         }
+    }
 
-        try (BufferedReader reader = Files.newBufferedReader(
-                dataFile, StandardCharsets.UTF_8);
+    /**
+     * Reads CSV records after the data file has been verified as readable.
+     *
+     * @return tasks represented by the CSV file
+     * @throws IOException if the data file cannot be read
+     */
+    private List<Task> readCsvFile() throws IOException {
+        try (BufferedReader reader = fileOperations.newBufferedReader(dataFile);
              CSVParser parser = CSVFormat.DEFAULT.parse(reader)) {
             List<CSVRecord> records = parser.getRecords();
 
@@ -203,14 +244,6 @@ public class CsvSaver {
             return IntStream.range(1, records.size())
                     .mapToObj(index -> createTaskFromCsvStorageRecord(records.get(index)))
                     .toList();
-        } catch (IOException exception) {
-            throw new LuckyNoStorageException(
-                "Unable to load tasks.", exception);
-        } catch (LuckyNoStorageException exception) {
-            throw exception;
-        } catch (RuntimeException exception) {
-            throw new LuckyNoStorageException(
-                    "Unable to load tasks.", exception);
         }
     }
 
@@ -321,5 +354,89 @@ public class CsvSaver {
                 "Invalid task record at row "
                         + record.getRecordNumber()
                         + ": " + reason);
+    }
+
+    /** Defines the filesystem operations required by CSV storage. */
+    interface FileOperations {
+        /** Checks whether a path is known not to exist. */
+        boolean notExists(Path path);
+
+        /** Checks whether a path is a regular file. */
+        boolean isRegularFile(Path path);
+
+        /** Opens a UTF-8 reader for a file. */
+        BufferedReader newBufferedReader(Path path) throws IOException;
+
+        /** Creates a directory and any missing parent directories. */
+        void createDirectories(Path directory) throws IOException;
+
+        /** Creates a temporary file, optionally in a supplied directory. */
+        Path createTemporaryFile(Path directory) throws IOException;
+
+        /** Opens a UTF-8 writer for a file. */
+        BufferedWriter newBufferedWriter(Path path) throws IOException;
+
+        /** Replaces a file using an atomic move when the filesystem supports it. */
+        void moveAtomically(Path source, Path destination) throws IOException;
+
+        /** Replaces a file using a non-atomic move. */
+        void moveReplacing(Path source, Path destination) throws IOException;
+
+        /** Deletes a file if it exists. */
+        boolean deleteIfExists(Path path) throws IOException;
+    }
+
+    /** Implements storage filesystem operations using the platform NIO API. */
+    private static final class NioFileOperations implements FileOperations {
+        @Override
+        public boolean notExists(Path path) {
+            return Files.notExists(path);
+        }
+
+        @Override
+        public boolean isRegularFile(Path path) {
+            return Files.isRegularFile(path);
+        }
+
+        @Override
+        public BufferedReader newBufferedReader(Path path) throws IOException {
+            return Files.newBufferedReader(path, StandardCharsets.UTF_8);
+        }
+
+        @Override
+        public void createDirectories(Path directory) throws IOException {
+            Files.createDirectories(directory);
+        }
+
+        @Override
+        public Path createTemporaryFile(Path directory) throws IOException {
+            return directory == null
+                    ? Files.createTempFile("luckyNoSlacky-", ".tmp")
+                    : Files.createTempFile(directory, "luckyNoSlacky-", ".tmp");
+        }
+
+        @Override
+        public BufferedWriter newBufferedWriter(Path path) throws IOException {
+            return Files.newBufferedWriter(path, StandardCharsets.UTF_8);
+        }
+
+        @Override
+        public void moveAtomically(Path source, Path destination) throws IOException {
+            Files.move(
+                    source,
+                    destination,
+                    StandardCopyOption.REPLACE_EXISTING,
+                    StandardCopyOption.ATOMIC_MOVE);
+        }
+
+        @Override
+        public void moveReplacing(Path source, Path destination) throws IOException {
+            Files.move(source, destination, StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        @Override
+        public boolean deleteIfExists(Path path) throws IOException {
+            return Files.deleteIfExists(path);
+        }
     }
 }

@@ -95,6 +95,18 @@ class LuckyNoCliTest {
                 capturedOutput.toString(StandardCharsets.UTF_8));
     }
 
+    /** Verifies configuration errors use standard reply formatting. */
+    @Test
+    void showConfigurationError_configuredMessage_displaysReply() {
+        LuckyNoCli cli = createCliWithInput("");
+
+        cli.showConfigurationError();
+
+        assertEquals(
+                expectedReply(LuckyNoMessages.configurationErrorMessage()),
+                capturedOutput.toString(StandardCharsets.UTF_8));
+    }
+
     /** Verifies that echoed input uses standard reply formatting. */
     @Test
     void echo_input_usesStandardReplyFormatting() {

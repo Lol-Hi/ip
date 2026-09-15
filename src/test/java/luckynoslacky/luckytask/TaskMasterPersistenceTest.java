@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import luckynoslacky.luckyexception.LuckyNoStorageException;
+import luckynoslacky.luckyexception.LuckyNoTaskLimitException;
 import luckynoslacky.luckystorage.CsvSaver;
 import luckynoslacky.luckyui.LuckyNoMessages;
 
@@ -46,8 +47,11 @@ class TaskMasterPersistenceTest {
         taskMaster.addTask(new TodoTask("first"));
         taskMaster.addTask(new TodoTask("second"));
 
-        assertThrows(IllegalStateException.class, () ->
+        LuckyNoTaskLimitException exception = assertThrows(
+                LuckyNoTaskLimitException.class, () ->
                 taskMaster.addTask(new TodoTask("third")));
+        assertEquals("The task list is full.", exception.getMessage());
+        assertEquals(2, taskMaster.getTaskCount());
     }
 
     /** Verifies that non-positive capacities are rejected. */

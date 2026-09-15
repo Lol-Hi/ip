@@ -353,7 +353,7 @@ public class LuckyNoParser {
         rejectMarkerLikeSlash(
                 byTimeText,
                 CommandName.DEADLINE);
-        LocalDateTime byTime = dateTimeParser.parseEndDateTime(byTimeText).dateTime();
+        LocalDateTime byTime = parseEndDateTimeIgnoringTrailingText(byTimeText);
         if (byTime.isBefore(dateTimeParser.now())) {
             throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
         }
@@ -399,8 +399,7 @@ public class LuckyNoParser {
         rejectMarkerLikeSlash(descriptionQuery, CommandName.FIND);
         rejectMarkerLikeSlash(dateText, CommandName.FIND);
 
-        LocalDateTime searchDateTime =
-                dateTimeParser.parseStartDateTime(dateText).dateTime();
+        LocalDateTime searchDateTime = parseStartDateTimeIgnoringTrailingText(dateText);
         if (descriptionQuery.isEmpty()) {
             descriptionQuery = null;
         }
@@ -882,12 +881,33 @@ public class LuckyNoParser {
                         : referenceDateTime == null
                         ? dateTimeParser.parseEndDateTime(candidate)
                         : dateTimeParser.parseEndDateTime(candidate, referenceDateTime);
+                if (isStructuredTrailingText(words, wordCount)) {
+                    continue;
+                }
                 return parsed.dateTime();
             } catch (LuckyNoInputException exception) {
                 // Try a shorter prefix so valid trailing commentary is ignored.
             }
         }
         throw new LuckyNoInputException(LuckyNoMessages.invalidDateTimeMessage());
+    }
+
+    /**
+     * Checks whether ignored suffix text looks like another date or time
+     * component rather than plain commentary.
+     *
+     * @param words whitespace-separated date/time input words
+     * @param parsedWordCount number of words in the parsed prefix
+     * @return true if the suffix begins with a numeric component
+     */
+    private boolean isStructuredTrailingText(String[] words, int parsedWordCount) {
+        if (parsedWordCount == words.length) {
+            return false;
+        }
+
+        String firstTrailingWord = words[parsedWordCount];
+        return !firstTrailingWord.isEmpty()
+                && Character.isDigit(firstTrailingWord.charAt(0));
     }
 
     /**
@@ -958,14 +978,13 @@ public class LuckyNoParser {
         rejectMarkerLikeSlash(description, CommandName.EVENT);
         rejectMarkerLikeSlash(startTimeText, CommandName.EVENT);
         rejectMarkerLikeSlash(endTimeText, CommandName.EVENT);
-        DateTimeParser.ParsedDateTime startTime =
-                dateTimeParser.parseStartDateTime(startTimeText);
-        DateTimeParser.ParsedDateTime endTime =
-                dateTimeParser.parseEndDateTime(endTimeText, startTime.dateTime());
-        if (endTime.dateTime().isBefore(startTime.dateTime())) {
+        LocalDateTime startTime = parseStartDateTimeIgnoringTrailingText(startTimeText);
+        LocalDateTime endTime = parseEndDateTimeIgnoringTrailingText(
+                endTimeText, startTime);
+        if (endTime.isBefore(startTime)) {
             throw new LuckyNoInputException(LuckyNoMessages.timeTravelMessage());
         }
-        return new EventTask(description, startTime.dateTime(), endTime.dateTime());
+        return new EventTask(description, startTime, endTime);
     }
 
     /** Stores the optional marker values of an event rescheduling command. */

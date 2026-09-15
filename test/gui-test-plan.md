@@ -137,12 +137,52 @@
 - Actions: Enter `unknown` and click `Send`.
 - Expected result: A user dialogue row and chatbot response row are added.
 
+## Test Case: Main window scrolls to the latest dialogue
+
+- Aim: Verify that a long conversation automatically reveals its newest
+  dialogue.
+- Test: `MainWindowTest.mainWindow_manyMessages_scrollsToLatestDialogue`
+- Actions: Submit 20 deterministic commands through the input field.
+- Expected result: All dialogue rows are retained and the scroll pane is at
+  its maximum vertical position.
+
 ## Test Case: Main window ignores blank input
 
 - Aim: Verify that submitting an empty command does not add dialogue rows.
 - Test: `MainWindowTest.mainWindow_blankInput_doesNotAddDialogue`
 - Actions: Click `Send` without entering a command.
 - Expected result: The greeting remains the only dialogue row.
+
+## Test Case: Main window remains usable after a load failure
+
+- Aim: Verify that the GUI enters degraded empty-list mode when task data
+  cannot be loaded.
+- Test: `MainWindowTest.mainWindow_loadFailure_remainsInteractive`
+- Actions: Launch the main window with a chatbot reporting a startup load
+  failure, then enter `list` and submit it.
+- Expected result: The greeting and loading-error message are displayed once,
+  the input field and Send button remain enabled, and the `list` command adds
+  the normal user and chatbot dialogue rows.
+
+## Test Case: Main window remains usable after a capacity error
+
+- Aim: Verify that rejecting a task because the task list is full does not
+  disable the GUI.
+- Test: `MainWindowTest.mainWindow_taskLimit_keepsControlsEnabled`
+- Actions: Launch the main window with a full-list chatbot, then submit
+  `todo overflow`.
+- Expected result: The approved task-limit message is displayed, the rejected
+  task is not added, and the input field and Send button remain enabled.
+
+## Test Case: Main window displays goodbye before delayed exit
+
+- Aim: Verify that the goodbye message remains visible while the application
+  waits before exiting.
+- Test: `MainWindowTest.mainWindow_byeCommand_displaysGoodbyeBeforeDelayedExit`
+- Actions: Enter `bye` in the command field and submit it.
+- Expected result: The goodbye message is displayed, both the input field and
+  Send button are disabled, the window remains visible, and the exit callback
+  runs only after the configured 1.5-second delay.
 
 ## Test Case: JavaFX application starts correctly
 
@@ -247,11 +287,34 @@ visible header slot, and places the clover pattern behind the conversation.
 These resources are visual dependencies only: command behavior, response
 tones, accessibility text, focus traversal, and minimum window dimensions
 remain owned and tested by BetterGUI.
+- Test: `MainWindowTest.mainWindow_widenedWindow_expandsInputAndPreservesButtonWidth`
+- Actions: Resize the window from 400 by 600 to 800 by 600.
+- Expected result: The input field expands with the window, while the Send
+  button remains at the bottom-right with a stable width.
+
+## Test Case: Main window keeps controls usable at minimum size
+
+- Aim: Verify that the input controls remain inside the scene at the minimum
+  supported dimensions.
+- Test: `MainWindowTest.mainWindow_minimumWindow_keepsControlsWithinScene`
+- Actions: Resize the window to 320 by 480.
+- Expected result: The input field and Send button remain visible, usable, and
+  inside the scene bounds.
+
+## Test Case: Main window preserves tasks across relaunch
+
+- Aim: Verify that a task added through the GUI is restored after closing and
+  relaunching the application.
+- Test: `GuiPersistenceTest.luckyNoGui_taskSavedThenRelaunched_restoresTask`
+- Actions: Add `todo persisted gui task`, close the stage, relaunch the GUI
+  with the same isolated data file, then submit `list`.
+- Expected result: The task appears in the relaunched conversation.
 
 ## Acceptance checks beyond `guiTest`
 
-These checks are intentionally broader than the deterministic Gradle task and
-may require a desktop automation capability or manual verification:
+These optional checks supplement the deterministic Gradle task with visual
+and end-to-end observations. They are non-blocking unless a failure reveals a
+serious functional regression.
 
 - Enter `bye` and verify that the goodbye message is visible before the window
   closes after the configured delay.
@@ -268,3 +331,45 @@ may require a desktop automation capability or manual verification:
   announced meaningfully, without reading decorative task emojis.
 - Enter `bye` and verify that both command controls become unavailable while
   the farewell remains visible before the delayed exit.
+### Test environment
+
+- Use Java 25 and the packaged GUI build.
+- Run the checks from a disposable copy of the project.
+- Use an isolated task-data file and do not modify normal application data.
+- Record the tested commit or build version.
+- Record screenshots only for failed or questionable checks.
+
+### Manual check: Conversation scrolling
+
+- Launch the GUI at 400 by 600 pixels.
+- Submit at least 20 short commands, such as `unknown`.
+- Confirm that the newest response remains visible after each submission.
+- Scroll upward after the final response.
+- Expected result: New content is shown automatically, earlier dialogue rows
+  remain available, and no message, avatar, or horizontal layout is clipped.
+
+### Manual check: Responsive sizing and readability
+
+- Inspect the GUI at 400 by 600, 320 by 480, and 800 by 600 pixels.
+- Inspect a shorter-than-default height when practical.
+- Expected result: The input field and Send button remain visible and usable;
+  the input expands horizontally; the Send button stays at the bottom-right;
+  long messages wrap; and labels, text, and avatars remain readable without
+  overlap or clipping.
+
+### Manual check: Persistence after relaunch
+
+- Start with the isolated task-data file empty.
+- Add `todo manual persistence check`.
+- Close the GUI using the window close control.
+- Relaunch the GUI from the same disposable copy and data file.
+- Submit `list`.
+- Expected result: The task is restored once with the same description and
+  type, and the relaunched GUI remains usable without unexpected errors.
+
+### Manual check reporting
+
+- Record a pass or fail result, window sizes, commands entered, and any
+  scrolling, readability, persistence, or error observations.
+- Capture screenshots only for failed or questionable checks.
+- Document confirmed defects as follow-up increments.
