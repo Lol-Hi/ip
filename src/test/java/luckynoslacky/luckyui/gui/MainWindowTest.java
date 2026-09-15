@@ -22,17 +22,20 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import luckynoslacky.LuckyNoSlacky;
+import luckynoslacky.luckyui.LuckyNoMessages;
 
 /** Tests observable interactions in the main JavaFX window. */
 @ExtendWith(ApplicationExtension.class)
 class MainWindowTest {
+    private MainWindow controller;
+
     /** Loads the production FXML window before each test. */
     @Start
     void start(Stage stage) throws IOException {
         FXMLLoader loader = new FXMLLoader(
                 MainWindow.class.getResource("/view/MainWindow.fxml"));
         Parent root = loader.load();
-        MainWindow controller = loader.getController();
+        controller = loader.getController();
         controller.setChatbot(new LuckyNoSlacky());
 
         stage.setScene(new Scene(root));
@@ -86,6 +89,59 @@ class MainWindowTest {
         assertEquals(1, dialogueContainer.getChildren().size());
     }
 
+    /** Verifies that a parser error is displayed as a chatbot message. */
+    @Test
+    void mainWindow_parseErrorResponse_displaysExactReply(FxRobot robot) {
+        StubChatbot chatbot = new StubChatbot(
+                false,
+                new LuckyNoSlacky.ChatResponse("exact parse error", false));
+        robot.interact(() -> controller.setChatbot(chatbot));
+
+        TextField inputField = robot.lookup("#userInput").query();
+        robot.clickOn(inputField).write("trigger parse error").push(KeyCode.ENTER);
+
+        VBox dialogueContainer = robot.lookup("#dialogContainer").query();
+        DialogueBox chatbotDialogue = (DialogueBox) dialogueContainer.getChildren()
+                .get(dialogueContainer.getChildren().size() - 1);
+        assertEquals("exact parse error", getMessageText(chatbotDialogue, 1));
+        assertFalse(inputField.isDisabled());
+    }
+
+    /** Verifies that a save error is displayed as a chatbot message. */
+    @Test
+    void mainWindow_saveErrorResponse_displaysExactReply(FxRobot robot) {
+        StubChatbot chatbot = new StubChatbot(
+                false,
+                new LuckyNoSlacky.ChatResponse(
+                        LuckyNoMessages.saveErrorMessage(), false));
+        robot.interact(() -> controller.setChatbot(chatbot));
+
+        TextField inputField = robot.lookup("#userInput").query();
+        robot.clickOn(inputField).write("trigger save error").push(KeyCode.ENTER);
+
+        VBox dialogueContainer = robot.lookup("#dialogContainer").query();
+        DialogueBox chatbotDialogue = (DialogueBox) dialogueContainer.getChildren()
+                .get(dialogueContainer.getChildren().size() - 1);
+        assertEquals(LuckyNoMessages.saveErrorMessage(),
+                getMessageText(chatbotDialogue, 1));
+        assertFalse(inputField.isDisabled());
+    }
+
+    /** Verifies that a startup load error is displayed after the greeting. */
+    @Test
+    void mainWindow_loadErrorChatbot_displaysExactStartupError(FxRobot robot) {
+        StubChatbot chatbot = new StubChatbot(
+                true,
+                new LuckyNoSlacky.ChatResponse("unused response", false));
+        robot.interact(() -> controller.setChatbot(chatbot));
+
+        VBox dialogueContainer = robot.lookup("#dialogContainer").query();
+        DialogueBox chatbotDialogue = (DialogueBox) dialogueContainer.getChildren()
+                .get(dialogueContainer.getChildren().size() - 1);
+        assertEquals(LuckyNoMessages.loadErrorMessage(),
+                getMessageText(chatbotDialogue, 1));
+    }
+
     /** Verifies that the main window rejects a missing chatbot dependency. */
     @Test
     void setChatbot_nullChatbot_throwsIllegalArgumentException() {
@@ -99,5 +155,35 @@ class MainWindowTest {
     private String getSpeakerLabel(DialogueBox dialogue, int dialogueIndex) {
         VBox messageContainer = (VBox) dialogue.getChildren().get(dialogueIndex);
         return ((Label) messageContainer.getChildren().get(0)).getText();
+    }
+
+    /** Returns the message text from a dialogue row's text container. */
+    private String getMessageText(DialogueBox dialogue, int dialogueIndex) {
+        VBox messageContainer = (VBox) dialogue.getChildren().get(dialogueIndex);
+        return ((Label) messageContainer.getChildren().get(1)).getText();
+    }
+
+    /** Supplies deterministic chatbot responses to GUI presentation tests. */
+    private static final class StubChatbot extends LuckyNoSlacky {
+        private final boolean loadError;
+        private final ChatResponse response;
+
+        StubChatbot(boolean loadError, ChatResponse response) {
+            super();
+            this.loadError = loadError;
+            this.response = response;
+        }
+
+        /** Returns the configured startup-load result. */
+        @Override
+        public boolean hasLoadError() {
+            return loadError;
+        }
+
+        /** Returns the configured response for any submitted command. */
+        @Override
+        public ChatResponse getResponse(String userInput) {
+            return response;
+        }
     }
 }

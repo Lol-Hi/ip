@@ -51,10 +51,14 @@
 
 ## Improvement 5: Chatbot startup and error paths
 
-- [ ] Test invalid fixed-clock configuration.
-- [ ] Test startup load failures.
-- [ ] Test CLI exhaustion versus explicit `bye`.
-- [ ] Test GUI-facing save and parse error responses.
+- [x] Test invalid fixed-clock configuration.
+- [x] Test startup load failures.
+- [x] Test CLI exhaustion versus explicit `bye`.
+- [x] Test GUI-facing save and parse error responses.
+- [x] Use an isolated subprocess probe for GUI save failures.
+- [x] Add the CLI end-of-file scenario to `test/ui-test-plan.md`.
+- [ ] Run JUnit, `clitest`, GUI tests, Checkstyle, Javadoc, `check`, and the UI plan.
+- [x] Draft and review the Increment 5 commit message.
 
 ## Improvement 6: Deterministic GUI automation
 

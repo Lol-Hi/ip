@@ -54,6 +54,39 @@ bye
   ____________________________________________________________
 ```
 
+## Test Case: End-of-file exit
+
+- Aim: Verify that the CLI processes all available input and displays one goodbye message when input ends without an explicit `bye` command.
+
+### Input
+
+```text
+unknown command
+```
+
+### Expected output
+
+```text
+  ____________________________________________________________
+     .--"""""--.
+   /  /^\   /^\  \
+  |  .---------.  |
+  |  | | | | | |  |
+   \ '---------' /
+     '-._____.-'
+    [NO SLACKING]
+  LuckyNoSlacky is here to help!
+  ____________________________________________________________
+  Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slacky!
+  ____________________________________________________________
+  ____________________________________________________________
+  What talking you? I only understand todo, deadline, event, list, mark, unmark, delete, find, snooze, resched, or bye, ok?
+  ____________________________________________________________
+  ____________________________________________________________
+  Huh so fast zao ah, rest well ah!
+  ____________________________________________________________
+```
+
 ## Test Case: Natural-language snooze durations
 
 - Aim: Verify article, number-word, filler-word, and abbreviated half-unit

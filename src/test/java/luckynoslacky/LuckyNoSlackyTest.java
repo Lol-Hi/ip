@@ -24,6 +24,18 @@ class LuckyNoSlackyTest {
         assertFalse(chatbot.getResponse("unknown command").shouldExit());
     }
 
+    /** Verifies that malformed input returns the exact parser error response. */
+    @Test
+    void getResponse_missingTaskDescription_returnsExactInputError() {
+        LuckyNoSlacky chatbot = new LuckyNoSlacky();
+
+        LuckyNoSlacky.ChatResponse response = chatbot.getResponse("todo");
+
+        assertEquals("You don't tell me what to do how I know what to do???",
+                response.message());
+        assertFalse(response.shouldExit());
+    }
+
     /** Verifies that the bye command returns an exit signal to the GUI. */
     @Test
     void getResponse_byeCommand_returnsGoodbyeAndExitStatus() {
