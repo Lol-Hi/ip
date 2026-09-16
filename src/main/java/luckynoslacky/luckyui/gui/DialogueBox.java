@@ -327,6 +327,8 @@ public class DialogueBox extends HBox {
             case NEUTRAL, INFO -> {
                 // These tones do not need an additional non-colour marker.
             }
+            default -> throw new IllegalStateException(
+                    "Unexpected response tone: " + responseTone);
         }
     }
 
