@@ -14,6 +14,15 @@ class TestOutputNormalizerTest {
                 TestOutputNormalizer.normalize("first line\r\nsecond line\r"));
     }
 
+    /** Verifies line-ending normalization preserves a final newline. */
+    @Test
+    void normalizeLineEndings_mixedLineEndings_preservesAllNewlines() {
+        assertEquals(
+                "first line\nsecond line\n",
+                TestOutputNormalizer.normalizeLineEndings(
+                        "first line\r\nsecond line\r"));
+    }
+
     /** Verifies supported date and time names are replaced with stable tokens. */
     @Test
     void normalize_dateAndTimeNames_replacesLocaleDependentTokens() {

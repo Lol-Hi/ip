@@ -54,6 +54,15 @@ class LuckyNoGuiTest {
         assertNotNull(LuckyNoGui.class.getResource("/images/luckynoslacky.jpg"));
         assertNotNull(LuckyNoGui.class.getResource("/images/user.png"));
         assertNotNull(LuckyNoGui.class.getResource("/images/clover-pattern.png"));
+        assertNotNull(LuckyNoGui.class.getResource("/images/icons/task-todo.png"));
+        assertNotNull(LuckyNoGui.class.getResource("/images/icons/task-deadline.png"));
+        assertNotNull(LuckyNoGui.class.getResource("/images/icons/task-event.png"));
+        assertNotNull(LuckyNoGui.class.getResource("/images/icons/task-completed.png"));
+        assertNotNull(LuckyNoGui.class.getResource("/images/icons/task-incomplete.png"));
+        assertNotNull(LuckyNoGui.class.getResource("/images/icons/response-success.png"));
+        assertNotNull(LuckyNoGui.class.getResource("/images/icons/response-warning.png"));
+        assertNotNull(LuckyNoGui.class.getResource(
+                "/images/icons/response-system-error.png"));
         assertNotNull(LuckyNoGui.class.getResource("/fonts/PatrickHand-Regular.ttf"));
         assertNotNull(LuckyNoGui.class.getResource("/fonts/RobotoMono-Regular.ttf"));
         assertTrue(Font.getFamilies().contains("Patrick Hand"));

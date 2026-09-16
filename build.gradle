@@ -1,3 +1,5 @@
+import org.gradle.process.ExecOperations
+
 plugins {
     id 'java'
     id 'application'
@@ -11,25 +13,27 @@ repositories {
 }
 
 String javaFxVersion = '17.0.7'
-String operatingSystem = System.getProperty('os.name').toLowerCase(
-        java.util.Locale.ROOT)
-String architecture = System.getProperty('os.arch').toLowerCase(
-        java.util.Locale.ROOT)
-String javaFxPlatform = operatingSystem.contains('mac')
-        ? architecture.contains('aarch64') || architecture.contains('arm64')
-                ? 'mac-aarch64'
-                : 'mac'
-        : operatingSystem.contains('win')
-                ? 'win'
-                : operatingSystem.contains('linux')
-                        ? architecture.contains('aarch64') || architecture.contains('arm64')
-                                ? 'linux-aarch64'
-                                : 'linux'
-                        : null
+List<String> javaFxPlatforms = ['win', 'mac', 'mac-aarch64', 'linux']
+ExecOperations execOperations = services.get(ExecOperations)
+List<String> macNativeLibraryNames = [
+        'libdecora_sse.dylib',
+        'libglass.dylib',
+        'libjavafx_font.dylib',
+        'libjavafx_iio.dylib',
+        'libprism_common.dylib',
+        'libprism_es2.dylib',
+        'libprism_sw.dylib'
+]
 
-if (javaFxPlatform == null) {
-    throw new GradleException(
-            "Unsupported operating system for JavaFX: ${operatingSystem}")
+configurations {
+    javaFxMacIntelGraphics {
+        canBeConsumed = false
+        canBeResolved = true
+    }
+    javaFxMacArmGraphics {
+        canBeConsumed = false
+        canBeResolved = true
+    }
 }
 
 dependencies {
@@ -44,10 +48,21 @@ dependencies {
     testImplementation 'org.testfx:openjfx-monocle:17.0.10'
     testImplementation 'org.hamcrest:hamcrest:2.2'
 
-    implementation("org.openjfx:javafx-base:${javaFxVersion}:${javaFxPlatform}")
-    implementation("org.openjfx:javafx-controls:${javaFxVersion}:${javaFxPlatform}")
-    implementation("org.openjfx:javafx-fxml:${javaFxVersion}:${javaFxPlatform}")
-    implementation("org.openjfx:javafx-graphics:${javaFxVersion}:${javaFxPlatform}")
+    javaFxPlatforms.each { platform ->
+        implementation("org.openjfx:javafx-base:${javaFxVersion}:${platform}")
+        implementation("org.openjfx:javafx-controls:${javaFxVersion}:${platform}")
+        implementation("org.openjfx:javafx-fxml:${javaFxVersion}:${platform}")
+        implementation("org.openjfx:javafx-graphics:${javaFxVersion}:${platform}")
+    }
+
+    javaFxMacIntelGraphics(
+            "org.openjfx:javafx-graphics:${javaFxVersion}:mac") {
+        transitive = false
+    }
+    javaFxMacArmGraphics(
+            "org.openjfx:javafx-graphics:${javaFxVersion}:mac-aarch64") {
+        transitive = false
+    }
 }
 
 java {
@@ -217,18 +232,7 @@ jar {
 }
 
 shadowJar {
-    archiveFileName = 'luckyNoSlacky-CLI.jar'
-
-    manifest {
-        attributes 'Main-Class': application.mainClass.get()
-    }
-}
-
-tasks.register('shadowJarGui',
-        com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
-    archiveFileName = 'luckyNoSlacky-GUI.jar'
-    from sourceSets.main.output
-    configurations = [project.configurations.runtimeClasspath]
+    archiveFileName = 'luckyNoSlacky.jar'
     mergeServiceFiles()
 
     manifest {
@@ -236,10 +240,59 @@ tasks.register('shadowJarGui',
     }
 }
 
-tasks.register('releaseJars') {
+tasks.register('mergeMacJavaFxNatives') {
     group = 'build'
-    description = 'Builds the CLI and JavaFX GUI release JARs.'
-    dependsOn shadowJar, shadowJarGui
+    description = 'Merges macOS JavaFX native libraries for Intel and Apple Silicon.'
+    onlyIf {
+        System.getProperty('os.name').toLowerCase(java.util.Locale.ROOT)
+                .contains('mac')
+    }
+    outputs.upToDateWhen { false }
+
+    doLast {
+        File stagingDirectory = layout.buildDirectory.dir(
+                'generated/universal-javafx-mac').get().asFile
+        File intelDirectory = new File(stagingDirectory, 'intel')
+        File armDirectory = new File(stagingDirectory, 'arm')
+        File universalDirectory = new File(stagingDirectory, 'universal')
+        delete(stagingDirectory)
+        universalDirectory.mkdirs()
+
+        copy {
+            from zipTree(configurations.javaFxMacIntelGraphics.singleFile)
+            include macNativeLibraryNames
+            into intelDirectory
+        }
+        copy {
+            from zipTree(configurations.javaFxMacArmGraphics.singleFile)
+            include macNativeLibraryNames
+            into armDirectory
+        }
+
+        macNativeLibraryNames.each { libraryName ->
+            File intelLibrary = new File(intelDirectory, libraryName)
+            File armLibrary = new File(armDirectory, libraryName)
+            if (!intelLibrary.isFile() || !armLibrary.isFile()) {
+                throw new GradleException(
+                        "Missing JavaFX macOS native library: ${libraryName}")
+            }
+            execOperations.exec {
+                commandLine 'lipo', '-create', intelLibrary.absolutePath,
+                        armLibrary.absolutePath, '-output',
+                        new File(universalDirectory, libraryName).absolutePath
+            }
+        }
+
+        File shadowArchive = tasks.named('shadowJar').get().archiveFile.get().asFile
+        execOperations.exec {
+            commandLine 'jar', '--update', '--file', shadowArchive.absolutePath,
+                    '-C', universalDirectory.absolutePath, '.'
+        }
+    }
+}
+
+tasks.named('shadowJar') {
+    finalizedBy tasks.named('mergeMacJavaFxNatives')
 }
 
 run {
@@ -252,4 +305,7 @@ tasks.register('runGui', JavaExec) {
     description = 'Runs the LuckyNoSlacky JavaFX interface.'
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'luckynoslacky.luckyui.gui.Launcher'
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
 }

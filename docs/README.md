@@ -4,6 +4,20 @@ LuckyNoSlacky is a task manager for ToDos, deadlines, and events. It accepts
 commands through the CLI or graphical interface and saves changes automatically
 to `data/luckyNoSlacky.csv`.
 
+![](Ui.png)
+
+## Launching LuckyNoSlacky
+
+LuckyNoSlacky requires Java 25. Run the released cross-platform JAR from the
+directory where you want the `data/` folder to be created:
+
+```text
+java -jar luckyNoSlacky.jar
+```
+
+The command opens the graphical interface. Build the JAR from the project root
+with `./gradlew clean shadowJar`.
+
 ## Creating tasks
 
 ```text

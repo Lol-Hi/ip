@@ -16,8 +16,7 @@ public final class TestOutputNormalizer {
      * @return normalized output
      */
     public static String normalize(String output) {
-        String normalized = output.replace("\r\n", "\n")
-                .replace('\r', '\n');
+        String normalized = normalizeLineEndings(output);
         normalized = normalized.replaceAll("(?m)[ \\t]+$", "");
         normalized = normalized.replaceAll(
                 "(?i)\\b(?:mon|tue|wed|thu|fri|sat|sun)\\b", "DAY");
@@ -29,5 +28,16 @@ public final class TestOutputNormalizer {
         return normalized.endsWith("\n")
                 ? normalized.substring(0, normalized.length() - 1)
                 : normalized;
+    }
+
+    /**
+     * Converts Windows and legacy Mac line endings to Unix line endings.
+     *
+     * @param output text to normalize
+     * @return text with Unix line endings
+     */
+    public static String normalizeLineEndings(String output) {
+        return output.replace("\r\n", "\n")
+                .replace('\r', '\n');
     }
 }

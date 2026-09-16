@@ -2,6 +2,7 @@ package luckynoslacky.luckyui.gui;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Pos;
@@ -46,10 +47,17 @@ public class DialogueBox extends HBox {
     private static final double CHATBOT_BUBBLE_WIDTH_FRACTION = 0.86;
     private static final double USER_BUBBLE_WIDTH_FRACTION = 0.70;
     private static final double DIALOGUE_SPACING = 8.0;
+    private static final double TONE_MARKER_ICON_SIZE = 18.0;
     private static final String USER_ACCESSIBLE_PREFIX = "You: ";
     private static final String CHATBOT_ACCESSIBLE_PREFIX = "LuckyNoSlacky: ";
     private static final String WARNING_ACCESSIBLE_PREFIX =
             "Bodoh sia like that also can kena warning ";
+    private static final Image SUCCESS_MARKER_ICON = loadMarkerIcon(
+            "/images/icons/response-success.png");
+    private static final Image WARNING_MARKER_ICON = loadMarkerIcon(
+            "/images/icons/response-warning.png");
+    private static final Image SYSTEM_ERROR_MARKER_ICON = loadMarkerIcon(
+            "/images/icons/response-system-error.png");
     /** Identifies the speaker and visual treatment of a dialogue row. */
     public enum DialogueType {
         /** A LuckyNoSlacky response. */
@@ -309,20 +317,40 @@ public class DialogueBox extends HBox {
     private static void addToneMarker(
             VBox messageContainer,
             ResponseTone responseTone) {
-        String markerText = switch (responseTone) {
-            case SUCCESS -> "🍀";
-            case WARNING -> "⚠";
-            case SYSTEM_ERROR -> "⛔";
-            case NEUTRAL, INFO -> "";
-        };
-        if (!markerText.isEmpty()) {
-            Label marker = new Label(markerText);
-            marker.getStyleClass().add(getMarkerStyle(responseTone));
-            marker.setAccessibleText("");
-            marker.setFocusTraversable(false);
-            marker.setMouseTransparent(true);
-            messageContainer.getChildren().add(marker);
+        switch (responseTone) {
+            case SUCCESS -> addToneMarker(
+                    messageContainer, SUCCESS_MARKER_ICON);
+            case WARNING -> addToneMarker(
+                    messageContainer, WARNING_MARKER_ICON);
+            case SYSTEM_ERROR -> addToneMarker(
+                    messageContainer, SYSTEM_ERROR_MARKER_ICON);
+            case NEUTRAL, INFO -> {
+                // These tones do not need an additional non-colour marker.
+            }
         }
+    }
+
+    /** Adds a fixed-size decorative image for an emphasized response tone. */
+    private static void addToneMarker(
+            VBox messageContainer,
+            Image markerIcon) {
+        ImageView marker = new ImageView(markerIcon);
+        marker.setFitWidth(TONE_MARKER_ICON_SIZE);
+        marker.setFitHeight(TONE_MARKER_ICON_SIZE);
+        marker.setPreserveRatio(true);
+        marker.setSmooth(true);
+        marker.setAccessibleRole(AccessibleRole.NODE);
+        marker.setAccessibleText("");
+        marker.setFocusTraversable(false);
+        marker.setMouseTransparent(true);
+        messageContainer.getChildren().add(marker);
+    }
+
+    /** Loads one bundled response-tone marker image. */
+    private static Image loadMarkerIcon(String resourcePath) {
+        return new Image(Objects.requireNonNull(
+                DialogueBox.class.getResource(resourcePath),
+                "Missing response marker image: " + resourcePath).toExternalForm());
     }
 
     /** Returns the personality stylesheet class for a response tone. */
@@ -344,21 +372,6 @@ public class DialogueBox extends HBox {
             case INFO -> "personality-response-information-label";
             case WARNING -> "personality-response-warning-label";
             case SYSTEM_ERROR -> "personality-response-system-error-label";
-        };
-    }
-
-    /**
-     * Returns the marker style for an emphasized response tone.
-     *
-     * @param responseTone response tone
-     * @return marker CSS style class
-     */
-    private static String getMarkerStyle(ResponseTone responseTone) {
-        return switch (responseTone) {
-            case SUCCESS -> "success-marker";
-            case SYSTEM_ERROR -> "system-error-marker";
-            case WARNING -> "warning-marker";
-            case NEUTRAL, INFO -> "";
         };
     }
 

@@ -148,13 +148,10 @@ public final class LuckyNoGuiProcessProbe extends Application {
         return findVisibleText(latestDialogue);
     }
 
-    /** Collects visible labels from a dialogue while skipping decorative markers. */
+    /** Collects visible labels from a dialogue. */
     private static String findVisibleText(Node node) {
         if (node instanceof Label label) {
-            return switch (label.getText()) {
-                case "🍀", "⚠", "⛔", "📌", "⏳", "📆", "❗", "✅" -> "";
-                default -> label.getText();
-            };
+            return label.getText();
         }
         if (node instanceof Parent parent) {
             return parent.getChildrenUnmodifiable().stream()

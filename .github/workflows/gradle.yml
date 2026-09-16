@@ -41,7 +41,9 @@ jobs:
       - name: Build and run checks
         shell: bash
         run: |
-          if [ "$RUNNER_OS" = "Windows" ]; then
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            ./gradlew check javadoc shadowJar
+          elif [ "$RUNNER_OS" = "Windows" ]; then
             ./gradlew.bat check javadoc
           else
             ./gradlew check javadoc

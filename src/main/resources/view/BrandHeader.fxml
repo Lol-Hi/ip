@@ -31,7 +31,13 @@
                        text="LuckyNoSlacky" />
                 <Label fx:id="brandTagline" styleClass="brand-tagline"
                        text="Your lucky task buddy" wrapText="true" />
-                <Label styleClass="brand-accent" text="🍀" />
+                <ImageView fitHeight="22.0" fitWidth="22.0"
+                           mouseTransparent="true" preserveRatio="true"
+                           accessibleText="" focusTraversable="false">
+                    <image>
+                        <Image url="@../images/icons/response-success.png" />
+                    </image>
+                </ImageView>
             </children>
         </VBox>
     </children>

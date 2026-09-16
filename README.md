@@ -82,35 +82,34 @@ configured before launching the application.
 
 ### Run using the released JAR
 
-LuckyNoSlacky is also distributed as separate fat JARs containing the
-application and its runtime dependencies. Build both release JARs with:
+LuckyNoSlacky is distributed as one cross-platform fat JAR containing the
+application and JavaFX runtime dependencies for Windows, macOS, and Linux.
+Build it with Java 25:
 
 ```bash
-./gradlew releaseJars
+./gradlew clean shadowJar
 ```
 
-The generated files are located under `build/libs/`:
+Create the release JAR on macOS. The build automatically combines the Intel
+and Apple Silicon JavaFX native libraries there, while retaining the Windows
+and Linux JavaFX libraries in the same JAR.
+
+The generated file is:
 
 ```text
-build/libs/luckyNoSlacky-CLI.jar
-build/libs/luckyNoSlacky-GUI.jar
+build/libs/luckyNoSlacky.jar
 ```
 
-To run the CLI JAR, use Java 25 from the project root:
+Run it with Java 25 from the directory where you want its relative `data/`
+folder to be created:
 
 ```bash
-java -jar build/libs/luckyNoSlacky-CLI.jar
+java -jar luckyNoSlacky.jar
 ```
 
-To run the JavaFX GUI JAR:
-
-```bash
-java -jar build/libs/luckyNoSlacky-GUI.jar
-```
-
-No additional dependency or classpath setup is needed.
-The relative `data/` folder and `data/luckyNoSlacky.csv` file will then be 
-created in the same `build/libs/` library.
+This opens the JavaFX GUI without additional dependency or classpath setup.
+The relative `data/` folder and `data/luckyNoSlacky.csv` file are created in
+the current working directory.
 
 ### Task data persistence
 

@@ -110,7 +110,9 @@ class DialogueBoxTest {
             assertTrue(dialogue.getStyleClass().contains(
                     DialogueBox.SUCCESS_DIALOGUE_STYLE));
             VBox messageContainer = getMessageContainer(dialogue, 1);
-            assertEquals("🍀", ((Label) messageContainer.getChildren().get(0)).getText());
+            assertToneMarker(
+                    (ImageView) messageContainer.getChildren().get(0),
+                    "/images/icons/response-success.png");
             assertTrue(messageContainer.getStyleClass().contains(
                     "personality-response-success"));
             assertEquals("LuckyNoSlacky: Task added.", dialogue.getAccessibleText());
@@ -153,7 +155,9 @@ class DialogueBoxTest {
                             + "That command needs more detail.",
                     dialogue.getAccessibleText());
             VBox messageContainer = getMessageContainer(dialogue, 1);
-            assertEquals("⚠", ((Label) messageContainer.getChildren().get(0)).getText());
+            assertToneMarker(
+                    (ImageView) messageContainer.getChildren().get(0),
+                    "/images/icons/response-warning.png");
         });
     }
 
@@ -167,7 +171,9 @@ class DialogueBoxTest {
             assertTrue(dialogue.getStyleClass().contains(
                     DialogueBox.SYSTEM_ERROR_DIALOGUE_STYLE));
             VBox messageContainer = getMessageContainer(dialogue, 1);
-            assertEquals("⛔", ((Label) messageContainer.getChildren().get(0)).getText());
+            assertToneMarker(
+                    (ImageView) messageContainer.getChildren().get(0),
+                    "/images/icons/response-system-error.png");
             assertEquals("LuckyNoSlacky: Unable to save tasks.",
                     dialogue.getAccessibleText());
         });
@@ -217,11 +223,14 @@ class DialogueBoxTest {
                     "personality-task-card-todo"));
             HBox todoTypeRow = (HBox) todoCard.getChildren().get(0);
             Label todoType = (Label) todoTypeRow.getChildren().get(0);
-            Label todoNumber = (Label) todoTypeRow.getChildren().get(2);
-            assertEquals("TODO 📌", todoType.getText());
+            ImageView todoTypeIcon = (ImageView) todoTypeRow.getChildren().get(1);
+            Label todoNumber = (Label) todoTypeRow.getChildren().get(3);
+            assertEquals("TODO", todoType.getText());
+            assertIconResource(todoTypeIcon, "/images/icons/task-todo.png");
             assertEquals("#1", todoNumber.getText());
             HBox todoTitleRow = (HBox) todoCard.getChildren().get(1);
-            assertEquals("❗", ((Label) todoTitleRow.getChildren().get(0)).getText());
+            ImageView todoStatusIcon = (ImageView) todoTitleRow.getChildren().get(0);
+            assertIconResource(todoStatusIcon, "/images/icons/task-incomplete.png");
             Label todoTitle = (Label) todoTitleRow.getChildren().get(1);
             assertEquals("buy groceries", todoTitle.getText());
             assertEquals(2, todoCard.getChildren().size());
@@ -230,7 +239,9 @@ class DialogueBoxTest {
             assertTrue(deadlineCard.getStyleClass().contains(
                     "personality-task-card-deadline"));
             HBox deadlineTypeRow = (HBox) deadlineCard.getChildren().get(0);
-            Label deadlineNumber = (Label) deadlineTypeRow.getChildren().get(2);
+            ImageView deadlineTypeIcon = (ImageView) deadlineTypeRow.getChildren().get(1);
+            Label deadlineNumber = (Label) deadlineTypeRow.getChildren().get(3);
+            assertIconResource(deadlineTypeIcon, "/images/icons/task-deadline.png");
             assertEquals("#2", deadlineNumber.getText());
             Label deadlineDetails = (Label) deadlineCard.getChildren().get(2);
             assertEquals("by Wed Aug 26 2026, 11.59pm",
@@ -240,11 +251,13 @@ class DialogueBoxTest {
             assertTrue(eventCard.getStyleClass().contains(
                     "personality-task-card-event"));
             HBox eventTypeRow = (HBox) eventCard.getChildren().get(0);
-            Label eventNumber = (Label) eventTypeRow.getChildren().get(2);
+            ImageView eventTypeIcon = (ImageView) eventTypeRow.getChildren().get(1);
+            Label eventNumber = (Label) eventTypeRow.getChildren().get(3);
+            assertIconResource(eventTypeIcon, "/images/icons/task-event.png");
             assertEquals("#3", eventNumber.getText());
             HBox eventTitleRow = (HBox) eventCard.getChildren().get(1);
-            Label eventStatus = (Label) eventTitleRow.getChildren().get(0);
-            assertEquals("✅", eventStatus.getText());
+            ImageView eventStatusIcon = (ImageView) eventTitleRow.getChildren().get(0);
+            assertIconResource(eventStatusIcon, "/images/icons/task-completed.png");
             Label eventStart = (Label) eventCard.getChildren().get(2);
             Label eventEnd = (Label) eventCard.getChildren().get(3);
             assertEquals("from Wed Aug 26 2026, 2.00pm", eventStart.getText());
@@ -257,11 +270,6 @@ class DialogueBoxTest {
                             + "EVENT, task 3, completed, team meeting, from Wed Aug 26 2026, 2.00pm, "
                             + "to Wed Aug 26 2026, 3.00pm",
                     accessibleText);
-            assertFalse(accessibleText.contains("📌"));
-            assertFalse(accessibleText.contains("⏳"));
-            assertFalse(accessibleText.contains("📆"));
-            assertFalse(accessibleText.contains("❗"));
-            assertFalse(accessibleText.contains("✅"));
             assertFalse(accessibleText.contains("[T]"));
         });
     }
@@ -287,7 +295,7 @@ class DialogueBoxTest {
             VBox taskCard = (VBox) taskList.getChildren().get(0);
             HBox typeRow = (HBox) taskCard.getChildren().get(0);
 
-            assertEquals(2, typeRow.getChildren().size());
+            assertEquals(3, typeRow.getChildren().size());
             assertFalse(dialogue.getAccessibleText().contains("task 1"));
             assertFalse(dialogue.getAccessibleText().contains("#1"));
         });
@@ -315,11 +323,9 @@ class DialogueBoxTest {
         return findMessageLabel(messageContainer);
     }
 
-    /** Finds the first visible non-decorative label in a message bubble. */
+    /** Finds the first visible label in a message bubble. */
     private Label findMessageLabel(Node node) {
-        if (node instanceof Label label
-                && !label.getText().isEmpty()
-                && !isDecorativeLabel(label.getText())) {
+        if (node instanceof Label label && !label.getText().isEmpty()) {
             return label;
         }
         if (node instanceof Parent parent) {
@@ -334,16 +340,23 @@ class DialogueBoxTest {
         throw new java.util.NoSuchElementException("No visible message label");
     }
 
-    /** Returns whether a label contains only a decorative marker. */
-    private boolean isDecorativeLabel(String text) {
-        return text.equals("🍀")
-                || text.equals("⚠")
-                || text.equals("⛔")
-                || text.equals("📌")
-                || text.equals("⏳")
-                || text.equals("📆")
-                || text.equals("❗")
-                || text.equals("✅");
+    /** Verifies an image view contains the expected bundled icon resource. */
+    private void assertIconResource(ImageView imageView, String resourcePath) {
+        assertTrue(imageView.getStyleClass().contains("personality-task-status")
+                || imageView.getStyleClass().contains("personality-task-type-icon"));
+        assertTrue(imageView.getImage().getUrl().endsWith(resourcePath));
+        assertTrue(imageView.getFitWidth() > 0.0);
+        assertTrue(imageView.getFitHeight() > 0.0);
+    }
+
+    /** Verifies an image view contains the expected bundled response marker. */
+    private void assertToneMarker(
+            ImageView imageView,
+            String resourcePath) {
+        assertTrue(imageView.getImage().getUrl().endsWith(resourcePath));
+        assertTrue(imageView.getFitWidth() > 0.0);
+        assertTrue(imageView.getFitHeight() > 0.0);
+        assertFalse(imageView.isFocusTraversable());
     }
 
     /** Returns the message bubble at the given row position. */

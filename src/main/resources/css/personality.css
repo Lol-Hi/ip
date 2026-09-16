@@ -30,11 +30,6 @@
     -fx-text-fill: #3d2b1f;
 }
 
-.brand-accent {
-    -fx-font-size: 22px;
-    -fx-text-fill: #2f855a;
-}
-
 /* Shared typography selectors. */
 .personality-interface-text {
     -fx-font-family: "Patrick Hand";

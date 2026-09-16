@@ -43,21 +43,6 @@
     -fx-border-width: 1px 1px 1px 4px;
 }
 
-.success-marker {
-    -fx-text-fill: #2f855a;
-    -fx-font-weight: bold;
-}
-
-.warning-marker {
-    -fx-text-fill: #8a5a00;
-    -fx-font-weight: bold;
-}
-
-.system-error-marker {
-    -fx-text-fill: #9b2c2c;
-    -fx-font-weight: bold;
-}
-
 .avatar {
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 4, 0.3, 0, 1);
 }

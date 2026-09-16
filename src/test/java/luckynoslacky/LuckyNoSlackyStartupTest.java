@@ -17,6 +17,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import luckynoslacky.luckyresponse.LuckyNoQuips;
+import luckynoslacky.testutil.TestOutputNormalizer;
 
 /** Tests startup, termination, and isolated facade error paths. */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -104,7 +105,8 @@ class LuckyNoSlackyStartupTest {
         assertEquals(0, result.exitCode());
         assertEquals(LuckyNoQuips.saveErrorMessage()
                         + "\nshouldExit=false\n",
-                result.standardOutput());
+                TestOutputNormalizer.normalizeLineEndings(
+                        result.standardOutput()));
         assertEquals("", result.standardError());
     }
 

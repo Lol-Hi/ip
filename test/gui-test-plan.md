@@ -41,7 +41,7 @@
 - Test: `DialogueBoxTest.dialogueBox_successMessage_displaysCloverMarker`
 - Expected result: The response remains left-aligned, applies the success
   dialogue CSS style, shows the green personality treatment, and shows a
-  visible `🍀` marker without changing the response text.
+  bundled success-marker image without changing the response text.
 
 ## Test Case: DialogueBox displays information responses
 
@@ -55,8 +55,8 @@
 - Aim: Verify that storage failures use a stronger non-warning error style.
 - Test: `DialogueBoxTest.dialogueBox_systemErrorMessage_displaysErrorMarker`
 - Expected result: The response remains left-aligned, applies the system-error
-  dialogue CSS style, and shows a visible `⛔` marker without changing the
-  response text.
+  dialogue CSS style, and shows the bundled system-error marker image without
+  changing the response text.
 
 ## Test Case: Main window exposes accessible labels
 
@@ -74,8 +74,8 @@
 - Expected result: The production layout exposes a visible managed brand
   header slot, a conversation region, and a command row with stable IDs and
   CSS classes. The integrated header slot contains the LuckyNoSlacky title,
-  tagline, existing chatbot image, and clover accent; the conversation region
-  also exposes the personality background layer.
+  tagline, existing chatbot image, and bundled clover accent image; the
+  conversation region also exposes the personality background layer.
 
 ## Test Case: Main window focuses the command field on startup
 
@@ -195,13 +195,28 @@
 
 ## Test Case: GUI resources are packaged
 
-- Aim: Verify that the FXML layout, CSS stylesheets, and both avatar images are
-  available from the application classpath.
+- Aim: Verify that the FXML layout, CSS stylesheets, avatars, and task-card
+  icons are available from the application classpath.
 - Test: `LuckyNoGuiTest.luckyNoGui_resourcePaths_areAvailable`
-- Expected result: The layout, both CSS stylesheets, chatbot avatar, and user
-  avatar resources, branded header, clover pattern, and bundled fonts are all
-  found, and the two personality font families are registered before FXML
-  styling.
+- Expected result: The layout, both CSS stylesheets, chatbot avatar, user
+  avatar, task-card icons, response-marker icons, branded header, clover
+  pattern, and bundled fonts are all found, and the two personality font
+  families are registered before FXML styling.
+
+## Test Case: Cross-platform release JAR is packaged
+
+- Aim: Verify that the release JAR starts the JavaFX launcher and contains the
+  native JavaFX back ends needed by the supported operating systems.
+- Test: Run `./gradlew clean shadowJar`, inspect the manifest and JAR contents,
+  then launch `java -jar build/libs/luckyNoSlacky.jar` from an empty directory
+  using Java 25.
+- Expected result: `build/libs/luckyNoSlacky.jar` has
+  `luckynoslacky.luckyui.gui.Launcher` as its main class and contains the
+  Windows, Linux, and universal macOS JavaFX native libraries. The macOS
+  libraries report both `x86_64` and `arm64` slices when inspected with
+  `lipo -archs`. It opens the GUI, renders bundled task-card and response-tone
+  icons at fixed sizes, closes after `bye`, and writes no `hs_err_pid` crash
+  log.
 
 ## Test Case: DialogueBox displays structured task cards
 
@@ -209,19 +224,21 @@
   card inside one response bubble.
 - Test: `DialogueBoxTest.dialogueBox_taskContent_displaysTypedCardsAndAccessibleStatus`
 - Expected result: TODO, deadline, and event lines are displayed in their
-  original order with the labels `TODO 📌`, `DEADLINE ⏳`, and `EVENT 📆`.
+  original order with `TODO`, `DEADLINE`, and `EVENT` labels and their matching
+  bundled task-type image assets.
   Numbered task lines from `list` and `find` display their existing task
   number as a `#<number>` badge in the top-right corner of the card.
-  Incomplete tasks show `❗`, completed tasks show `✅`, and the card colours
-  are pale blue, pale orange, and pale purple respectively. Todo cards omit a
-  schedule row. Deadline cards show one `by` row, while event cards show
-  separate `from` and `to` rows. The outer response bubble keeps its semantic
-  tone colour. Unnumbered confirmation lines remain unnumbered.
+  Incomplete and completed tasks show their matching bundled status image
+  assets, and the card colours are pale blue, pale orange, and pale purple
+  respectively. Todo cards omit a schedule row. Deadline cards show one `by`
+  row, while event cards show separate `from` and `to` rows. The outer response
+  bubble keeps its semantic tone colour. Unnumbered confirmation lines remain
+  unnumbered.
 
 ## Test Case: DialogueBox provides accessible task descriptions
 
-- Aim: Verify that decorative task emojis and internal markers are not read
-  by a screen reader.
+- Aim: Verify that decorative task images and internal markers are not read by
+  a screen reader.
 - Test: `DialogueBoxTest.dialogueBox_taskContent_displaysTypedCardsAndAccessibleStatus`
 - Expected result: The outer response is exposed with descriptions such as
   `TODO, task 1, incomplete, <task name>`, `DEADLINE, task 2, incomplete,

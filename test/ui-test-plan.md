@@ -61,10 +61,9 @@ bye
   repository's data file is not modified.
 - Deterministic clock: run with
   `-Dluckynoslacky.fixedNow=2026-08-25T10:00:00Z` so relative dates are stable
-- Recommended execution: build `luckyNoSlacky-CLI.jar`, then run the bundled
-  UI runner with `--reset-file data/luckyNoSlacky.csv` and the built JAR as the
-  program. This supplies all runtime dependencies and resets persisted state
-  before every case.
+- Recommended execution: run the bundled UI runner against the compiled CLI
+  main class with `--reset-file data/luckyNoSlacky.csv`. This resets persisted
+  state before every case without opening the released JavaFX interface.
 - CLI tests do not impose an artificial timeout; each case must terminate with
   `bye` or end-of-file.
 - Date output comparison normalizes line endings and localized day, month, and

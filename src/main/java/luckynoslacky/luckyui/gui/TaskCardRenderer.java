@@ -4,9 +4,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 import javafx.scene.AccessibleRole;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -20,6 +23,13 @@ import luckynoslacky.luckytask.TaskView;
 final class TaskCardRenderer {
     private static final DateTimeFormatter TASK_TIME_FORMATTER =
             DateTimeFormatter.ofPattern("EEE MMM dd uuuu, h.mma", Locale.ENGLISH);
+    private static final double TYPE_ICON_SIZE = 14.0;
+    private static final double STATUS_ICON_SIZE = 18.0;
+    private static final Image TODO_ICON = loadIcon("/images/icons/task-todo.png");
+    private static final Image DEADLINE_ICON = loadIcon("/images/icons/task-deadline.png");
+    private static final Image EVENT_ICON = loadIcon("/images/icons/task-event.png");
+    private static final Image COMPLETED_ICON = loadIcon("/images/icons/task-completed.png");
+    private static final Image INCOMPLETE_ICON = loadIcon("/images/icons/task-incomplete.png");
 
     private TaskCardRenderer() {
         // Prevent instantiation of this utility class.
@@ -38,9 +48,12 @@ final class TaskCardRenderer {
                 "personality-task-card-" + getTypeStyle(task.taskType()));
 
         Label typeLabel = createTextLabel(
-                getTypeLabel(task.taskType()) + " " + getTypeEmoji(task.taskType()),
-                "personality-task-type");
-        HBox typeRow = new HBox(typeLabel);
+                getTypeLabel(task.taskType()), "personality-task-type");
+        ImageView typeIcon = createIcon(
+                getTypeIcon(task.taskType()),
+                TYPE_ICON_SIZE,
+                "personality-task-type-icon");
+        HBox typeRow = new HBox(typeLabel, typeIcon);
         typeRow.getStyleClass().add("personality-task-type-row");
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -49,11 +62,13 @@ final class TaskCardRenderer {
             typeRow.getChildren().add(createTextLabel(
                     "#" + task.taskNumber(), "personality-task-number"));
         }
-        Label statusLabel = createTextLabel(
-                task.isDone() ? "✅" : "❗", "personality-task-status");
+        ImageView statusIcon = createIcon(
+                task.isDone() ? COMPLETED_ICON : INCOMPLETE_ICON,
+                STATUS_ICON_SIZE,
+                "personality-task-status");
         Label titleLabel = createTextLabel(
                 task.description(), "personality-task-title");
-        HBox titleRow = new HBox(statusLabel, titleLabel);
+        HBox titleRow = new HBox(statusIcon, titleLabel);
         titleRow.getStyleClass().add("personality-task-title-row");
 
         taskCard.getChildren().addAll(typeRow, titleRow);
@@ -94,13 +109,38 @@ final class TaskCardRenderer {
         };
     }
 
-    /** Returns the decorative emoji for a task type. */
-    private static String getTypeEmoji(Task.TaskType taskType) {
+    /** Returns the bundled decorative icon for a task type. */
+    private static Image getTypeIcon(Task.TaskType taskType) {
         return switch (taskType) {
-            case TODO -> "📌";
-            case DEADLINE -> "⏳";
-            case EVENT -> "📆";
+            case TODO -> TODO_ICON;
+            case DEADLINE -> DEADLINE_ICON;
+            case EVENT -> EVENT_ICON;
         };
+    }
+
+    /** Creates a fixed-size decorative icon excluded from assistive output. */
+    private static ImageView createIcon(
+            Image icon,
+            double iconSize,
+            String style) {
+        ImageView imageView = new ImageView(icon);
+        imageView.setFitWidth(iconSize);
+        imageView.setFitHeight(iconSize);
+        imageView.setPreserveRatio(true);
+        imageView.setSmooth(true);
+        imageView.setAccessibleRole(AccessibleRole.NODE);
+        imageView.setAccessibleText("");
+        imageView.setFocusTraversable(false);
+        imageView.setMouseTransparent(true);
+        imageView.getStyleClass().add(style);
+        return imageView;
+    }
+
+    /** Loads one bundled Noto Emoji image. */
+    private static Image loadIcon(String resourcePath) {
+        return new Image(Objects.requireNonNull(
+                TaskCardRenderer.class.getResource(resourcePath),
+                "Missing task icon resource: " + resourcePath).toExternalForm());
     }
 
     /** Returns the CSS modifier for a task type. */

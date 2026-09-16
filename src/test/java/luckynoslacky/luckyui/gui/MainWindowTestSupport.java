@@ -42,13 +42,10 @@ abstract class MainWindowTestSupport {
                 .orElseThrow();
     }
 
-    /** Finds the first visible response text while skipping tone markers. */
+    /** Finds the first visible response text. */
     private String findVisibleMessageText(Node node) {
         if (node instanceof Label label) {
-            return switch (label.getText()) {
-                case "🍀", "⚠", "⛔" -> "";
-                default -> label.getText();
-            };
+            return label.getText();
         }
         if (node instanceof Parent parent) {
             return parent.getChildrenUnmodifiable().stream()
