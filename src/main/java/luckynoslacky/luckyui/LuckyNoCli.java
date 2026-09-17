@@ -1,5 +1,6 @@
 package luckynoslacky.luckyui;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 import luckynoslacky.luckyresponse.LuckyNoQuips;
@@ -44,12 +45,12 @@ public class LuckyNoCli {
     public void showReply(String... messageParts) {
         String output = String.join("\n", messageParts);
         String indentedOutput = output.replace("\n", "\n  ");
-        System.out.print(DIVIDER + "  " + indentedOutput + "\n" + DIVIDER);
+        writeUtf8(DIVIDER + "  " + indentedOutput + "\n" + DIVIDER);
     }
 
     /** Displays the chatbot banner and greeting. */
     public void showGreeting() {
-        System.out.print(DIVIDER + LuckyNoQuips.banner() + "\n");
+        writeUtf8(DIVIDER + LuckyNoQuips.banner() + "\n");
         showReply(LuckyNoQuips.greeting());
     }
 
@@ -80,5 +81,15 @@ public class LuckyNoCli {
      */
     public void echo(String userInput) {
         showReply(userInput);
+    }
+
+    /**
+     * Writes text to standard output with UTF-8 encoding.
+     *
+     * @param text text to write
+     */
+    private static void writeUtf8(String text) {
+        byte[] encodedText = text.getBytes(StandardCharsets.UTF_8);
+        System.out.write(encodedText, 0, encodedText.length);
     }
 }

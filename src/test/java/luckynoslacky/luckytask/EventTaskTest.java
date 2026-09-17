@@ -34,11 +34,11 @@ class EventTaskTest {
                 LocalDateTime.of(2026, 8, 26, 14, 0),
                 LocalDateTime.of(2026, 8, 26, 16, 0));
 
-        assertEquals("[E][ ] project meeting (from: Wed Aug 26 2026, 2.00pm"
+        assertEquals("[📆][❗] project meeting (from: Wed Aug 26 2026, 2.00pm"
                         + " to: Wed Aug 26 2026, 4.00pm)",
                 task.toString());
         task.markAsDone();
-        assertEquals("[E][X] project meeting (from: Wed Aug 26 2026, 2.00pm"
+        assertEquals("[📆][✅] project meeting (from: Wed Aug 26 2026, 2.00pm"
                         + " to: Wed Aug 26 2026, 4.00pm)",
                 task.toString());
     }

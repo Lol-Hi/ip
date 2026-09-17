@@ -140,7 +140,7 @@ class TaskMasterPersistenceTest {
                 LuckyNoStorageException.class, () -> taskMaster.deleteTask(1));
         assertEquals("simulated save failure", exception.getMessage());
         assertEquals(1, taskMaster.getTaskCount());
-        assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
+        assertEquals("Nah, all these things you need to do:\n1.[📌][❗] read book",
                 LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 

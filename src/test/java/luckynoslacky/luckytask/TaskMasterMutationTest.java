@@ -34,8 +34,8 @@ class TaskMasterMutationTest {
         taskMaster.markTaskDone(2);
 
         assertEquals("Nah, all these things you need to do:\n"
-                        + "1.[T][ ] read book\n"
-                        + "2.[T][X] return book",
+                        + "1.[📌][❗] read book\n"
+                        + "2.[📌][✅] return book",
                 LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
@@ -48,7 +48,7 @@ class TaskMasterMutationTest {
         taskMaster.markTaskDone(1);
         taskMaster.unmarkTaskUndone(1);
 
-        assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
+        assertEquals("Nah, all these things you need to do:\n1.[📌][❗] read book",
                 LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
@@ -61,7 +61,7 @@ class TaskMasterMutationTest {
         taskMaster.markTaskDone(1);
         taskMaster.markTaskDone(1);
 
-        assertEquals("Nah, all these things you need to do:\n1.[T][X] read book",
+        assertEquals("Nah, all these things you need to do:\n1.[📌][✅] read book",
                 LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
@@ -74,7 +74,7 @@ class TaskMasterMutationTest {
         taskMaster.unmarkTaskUndone(1);
         taskMaster.unmarkTaskUndone(1);
 
-        assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
+        assertEquals("Nah, all these things you need to do:\n1.[📌][❗] read book",
                 LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
@@ -88,8 +88,8 @@ class TaskMasterMutationTest {
 
         assertEquals("second", taskMaster.deleteTask(2).getDescription());
         assertEquals("Nah, all these things you need to do:\n"
-                        + "1.[T][ ] first\n"
-                        + "2.[E][ ] third (from: Thu Aug 06 2026, 2.00pm"
+                        + "1.[📌][❗] first\n"
+                        + "2.[📆][❗] third (from: Thu Aug 06 2026, 2.00pm"
                         + " to: Thu Aug 06 2026, 4.00pm)",
                 LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
@@ -103,7 +103,7 @@ class TaskMasterMutationTest {
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class, () -> taskMaster.deleteTask(2));
         assertEquals("Invalid task number.", exception.getMessage());
-        assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
+        assertEquals("Nah, all these things you need to do:\n1.[📌][❗] read book",
                 LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
@@ -118,8 +118,8 @@ class TaskMasterMutationTest {
         taskMaster.addTask(new TodoTask("third"));
 
         assertEquals("Nah, all these things you need to do:\n"
-                        + "1.[T][ ] second\n"
-                        + "2.[T][ ] third",
+                        + "1.[📌][❗] second\n"
+                        + "2.[📌][❗] third",
                 LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
@@ -168,12 +168,12 @@ class TaskMasterMutationTest {
         taskMaster.addTask(new TodoTask("read book"));
 
         assertThrows(IllegalArgumentException.class, () -> taskMaster.markTaskDone(2));
-        assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
+        assertEquals("Nah, all these things you need to do:\n1.[📌][❗] read book",
                 LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
 
         taskMaster.markTaskDone(1);
         assertThrows(IllegalArgumentException.class, () -> taskMaster.unmarkTaskUndone(2));
-        assertEquals("Nah, all these things you need to do:\n1.[T][X] read book",
+        assertEquals("Nah, all these things you need to do:\n1.[📌][✅] read book",
                 LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 

@@ -63,7 +63,7 @@ class LuckyNoCommandTest {
 
         assertEquals(
                 LuckyNoTaskResponses.marked(task).message(), result.message());
-        assertEquals("Nah, all these things you need to do:\n1.[T][X] read book",
+        assertEquals("Nah, all these things you need to do:\n1.[📌][✅] read book",
                 LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
@@ -79,7 +79,7 @@ class LuckyNoCommandTest {
 
         assertEquals(
                 LuckyNoTaskResponses.unmarked(task).message(), result.message());
-        assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
+        assertEquals("Nah, all these things you need to do:\n1.[📌][❗] read book",
                 LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 

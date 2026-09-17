@@ -32,10 +32,10 @@ class DeadlineTaskTest {
         DeadlineTask task = new DeadlineTask(
                 "return book", LocalDateTime.of(2026, 8, 26, 14, 0));
 
-        assertEquals("[D][ ] return book (by: Wed Aug 26 2026, 2.00pm)",
+        assertEquals("[⏳][❗] return book (by: Wed Aug 26 2026, 2.00pm)",
                 task.toString());
         task.markAsDone();
-        assertEquals("[D][X] return book (by: Wed Aug 26 2026, 2.00pm)",
+        assertEquals("[⏳][✅] return book (by: Wed Aug 26 2026, 2.00pm)",
                 task.toString());
     }
 

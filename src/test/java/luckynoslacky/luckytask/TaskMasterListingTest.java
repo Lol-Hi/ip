@@ -40,7 +40,7 @@ class TaskMasterListingTest {
 
         taskMaster.addTask(new TodoTask("read book"));
 
-        assertEquals("Nah, all these things you need to do:\n1.[T][ ] read book",
+        assertEquals("Nah, all these things you need to do:\n1.[📌][❗] read book",
                 LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
@@ -53,8 +53,8 @@ class TaskMasterListingTest {
         taskMaster.addTask(new TodoTask("return book"));
 
         assertEquals("Nah, all these things you need to do:\n"
-                        + "1.[T][ ] read book\n"
-                        + "2.[T][ ] return book",
+                        + "1.[📌][❗] read book\n"
+                        + "2.[📌][❗] return book",
                 LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
 
@@ -84,9 +84,9 @@ class TaskMasterListingTest {
         taskMaster.addTask(new EventTask("project meeting", EVENT_START, EVENT_END));
 
         assertEquals("Nah, all these things you need to do:\n"
-                        + "1.[T][ ] borrow book\n"
-                        + "2.[D][ ] return book (by: Sun Dec 06 2026, 11.59pm)\n"
-                        + "3.[E][ ] project meeting (from: Thu Aug 06 2026, 2.00pm"
+                        + "1.[📌][❗] borrow book\n"
+                        + "2.[⏳][❗] return book (by: Sun Dec 06 2026, 11.59pm)\n"
+                        + "3.[📆][❗] project meeting (from: Thu Aug 06 2026, 2.00pm"
                         + " to: Thu Aug 06 2026, 4.00pm)",
                 LuckyNoTaskResponses.listed(taskMaster.listTasks()).message());
     }
@@ -104,8 +104,8 @@ class TaskMasterListingTest {
                 LocalDateTime.of(2026, 8, 27, 16, 0)));
 
         assertEquals("Nah, all these things you need to do on: Aug 26 2026\n"
-                        + "2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)\n"
-                        + "3.[E][ ] project meeting (from: Tue Aug 25 2026, 2.00pm"
+                        + "2.[⏳][❗] return book (by: Wed Aug 26 2026, 11.59pm)\n"
+                        + "3.[📆][❗] project meeting (from: Tue Aug 25 2026, 2.00pm"
                         + " to: Thu Aug 27 2026, 4.00pm)",
                 LuckyNoTaskResponses.listed(
                         taskMaster.findTasks(LocalDateTime.of(2026, 8, 26, 0, 0))).message());
@@ -137,8 +137,8 @@ class TaskMasterListingTest {
         taskMaster.addTask(new TodoTask("buy bread"));
 
         assertEquals("Nah, all these things you need to do:\n"
-                        + "1.[T][ ] read book\n"
-                        + "2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)",
+                        + "1.[📌][❗] read book\n"
+                        + "2.[⏳][❗] return book (by: Wed Aug 26 2026, 11.59pm)",
                 LuckyNoTaskResponses.listed(taskMaster.findTasks("BOOK")).message());
     }
 
@@ -155,7 +155,7 @@ class TaskMasterListingTest {
                 LocalDateTime.of(2026, 8, 27, 16, 0)));
 
         assertEquals("Nah, all these things you need to do on: Aug 26 2026\n"
-                        + "2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)",
+                        + "2.[⏳][❗] return book (by: Wed Aug 26 2026, 11.59pm)",
                 LuckyNoTaskResponses.listed(taskMaster.findTasks(
                         "book", LocalDateTime.of(2026, 8, 26, 0, 0))).message());
     }

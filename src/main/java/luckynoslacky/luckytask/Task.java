@@ -75,7 +75,7 @@ public abstract class Task {
     /**
      * Returns this task's concise command-line representation.
      *
-     * <p>Concrete task types prepend their type marker and append any
+     * <p>Concrete task types prepend their emoji type tag and append any
      * type-specific timing details.
      *
      * @return common status and description text for this task
@@ -203,9 +203,9 @@ public abstract class Task {
                 .replace("PM", "pm");
     }
 
-    /** Returns the command-line marker for this task's completion state. */
+    /** Returns the emoji marker for this task's completion state. */
     private String getStatusMarker() {
-        return isDone() ? "X" : " ";
+        return isDone() ? "✅" : "❗";
     }
 
 }

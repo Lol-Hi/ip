@@ -43,7 +43,7 @@ public class EventTask extends Task {
      */
     @Override
     public String toString() {
-        return "[E]" + super.toString()
+        return "[📆]" + super.toString()
                 + " (from: " + formatDateTime(getStartTime())
                 + " to: " + formatDateTime(getEndTime()) + ")";
     }

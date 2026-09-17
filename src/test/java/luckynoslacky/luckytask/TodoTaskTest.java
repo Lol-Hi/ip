@@ -31,9 +31,9 @@ class TodoTaskTest {
     void todoTask_incompleteAndDoneStates_returnsTypedText() {
         TodoTask task = new TodoTask("read book");
 
-        assertEquals("[T][ ] read book", task.toString());
+        assertEquals("[📌][❗] read book", task.toString());
         task.markAsDone();
-        assertEquals("[T][X] read book", task.toString());
+        assertEquals("[📌][✅] read book", task.toString());
     }
 
     /** Verifies null and blank descriptions use the exact validation message. */

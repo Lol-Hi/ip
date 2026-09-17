@@ -21,7 +21,7 @@ class LuckyNoTaskResponsesTest {
         TaskContent response = LuckyNoTaskResponses.added(new TodoTask("read book"), 1);
 
         assertEquals("Got one more thing to remember ah: \n"
-                        + "  [T][ ] read book\n"
+                        + "  [📌][❗] read book\n"
                         + "Now you got 1 tasks to settle.",
                 response.message());
         assertEquals("read book", response.taskViews().getFirst().description());
@@ -41,7 +41,7 @@ class LuckyNoTaskResponsesTest {
                 TaskContent.class, LuckyNoTaskResponses.listed(taskList));
 
         assertEquals("Nah, all these things you need to do on: Aug 26 2026\n"
-                        + "2.[T][ ] read book",
+                        + "2.[📌][❗] read book",
                 response.message());
         assertEquals(2, response.taskViews().getFirst().taskNumber());
     }

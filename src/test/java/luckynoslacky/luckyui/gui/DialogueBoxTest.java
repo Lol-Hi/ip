@@ -270,7 +270,11 @@ class DialogueBoxTest {
                             + "EVENT, task 3, completed, team meeting, from Wed Aug 26 2026, 2.00pm, "
                             + "to Wed Aug 26 2026, 3.00pm",
                     accessibleText);
-            assertFalse(accessibleText.contains("[T]"));
+            assertFalse(accessibleText.contains("📌"));
+            assertFalse(accessibleText.contains("⏳"));
+            assertFalse(accessibleText.contains("📆"));
+            assertFalse(accessibleText.contains("✅"));
+            assertFalse(accessibleText.contains("❗"));
         });
     }
 

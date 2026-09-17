@@ -31,12 +31,12 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah:
-    [D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+    [⏳][❗] report (by: Wed Aug 26 2026, 12.00pm)
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Nah here's your snooze you lazy bum, don't slack too much hor!
-    [D][ ] report (by: Wed Aug 26 2026, 1.00pm)
+    [⏳][❗] report (by: Wed Aug 26 2026, 1.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Eh HELLO you know how to type command one anot?
@@ -182,20 +182,20 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+    [⏳][❗] report (by: Wed Aug 26 2026, 12.00pm)
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Nah here's your snooze you lazy bum, don't slack too much hor!
-    [D][ ] report (by: Wed Aug 26 2026, 12.30pm)
+    [⏳][❗] report (by: Wed Aug 26 2026, 12.30pm)
   ____________________________________________________________
   ____________________________________________________________
   Nah here's your snooze you lazy bum, don't slack too much hor!
-    [D][ ] report (by: Wed Sep 02 2026, 12.30pm)
+    [⏳][❗] report (by: Wed Sep 02 2026, 12.30pm)
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[D][ ] report (by: Wed Sep 02 2026, 12.30pm)
+  1.[⏳][❗] report (by: Wed Sep 02 2026, 12.30pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -236,30 +236,30 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+    [⏳][❗] report (by: Wed Aug 26 2026, 12.00pm)
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
+    [📆][❗] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Nah here's your snooze you lazy bum, don't slack too much hor!
-    [D][ ] report (by: Wed Aug 26 2026, 1.30pm)
+    [⏳][❗] report (by: Wed Aug 26 2026, 1.30pm)
   ____________________________________________________________
   ____________________________________________________________
   Nah here's your snooze you lazy bum, don't slack too much hor!
-    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 4.30pm)
+    [📆][❗] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 4.30pm)
   ____________________________________________________________
   ____________________________________________________________
   Nah here's your snooze you lazy bum, don't slack too much hor!
-    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Mon Sep 28 2026, 7.30pm)
+    [📆][❗] meeting (from: Wed Aug 26 2026, 2.00pm to: Mon Sep 28 2026, 7.30pm)
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[D][ ] report (by: Wed Aug 26 2026, 1.30pm)
-  2.[E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Mon Sep 28 2026, 7.30pm)
+  1.[⏳][❗] report (by: Wed Aug 26 2026, 1.30pm)
+  2.[📆][❗] meeting (from: Wed Aug 26 2026, 2.00pm to: Mon Sep 28 2026, 7.30pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -305,7 +305,7 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+    [⏳][❗] report (by: Wed Aug 26 2026, 12.00pm)
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
@@ -335,7 +335,7 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+  1.[⏳][❗] report (by: Wed Aug 26 2026, 12.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -376,30 +376,30 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+    [⏳][❗] report (by: Wed Aug 26 2026, 12.00pm)
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
+    [📆][❗] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Nah here's your snooze you lazy bum, don't slack too much hor!
-    [D][ ] report (by: Wed Aug 26 2026, 1.00pm)
+    [⏳][❗] report (by: Wed Aug 26 2026, 1.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Nah here's your snooze you lazy bum, don't slack too much hor!
-    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 5.00pm)
+    [📆][❗] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 5.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Nah here's your snooze you lazy bum, don't slack too much hor!
-    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Fri Aug 28 2026, 5.00pm)
+    [📆][❗] meeting (from: Wed Aug 26 2026, 2.00pm to: Fri Aug 28 2026, 5.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[D][ ] report (by: Wed Aug 26 2026, 1.00pm)
-  2.[E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Fri Aug 28 2026, 5.00pm)
+  1.[⏳][❗] report (by: Wed Aug 26 2026, 1.00pm)
+  2.[📆][❗] meeting (from: Wed Aug 26 2026, 2.00pm to: Fri Aug 28 2026, 5.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -441,34 +441,34 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [D][ ] report (by: Wed Aug 26 2026, 12.00pm)
+    [⏳][❗] report (by: Wed Aug 26 2026, 12.00pm)
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
+    [📆][❗] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Nah here's your resched you lazy bum, don't slack too much hor!
-    [D][ ] report (by: Thu Aug 27 2026, 5.00pm)
+    [⏳][❗] report (by: Thu Aug 27 2026, 5.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Nah here's your resched you lazy bum, don't slack too much hor!
-    [E][ ] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 4.00pm)
+    [📆][❗] meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 4.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Nah here's your resched you lazy bum, don't slack too much hor!
-    [E][ ] meeting (from: Wed Aug 26 2026, 3.00pm to: Wed Aug 26 2026, 4.00pm)
+    [📆][❗] meeting (from: Wed Aug 26 2026, 3.00pm to: Wed Aug 26 2026, 4.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Nah here's your resched you lazy bum, don't slack too much hor!
-    [E][ ] meeting (from: Wed Aug 26 2026, 4.00pm to: Wed Aug 26 2026, 5.00pm)
+    [📆][❗] meeting (from: Wed Aug 26 2026, 4.00pm to: Wed Aug 26 2026, 5.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[D][ ] report (by: Thu Aug 27 2026, 5.00pm)
-  2.[E][ ] meeting (from: Wed Aug 26 2026, 4.00pm to: Wed Aug 26 2026, 5.00pm)
+  1.[⏳][❗] report (by: Thu Aug 27 2026, 5.00pm)
+  2.[📆][❗] meeting (from: Wed Aug 26 2026, 4.00pm to: Wed Aug 26 2026, 5.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -513,17 +513,17 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [T][ ] read book
+    [📌][❗] read book
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [D][ ] return book (by: Wed Aug 26 2026, 12.00pm)
+    [⏳][❗] return book (by: Wed Aug 26 2026, 12.00pm)
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] project meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
+    [📆][❗] project meeting (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
   Now you got 3 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
@@ -588,48 +588,48 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] this monday (from: Mon Aug 24 2026, 12.00am to: Mon Aug 24 2026, 11.59pm)
+    [📆][❗] this monday (from: Mon Aug 24 2026, 12.00am to: Mon Aug 24 2026, 11.59pm)
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] this sunday (from: Sun Aug 30 2026, 2.00pm to: Sun Aug 30 2026, 3.00pm)
+    [📆][❗] this sunday (from: Sun Aug 30 2026, 2.00pm to: Sun Aug 30 2026, 3.00pm)
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] next wednesday (from: Wed Sep 02 2026, 2.00pm to: Wed Sep 02 2026, 3.00pm)
+    [📆][❗] next wednesday (from: Wed Sep 02 2026, 2.00pm to: Wed Sep 02 2026, 3.00pm)
   Now you got 3 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] next next wednesday (from: Wed Sep 09 2026, 2.00pm to: Wed Sep 09 2026, 3.00pm)
+    [📆][❗] next next wednesday (from: Wed Sep 09 2026, 2.00pm to: Wed Sep 09 2026, 3.00pm)
   Now you got 4 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] the following wednesday (from: Wed Sep 09 2026, 2.00pm to: Wed Sep 09 2026, 3.00pm)
+    [📆][❗] the following wednesday (from: Wed Sep 09 2026, 2.00pm to: Wed Sep 09 2026, 3.00pm)
   Now you got 5 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] this coming wednesday (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
+    [📆][❗] this coming wednesday (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
   Now you got 6 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] the coming tuesday (from: Tue Sep 01 2026, 2.00pm to: Tue Sep 01 2026, 3.00pm)
+    [📆][❗] the coming tuesday (from: Tue Sep 01 2026, 2.00pm to: Tue Sep 01 2026, 3.00pm)
   Now you got 7 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[E][ ] this monday (from: Mon Aug 24 2026, 12.00am to: Mon Aug 24 2026, 11.59pm)
-  2.[E][ ] this sunday (from: Sun Aug 30 2026, 2.00pm to: Sun Aug 30 2026, 3.00pm)
-  3.[E][ ] next wednesday (from: Wed Sep 02 2026, 2.00pm to: Wed Sep 02 2026, 3.00pm)
-  4.[E][ ] next next wednesday (from: Wed Sep 09 2026, 2.00pm to: Wed Sep 09 2026, 3.00pm)
-  5.[E][ ] the following wednesday (from: Wed Sep 09 2026, 2.00pm to: Wed Sep 09 2026, 3.00pm)
-  6.[E][ ] this coming wednesday (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
-  7.[E][ ] the coming tuesday (from: Tue Sep 01 2026, 2.00pm to: Tue Sep 01 2026, 3.00pm)
+  1.[📆][❗] this monday (from: Mon Aug 24 2026, 12.00am to: Mon Aug 24 2026, 11.59pm)
+  2.[📆][❗] this sunday (from: Sun Aug 30 2026, 2.00pm to: Sun Aug 30 2026, 3.00pm)
+  3.[📆][❗] next wednesday (from: Wed Sep 02 2026, 2.00pm to: Wed Sep 02 2026, 3.00pm)
+  4.[📆][❗] next next wednesday (from: Wed Sep 09 2026, 2.00pm to: Wed Sep 09 2026, 3.00pm)
+  5.[📆][❗] the following wednesday (from: Wed Sep 09 2026, 2.00pm to: Wed Sep 09 2026, 3.00pm)
+  6.[📆][❗] this coming wednesday (from: Wed Aug 26 2026, 2.00pm to: Wed Aug 26 2026, 3.00pm)
+  7.[📆][❗] the coming tuesday (from: Tue Sep 01 2026, 2.00pm to: Tue Sep 01 2026, 3.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -673,35 +673,35 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [T][ ] read book
+    [📌][❗] read book
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [D][ ] return book (by: Wed Aug 26 2026, 11.59pm)
+    [⏳][❗] return book (by: Wed Aug 26 2026, 11.59pm)
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] project meeting (from: Tue Aug 25 2026, 2.00pm to: Thu Aug 27 2026, 4.00pm)
+    [📆][❗] project meeting (from: Tue Aug 25 2026, 2.00pm to: Thu Aug 27 2026, 4.00pm)
   Now you got 3 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do on: Aug 26 2026
-  2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)
-  3.[E][ ] project meeting (from: Tue Aug 25 2026, 2.00pm to: Thu Aug 27 2026, 4.00pm)
+  2.[⏳][❗] return book (by: Wed Aug 26 2026, 11.59pm)
+  3.[📆][❗] project meeting (from: Tue Aug 25 2026, 2.00pm to: Thu Aug 27 2026, 4.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do on: Aug 26 2026
-  2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)
+  2.[⏳][❗] return book (by: Wed Aug 26 2026, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
   Chill lah bro got nothing yet lah!
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] read book
-  2.[D][ ] return book (by: Wed Aug 26 2026, 11.59pm)
+  1.[📌][❗] read book
+  2.[⏳][❗] return book (by: Wed Aug 26 2026, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -791,26 +791,26 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [D][ ] today task (by: Tue Aug 25 2026, 11.59pm)
+    [⏳][❗] today task (by: Tue Aug 25 2026, 11.59pm)
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] yesterday event (from: Mon Aug 24 2026, 12.00am to: Wed Aug 26 2026, 11.59pm)
+    [📆][❗] yesterday event (from: Mon Aug 24 2026, 12.00am to: Wed Aug 26 2026, 11.59pm)
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do on: Aug 25 2026
-  1.[D][ ] today task (by: Tue Aug 25 2026, 11.59pm)
-  2.[E][ ] yesterday event (from: Mon Aug 24 2026, 12.00am to: Wed Aug 26 2026, 11.59pm)
+  1.[⏳][❗] today task (by: Tue Aug 25 2026, 11.59pm)
+  2.[📆][❗] yesterday event (from: Mon Aug 24 2026, 12.00am to: Wed Aug 26 2026, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do on: Aug 26 2026
-  2.[E][ ] yesterday event (from: Mon Aug 24 2026, 12.00am to: Wed Aug 26 2026, 11.59pm)
+  2.[📆][❗] yesterday event (from: Mon Aug 24 2026, 12.00am to: Wed Aug 26 2026, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do on: Aug 24 2026
-  2.[E][ ] yesterday event (from: Mon Aug 24 2026, 12.00am to: Wed Aug 26 2026, 11.59pm)
+  2.[📆][❗] yesterday event (from: Mon Aug 24 2026, 12.00am to: Wed Aug 26 2026, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -860,7 +860,7 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [T][ ] read book
+    [📌][❗] read book
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
@@ -880,11 +880,11 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] read book
+  1.[📌][❗] read book
   ____________________________________________________________
   ____________________________________________________________
   Swee lah you're done with this task:
-    [T][X] read book
+    [📌][✅] read book
   ____________________________________________________________
   ____________________________________________________________
   Eh which task you talking about har? Can say clearly anot.
@@ -903,15 +903,15 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][X] read book
+  1.[📌][✅] read book
   ____________________________________________________________
   ____________________________________________________________
   Eh salah you're not done with this task ah, must remember to do ah!
-    [T][ ] read book
+    [📌][❗] read book
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] read book
+  1.[📌][❗] read book
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -959,7 +959,7 @@ BYE
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [T][ ] read book
+    [📌][❗] read book
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
@@ -967,11 +967,11 @@ BYE
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] read book
+  1.[📌][❗] read book
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
+    [⏳][❗] return book (by: Sun Dec 08 2030, 11.59pm)
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
@@ -980,12 +980,12 @@ BYE
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] read book
-  2.[D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
+  1.[📌][❗] read book
+  2.[⏳][❗] return book (by: Sun Dec 08 2030, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
+    [📆][❗] meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
   Now you got 3 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
@@ -994,9 +994,9 @@ BYE
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] read book
-  2.[D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
-  3.[E][ ] meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
+  1.[📌][❗] read book
+  2.[⏳][❗] return book (by: Sun Dec 08 2030, 11.59pm)
+  3.[📆][❗] meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Why you so losor! Leave the bye command to do its own thing lah
@@ -1037,24 +1037,24 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [T][ ] borrow book
+    [📌][❗] borrow book
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
+    [⏳][❗] return book (by: Sun Dec 08 2030, 11.59pm)
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
+    [📆][❗] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
   Now you got 3 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] borrow book
-  2.[D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
-  3.[E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
+  1.[📌][❗] borrow book
+  2.[⏳][❗] return book (by: Sun Dec 08 2030, 11.59pm)
+  3.[📆][❗] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -1092,20 +1092,20 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [T][ ] read book
+    [📌][❗] read book
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Swee lah you're done with this task:
-    [T][X] read book
+    [📌][✅] read book
   ____________________________________________________________
   ____________________________________________________________
   Eh salah you're not done with this task ah, must remember to do ah!
-    [T][ ] read book
+    [📌][❗] read book
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] read book
+  1.[📌][❗] read book
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -1201,28 +1201,28 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [T][ ] read book
+    [📌][❗] read book
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Swee lah you're done with this task:
-    [T][X] read book
+    [📌][✅] read book
   ____________________________________________________________
   ____________________________________________________________
   Swee lah you're done with this task:
-    [T][X] read book
+    [📌][✅] read book
   ____________________________________________________________
   ____________________________________________________________
   Eh salah you're not done with this task ah, must remember to do ah!
-    [T][ ] read book
+    [📌][❗] read book
   ____________________________________________________________
   ____________________________________________________________
   Eh salah you're not done with this task ah, must remember to do ah!
-    [T][ ] read book
+    [📌][❗] read book
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] read book
+  1.[📌][❗] read book
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -1265,7 +1265,7 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [T][ ] read book
+    [📌][❗] read book
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
@@ -1273,11 +1273,11 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] read book
+  1.[📌][❗] read book
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
+    [⏳][❗] return book (by: Sun Dec 08 2030, 11.59pm)
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
@@ -1286,12 +1286,12 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] read book
-  2.[D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
+  1.[📌][❗] read book
+  2.[⏳][❗] return book (by: Sun Dec 08 2030, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
+    [📆][❗] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
   Now you got 3 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
@@ -1300,9 +1300,9 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] read book
-  2.[D][ ] return book (by: Sun Dec 08 2030, 11.59pm)
-  3.[E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
+  1.[📌][❗] read book
+  2.[⏳][❗] return book (by: Sun Dec 08 2030, 11.59pm)
+  3.[📆][❗] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -1348,18 +1348,18 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [D][ ] do homework (by: Sun Dec 08 2030, 9.00am)
+    [⏳][❗] do homework (by: Sun Dec 08 2030, 9.00am)
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
+    [📆][❗] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[D][ ] do homework (by: Sun Dec 08 2030, 9.00am)
-  2.[E][ ] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
+  1.[⏳][❗] do homework (by: Sun Dec 08 2030, 9.00am)
+  2.[📆][❗] project meeting (from: Mon Dec 09 2030, 2.00pm to: Mon Dec 09 2030, 4.00pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -1405,57 +1405,57 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [T][ ] first task
+    [📌][❗] first task
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [T][ ] second task
+    [📌][❗] second task
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [T][ ] third task
+    [📌][❗] third task
   Now you got 3 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Swee lah you're done with this task:
-    [T][X] second task
+    [📌][✅] second task
   ____________________________________________________________
   ____________________________________________________________
   You siao ah how to spin this task from thin air?
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] first task
-  2.[T][X] second task
-  3.[T][ ] third task
+  1.[📌][❗] first task
+  2.[📌][✅] second task
+  3.[📌][❗] third task
   ____________________________________________________________
   ____________________________________________________________
   Solid man can don't care about this one already:
-    [T][X] second task
+    [📌][✅] second task
   But you still got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] first task
-  2.[T][ ] third task
+  1.[📌][❗] first task
+  2.[📌][❗] third task
   ____________________________________________________________
   ____________________________________________________________
   Eh which task you talking about har? Can say clearly anot.
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] first task
-  2.[T][ ] third task
+  1.[📌][❗] first task
+  2.[📌][❗] third task
   ____________________________________________________________
   ____________________________________________________________
   Eh which task you talking about har? Can say clearly anot.
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] first task
-  2.[T][ ] third task
+  1.[📌][❗] first task
+  2.[📌][❗] third task
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -1498,7 +1498,7 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [T][ ] read book
+    [📌][❗] read book
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
@@ -1506,29 +1506,29 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] read book
+  1.[📌][❗] read book
   ____________________________________________________________
   ____________________________________________________________
   Swee lah you're done with this task:
-    [T][X] read book
+    [📌][✅] read book
   ____________________________________________________________
   ____________________________________________________________
   You siao ah how to spin this task from thin air?
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][X] read book
+  1.[📌][✅] read book
   ____________________________________________________________
   ____________________________________________________________
   Eh salah you're not done with this task ah, must remember to do ah!
-    [T][ ] read book
+    [📌][❗] read book
   ____________________________________________________________
   ____________________________________________________________
   Eh which task you talking about har? Can say clearly anot.
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] read book
+  1.[📌][❗] read book
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -1630,12 +1630,12 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] past meeting (from: Mon Aug 25 2025, 12.00am to: Tue Aug 26 2025, 11.59pm)
+    [📆][❗] past meeting (from: Mon Aug 25 2025, 12.00am to: Tue Aug 26 2025, 11.59pm)
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[E][ ] past meeting (from: Mon Aug 25 2025, 12.00am to: Tue Aug 26 2025, 11.59pm)
+  1.[📆][❗] past meeting (from: Mon Aug 25 2025, 12.00am to: Tue Aug 26 2025, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -1672,18 +1672,18 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] afternoon meeting (from: Tue Aug 25 2026, 2.00pm to: Tue Aug 25 2026, 4.00pm)
+    [📆][❗] afternoon meeting (from: Tue Aug 25 2026, 2.00pm to: Tue Aug 25 2026, 4.00pm)
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [E][ ] overnight meeting (from: Tue Aug 25 2026, 11.00pm to: Wed Aug 26 2026, 1.00am)
+    [📆][❗] overnight meeting (from: Tue Aug 25 2026, 11.00pm to: Wed Aug 26 2026, 1.00am)
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[E][ ] afternoon meeting (from: Tue Aug 25 2026, 2.00pm to: Tue Aug 25 2026, 4.00pm)
-  2.[E][ ] overnight meeting (from: Tue Aug 25 2026, 11.00pm to: Wed Aug 26 2026, 1.00am)
+  1.[📆][❗] afternoon meeting (from: Tue Aug 25 2026, 2.00pm to: Tue Aug 25 2026, 4.00pm)
+  2.[📆][❗] overnight meeting (from: Tue Aug 25 2026, 11.00pm to: Wed Aug 26 2026, 1.00am)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!
@@ -1725,12 +1725,12 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [T][ ] read/book
+    [📌][❗] read/book
   Now you got 1 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [T][ ] read / book
+    [📌][❗] read / book
   Now you got 2 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
@@ -1739,7 +1739,7 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Got one more thing to remember ah: 
-    [D][ ] slash date (by: Wed Aug 26 2026, 11.59pm)
+    [⏳][❗] slash date (by: Wed Aug 26 2026, 11.59pm)
   Now you got 3 tasks to settle.
   ____________________________________________________________
   ____________________________________________________________
@@ -1754,9 +1754,9 @@ bye
   ____________________________________________________________
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] read/book
-  2.[T][ ] read / book
-  3.[D][ ] slash date (by: Wed Aug 26 2026, 11.59pm)
+  1.[📌][❗] read/book
+  2.[📌][❗] read / book
+  3.[⏳][❗] slash date (by: Wed Aug 26 2026, 11.59pm)
   ____________________________________________________________
   ____________________________________________________________
   Huh so fast zao ah, rest well ah!

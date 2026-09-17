@@ -1,5 +1,6 @@
 package luckynoslacky.luckyui;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -66,6 +67,21 @@ class LuckyNoCliTest {
         assertEquals(
                 expectedReply("first line\nsecond line"),
                 capturedOutput.toString(StandardCharsets.UTF_8));
+    }
+
+    /** Verifies that emoji task text is written as UTF-8 despite a legacy console. */
+    @Test
+    void showReply_emojiTaskTextWithLegacyConsole_writesUtf8Bytes() {
+        System.setOut(new PrintStream(
+                capturedOutput, true, StandardCharsets.ISO_8859_1));
+        LuckyNoCli cli = createCliWithInput("");
+        String taskText = "[📌][❗] read book";
+
+        cli.showReply(taskText);
+
+        assertArrayEquals(
+                expectedReply(taskText).getBytes(StandardCharsets.UTF_8),
+                capturedOutput.toByteArray());
     }
 
     /** Verifies that the banner and greeting are displayed together. */

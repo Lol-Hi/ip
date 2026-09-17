@@ -105,7 +105,7 @@ class TaskListTest {
         TaskList matchingTasks = taskList.createView(
                 null, task -> task.matchesDescription("book"));
 
-        assertEquals("2.[T][ ] read book", matchingTasks.toDisplayString());
+        assertEquals("2.[📌][❗] read book", matchingTasks.toDisplayString());
     }
 
     /** Verifies that a date-search result retains its search-date context. */

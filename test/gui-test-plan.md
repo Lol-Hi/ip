@@ -244,8 +244,8 @@
   `TODO, task 1, incomplete, <task name>`, `DEADLINE, task 2, incomplete,
   <task name>, by <date>`, and `EVENT, task 3, completed, <task name>, from
   <start>, to <end>`. The
-  accessible text contains none of the type/status emojis or raw `[T]`, `[D]`,
-  and `[E]` markers, and the inner card nodes are not keyboard-focusable.
+  accessible text contains none of the CLI task emojis (`📌`, `⏳`, `📆`,
+  `✅`, and `❗`), and the inner card nodes are not keyboard-focusable.
   Confirmation lines without task numbers do not receive an invented number.
 
 ## Test Case: DialogueBox leaves confirmations unnumbered
@@ -253,7 +253,7 @@
 - Aim: Verify that task numbers are limited to numbered `list` and `find`
   output during this increment.
 - Test: `DialogueBoxTest.dialogueBox_taskConfirmation_omitsTaskNumber`
-- Expected result: A confirmation line such as `[T][ ] buy groceries` keeps
+- Expected result: A confirmation line such as `[📌][❗] buy groceries` keeps
   its task card but has no `#1` badge and no task number in its accessible
   description.
 
