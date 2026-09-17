@@ -1,9 +1,11 @@
 package luckynoslacky.luckytask;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDateTime;
+import java.time.Period;
 
 import org.junit.jupiter.api.Test;
 
@@ -22,6 +24,19 @@ class DeadlineTaskTest {
         assertEquals("return book", task.getDescription());
         assertEquals(deadline, task.getEndTime());
         assertEquals(TaskTimes.makeDeadlineTimes(deadline), task.getTaskTimes());
+    }
+
+    /** Verifies that a deadline formats its type, status, and ending time. */
+    @Test
+    void deadlineTask_incompleteAndDoneStates_returnsFormattedTaskText() {
+        DeadlineTask task = new DeadlineTask(
+                "return book", LocalDateTime.of(2026, 8, 26, 14, 0));
+
+        assertEquals("[D][ ] return book (by: Wed Aug 26 2026, 2.00pm)",
+                task.toString());
+        task.markAsDone();
+        assertEquals("[D][X] return book (by: Wed Aug 26 2026, 2.00pm)",
+                task.toString());
     }
 
     /** Verifies that snoozing extends the deadline by the requested amount. */
@@ -83,6 +98,41 @@ class DeadlineTaskTest {
                 new DeadlineTask("return book", eventTimes));
 
         assertEquals("Invalid deadline times.", exception.getMessage());
+    }
+
+    /** Verifies that a deadline accepts scheduling commands. */
+    @Test
+    void verifyCanBeScheduled_deadlineTask_completesNormally() {
+        DeadlineTask task = new DeadlineTask(
+                "return book", LocalDateTime.of(2026, 8, 26, 14, 0));
+
+        assertDoesNotThrow(task::verifyCanBeScheduled);
+    }
+
+    /** Verifies that deadline snooze timing is calculated without mutation. */
+    @Test
+    void createSnoozedTimes_hourDuration_returnsExtendedDeadlineTimes() {
+        LocalDateTime deadline = LocalDateTime.of(2026, 8, 26, 14, 0);
+        DeadlineTask task = new DeadlineTask("return book", deadline);
+
+        TaskTimes snoozedTimes = task.createSnoozedTimes(new DurationPeriod(
+                Period.ZERO, java.time.Duration.ofHours(2)));
+
+        assertEquals(TaskTimes.makeDeadlineTimes(deadline.plusHours(2)), snoozedTimes);
+        assertEquals(deadline, task.getEndTime());
+    }
+
+    /** Verifies that past deadline replacements use the domain failure reason. */
+    @Test
+    void createRescheduledTimes_pastDeadline_throwsPastDeadlineReason() {
+        LocalDateTime currentTime = LocalDateTime.of(2026, 8, 26, 14, 0);
+        DeadlineTask task = new DeadlineTask("return book", currentTime.plusHours(1));
+
+        TaskSchedulingException exception = assertThrows(
+                TaskSchedulingException.class, () -> task.createRescheduledTimes(
+                        null, currentTime.minusMinutes(1), currentTime));
+
+        assertEquals(TaskSchedulingException.Reason.PAST_DEADLINE, exception.getReason());
     }
 
 }

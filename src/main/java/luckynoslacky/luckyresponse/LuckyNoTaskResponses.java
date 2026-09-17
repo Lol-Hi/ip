@@ -115,7 +115,7 @@ public final class LuckyNoTaskResponses {
 
         String header = getListHeader(taskList);
         List<TaskView> taskViews = taskList.getTaskViews();
-        String message = String.join("\n", header, formatTaskList(taskViews));
+        String message = String.join("\n", header, taskList.toDisplayString());
         return new TaskContent(message, List.of(header), taskViews, List.of());
     }
 
@@ -141,19 +141,12 @@ public final class LuckyNoTaskResponses {
                 : List.of(trailingLine);
         TaskView taskView = TaskView.fromTask(task);
         String message = String.join("\n", leadingLine,
-                "  " + TaskTextFormatter.formatTask(taskView));
+                "  " + task);
         if (trailingLine != null) {
             message += "\n" + trailingLine;
         }
         return new TaskContent(
                 message, List.of(leadingLine), List.of(taskView), trailingLines);
-    }
-
-    /** Formats each numbered task for the command-line response. */
-    private static String formatTaskList(List<TaskView> taskViews) {
-        return taskViews.stream()
-                .map(TaskTextFormatter::formatNumberedTask)
-                .collect(java.util.stream.Collectors.joining("\n"));
     }
 
     /** Returns the prose heading for a non-empty task-list response. */

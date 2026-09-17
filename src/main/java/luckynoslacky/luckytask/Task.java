@@ -2,12 +2,16 @@ package luckynoslacky.luckytask;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 /**
  * Represents the common state and behavior shared by all task types.
  */
 public abstract class Task {
+    private static final DateTimeFormatter TASK_TIME_FORMATTER =
+            DateTimeFormatter.ofPattern("EEE MMM dd uuuu, h.mma", Locale.ENGLISH);
+
     /** Identifies the concrete task category used by command validation. */
     public enum TaskType {
         /** A task without a date or time. */
@@ -69,6 +73,19 @@ public abstract class Task {
     }
 
     /**
+     * Returns this task's concise command-line representation.
+     *
+     * <p>Concrete task types prepend their type marker and append any
+     * type-specific timing details.
+     *
+     * @return common status and description text for this task
+     */
+    @Override
+    public String toString() {
+        return "[" + getStatusMarker() + "] " + description;
+    }
+
+    /**
      * Returns this task's description without display formatting.
      *
      * @return task description
@@ -113,7 +130,9 @@ public abstract class Task {
      * @throws IllegalArgumentException if this task cannot be snoozed or the
      *                                  duration is invalid
      */
-    public abstract void snoozeBy(DurationPeriod amount);
+    public void snoozeBy(DurationPeriod amount) {
+        reschedule(createSnoozedTimes(amount));
+    }
 
     /**
      * Returns this task's current timing information.
@@ -138,5 +157,55 @@ public abstract class Task {
      * @throws IllegalArgumentException if this task has no ending time
      */
     public abstract LocalDateTime getEndTime();
+
+    /**
+     * Verifies that this task supports schedule-changing commands.
+     *
+     * @throws TaskSchedulingException if this task cannot be scheduled
+     */
+    abstract void verifyCanBeScheduled();
+
+    /**
+     * Creates timing information after applying a snooze duration.
+     *
+     * @param amount duration by which to extend the ending time
+     * @return timing information with the extended ending time
+     * @throws IllegalArgumentException if the amount is invalid
+     * @throws TaskSchedulingException if this task cannot be snoozed
+     */
+    abstract TaskTimes createSnoozedTimes(DurationPeriod amount);
+
+    /**
+     * Creates timing information after validating a requested schedule.
+     *
+     * @param startTime requested start time, or {@code null} for a deadline
+     * @param endTime requested deadline or event ending time
+     * @param currentTime current time used for deadline validation
+     * @return validated replacement timing information
+     * @throws IllegalArgumentException if required timing information is missing
+     * @throws TaskSchedulingException if this task cannot be rescheduled or
+     *                                  the requested schedule is invalid
+     */
+    abstract TaskTimes createRescheduledTimes(
+            LocalDateTime startTime,
+            LocalDateTime endTime,
+            LocalDateTime currentTime);
+
+    /**
+     * Formats a task date and time using the established display convention.
+     *
+     * @param dateTime date and time to format
+     * @return formatted task date and time
+     */
+    protected static String formatDateTime(LocalDateTime dateTime) {
+        return TASK_TIME_FORMATTER.format(dateTime)
+                .replace("AM", "am")
+                .replace("PM", "pm");
+    }
+
+    /** Returns the command-line marker for this task's completion state. */
+    private String getStatusMarker() {
+        return isDone() ? "X" : " ";
+    }
 
 }

@@ -1,9 +1,11 @@
 package luckynoslacky.luckytask;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDateTime;
+import java.time.Period;
 
 import org.junit.jupiter.api.Test;
 
@@ -22,6 +24,23 @@ class EventTaskTest {
 
         assertEquals("project meeting", task.getDescription());
         assertEquals(TaskTimes.makeEventTimes(start, end), task.getTaskTimes());
+    }
+
+    /** Verifies that an event formats its type, status, start, and end times. */
+    @Test
+    void eventTask_incompleteAndDoneStates_returnsFormattedTaskText() {
+        EventTask task = new EventTask(
+                "project meeting",
+                LocalDateTime.of(2026, 8, 26, 14, 0),
+                LocalDateTime.of(2026, 8, 26, 16, 0));
+
+        assertEquals("[E][ ] project meeting (from: Wed Aug 26 2026, 2.00pm"
+                        + " to: Wed Aug 26 2026, 4.00pm)",
+                task.toString());
+        task.markAsDone();
+        assertEquals("[E][X] project meeting (from: Wed Aug 26 2026, 2.00pm"
+                        + " to: Wed Aug 26 2026, 4.00pm)",
+                task.toString());
     }
 
     /** Verifies that an event ending before it starts is rejected. */
@@ -134,6 +153,48 @@ class EventTaskTest {
                 new EventTask("project meeting", deadlineTimes));
 
         assertEquals("Invalid event times.", exception.getMessage());
+    }
+
+    /** Verifies that an event accepts scheduling commands. */
+    @Test
+    void verifyCanBeScheduled_eventTask_completesNormally() {
+        EventTask task = new EventTask(
+                "project meeting",
+                LocalDateTime.of(2026, 8, 26, 14, 0),
+                LocalDateTime.of(2026, 8, 26, 16, 0));
+
+        assertDoesNotThrow(task::verifyCanBeScheduled);
+    }
+
+    /** Verifies that event snooze timing preserves its start time without mutation. */
+    @Test
+    void createSnoozedTimes_hourDuration_preservesStartAndExtendsEnd() {
+        LocalDateTime start = LocalDateTime.of(2026, 8, 26, 14, 0);
+        LocalDateTime end = LocalDateTime.of(2026, 8, 26, 16, 0);
+        EventTask task = new EventTask("project meeting", start, end);
+
+        TaskTimes snoozedTimes = task.createSnoozedTimes(new DurationPeriod(
+                Period.ZERO, java.time.Duration.ofHours(2)));
+
+        assertEquals(TaskTimes.makeEventTimes(start, end.plusHours(2)), snoozedTimes);
+        assertEquals(TaskTimes.makeEventTimes(start, end), task.getTaskTimes());
+    }
+
+    /** Verifies that invalid event replacements use the domain failure reason. */
+    @Test
+    void createRescheduledTimes_endBeforeStart_throwsEndBeforeStartReason() {
+        EventTask task = new EventTask(
+                "project meeting",
+                LocalDateTime.of(2026, 8, 26, 14, 0),
+                LocalDateTime.of(2026, 8, 26, 16, 0));
+
+        TaskSchedulingException exception = assertThrows(
+                TaskSchedulingException.class, () -> task.createRescheduledTimes(
+                        LocalDateTime.of(2026, 8, 27, 16, 0),
+                        LocalDateTime.of(2026, 8, 27, 14, 0),
+                        LocalDateTime.of(2026, 8, 26, 12, 0)));
+
+        assertEquals(TaskSchedulingException.Reason.END_BEFORE_START, exception.getReason());
     }
 
 }

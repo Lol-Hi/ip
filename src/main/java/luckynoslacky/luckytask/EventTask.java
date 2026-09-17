@@ -37,6 +37,18 @@ public class EventTask extends Task {
     }
 
     /**
+     * Returns this event's concise command-line representation.
+     *
+     * @return typed event task text with its start and ending times
+     */
+    @Override
+    public String toString() {
+        return "[E]" + super.toString()
+                + " (from: " + formatDateTime(getStartTime())
+                + " to: " + formatDateTime(getEndTime()) + ")";
+    }
+
+    /**
      * Returns the category of this task.
      *
      * @return event task category
@@ -75,21 +87,6 @@ public class EventTask extends Task {
     }
 
     /**
-     * Extends the event's end time by the supplied amount.
-     *
-     * @param amount amount by which to extend the event
-     * @throws IllegalArgumentException if {@code amount} is null
-     */
-    @Override
-    public void snoozeBy(DurationPeriod amount) {
-        if (amount == null) {
-            throw new IllegalArgumentException("Snooze amount cannot be null.");
-        }
-        reschedule(TaskTimes.makeEventTimes(
-                getStartTime(), amount.addTo(getEndTime())));
-    }
-
-    /**
      * Replaces both event times after validating the supplied schedule.
      *
      * @param newTimes replacement event timing information
@@ -101,6 +98,59 @@ public class EventTask extends Task {
         TaskTimes.verifyEventTimes(newTimes);
         times = TaskTimes.makeEventTimes(
                 newTimes.getStartTime(), newTimes.getEndTime());
+    }
+
+    /**
+     * Accepts schedule-changing commands because an event has start and end
+     * times.
+     */
+    @Override
+    void verifyCanBeScheduled() {
+        // Events can always be scheduled.
+    }
+
+    /**
+     * Creates the timing information after extending this event's end time.
+     *
+     * @param amount duration by which to extend the event
+     * @return event timing information with the extended ending time
+     * @throws IllegalArgumentException if {@code amount} is null
+     */
+    @Override
+    TaskTimes createSnoozedTimes(DurationPeriod amount) {
+        if (amount == null) {
+            throw new IllegalArgumentException("Snooze amount cannot be null.");
+        }
+        return TaskTimes.makeEventTimes(
+                getStartTime(), amount.addTo(getEndTime()));
+    }
+
+    /**
+     * Creates validated event timing information.
+     *
+     * <p>Events do not use {@code currentTime}; past event start times remain
+     * valid.
+     *
+     * @param startTime requested event start time
+     * @param endTime requested event end time
+     * @param currentTime unused current time supplied by the shared interface
+     * @return validated event timing information
+     * @throws IllegalArgumentException if {@code startTime} is null
+     * @throws TaskSchedulingException if the end time is before the start time
+     */
+    @Override
+    TaskTimes createRescheduledTimes(
+            LocalDateTime startTime,
+            LocalDateTime endTime,
+            LocalDateTime currentTime) {
+        if (startTime == null) {
+            throw new IllegalArgumentException("Event start time cannot be null.");
+        }
+        if (endTime.isBefore(startTime)) {
+            throw new TaskSchedulingException(
+                    TaskSchedulingException.Reason.END_BEFORE_START);
+        }
+        return TaskTimes.makeEventTimes(startTime, endTime);
     }
 
 }

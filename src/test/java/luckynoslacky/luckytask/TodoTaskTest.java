@@ -26,6 +26,16 @@ class TodoTaskTest {
         assertEquals("read book", task.getDescription());
     }
 
+    /** Verifies that a ToDo formats its type marker and completion state. */
+    @Test
+    void todoTask_incompleteAndDoneStates_returnsTypedText() {
+        TodoTask task = new TodoTask("read book");
+
+        assertEquals("[T][ ] read book", task.toString());
+        task.markAsDone();
+        assertEquals("[T][X] read book", task.toString());
+    }
+
     /** Verifies null and blank descriptions use the exact validation message. */
     @Test
     void todoTask_nullOrBlankDescription_throwsExactException() {
@@ -90,5 +100,42 @@ class TodoTaskTest {
                 IllegalArgumentException.class, task::getEndTime);
 
         assertEquals("Task has no ending time.", exception.getMessage());
+    }
+
+    /** Verifies that a ToDo rejects scheduling validation with its domain reason. */
+    @Test
+    void verifyCanBeScheduled_todoTask_throwsTodoTaskReason() {
+        TodoTask task = new TodoTask("read book");
+
+        TaskSchedulingException exception = assertThrows(
+                TaskSchedulingException.class, task::verifyCanBeScheduled);
+
+        assertEquals(TaskSchedulingException.Reason.TODO_TASK, exception.getReason());
+    }
+
+    /** Verifies that a ToDo rejects creation of snoozed timing information. */
+    @Test
+    void createSnoozedTimes_todoTask_throwsTodoTaskReason() {
+        TodoTask task = new TodoTask("read book");
+
+        TaskSchedulingException exception = assertThrows(
+                TaskSchedulingException.class, () -> task.createSnoozedTimes(
+                        new DurationPeriod(Period.ZERO, Duration.ofHours(1))));
+
+        assertEquals(TaskSchedulingException.Reason.TODO_TASK, exception.getReason());
+    }
+
+    /** Verifies that a ToDo rejects creation of replacement timing information. */
+    @Test
+    void createRescheduledTimes_todoTask_throwsTodoTaskReason() {
+        TodoTask task = new TodoTask("read book");
+
+        TaskSchedulingException exception = assertThrows(
+                TaskSchedulingException.class, () -> task.createRescheduledTimes(
+                        null,
+                        LocalDateTime.of(2026, 8, 26, 14, 0),
+                        LocalDateTime.of(2026, 8, 26, 12, 0)));
+
+        assertEquals(TaskSchedulingException.Reason.TODO_TASK, exception.getReason());
     }
 }

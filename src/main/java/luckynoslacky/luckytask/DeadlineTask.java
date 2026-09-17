@@ -35,6 +35,17 @@ public class DeadlineTask extends Task {
     }
 
     /**
+     * Returns this deadline's concise command-line representation.
+     *
+     * @return typed deadline task text with its ending time
+     */
+    @Override
+    public String toString() {
+        return "[D]" + super.toString()
+                + " (by: " + formatDateTime(getEndTime()) + ")";
+    }
+
+    /**
      * Returns the category of this task.
      *
      * @return deadline task category
@@ -74,21 +85,6 @@ public class DeadlineTask extends Task {
     }
 
     /**
-     * Extends the deadline by the supplied amount.
-     *
-     * @param amount amount by which to extend the deadline
-     * @throws IllegalArgumentException if {@code amount} is null
-     */
-    @Override
-    public void snoozeBy(DurationPeriod amount) {
-        if (amount == null) {
-            throw new IllegalArgumentException("Snooze amount cannot be null.");
-        }
-        reschedule(TaskTimes.makeDeadlineTimes(
-                amount.addTo(getEndTime())));
-    }
-
-    /**
      * Replaces the deadline schedule.
      *
      * @param newTimes replacement deadline timing information
@@ -99,6 +95,54 @@ public class DeadlineTask extends Task {
     public void reschedule(TaskTimes newTimes) {
         TaskTimes.verifyDeadlineTimes(newTimes);
         times = TaskTimes.makeDeadlineTimes(newTimes.getEndTime());
+    }
+
+    /**
+     * Accepts schedule-changing commands because a deadline has an ending
+     * time.
+     */
+    @Override
+    void verifyCanBeScheduled() {
+        // Deadlines can always be scheduled.
+    }
+
+    /**
+     * Creates the timing information after extending this deadline.
+     *
+     * @param amount duration by which to extend the deadline
+     * @return deadline timing information with the extended ending time
+     * @throws IllegalArgumentException if {@code amount} is null
+     */
+    @Override
+    TaskTimes createSnoozedTimes(DurationPeriod amount) {
+        if (amount == null) {
+            throw new IllegalArgumentException("Snooze amount cannot be null.");
+        }
+        return TaskTimes.makeDeadlineTimes(amount.addTo(getEndTime()));
+    }
+
+    /**
+     * Creates validated deadline timing information.
+     *
+     * <p>Deadlines do not use {@code startTime}; it is accepted to preserve
+     * the shared scheduling interface.
+     *
+     * @param startTime ignored requested start time
+     * @param endTime requested deadline
+     * @param currentTime current time used to reject past deadlines
+     * @return validated deadline timing information
+     * @throws TaskSchedulingException if the requested deadline is in the past
+     */
+    @Override
+    TaskTimes createRescheduledTimes(
+            LocalDateTime startTime,
+            LocalDateTime endTime,
+            LocalDateTime currentTime) {
+        if (endTime.isBefore(currentTime)) {
+            throw new TaskSchedulingException(
+                    TaskSchedulingException.Reason.PAST_DEADLINE);
+        }
+        return TaskTimes.makeDeadlineTimes(endTime);
     }
 
 }

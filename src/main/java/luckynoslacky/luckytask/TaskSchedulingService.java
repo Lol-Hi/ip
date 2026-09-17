@@ -40,10 +40,7 @@ class TaskSchedulingService {
      * @throws TaskSchedulingException if the task is a ToDo
      */
     void validateTimedTask(int taskNumber) {
-        if (taskList.getTask(taskNumber).getTaskType() == Task.TaskType.TODO) {
-            throw new TaskSchedulingException(
-                    TaskSchedulingException.Reason.TODO_TASK);
-        }
+        taskList.getTask(taskNumber).verifyCanBeScheduled();
     }
 
     /**
@@ -61,12 +58,13 @@ class TaskSchedulingService {
         if (amount == null || currentTime == null) {
             throw new IllegalArgumentException("Snooze validation values cannot be null.");
         }
-        TaskSchedule schedule = getTaskSchedule(taskNumber);
-        validateTimedTask(taskNumber);
+        Task task = taskList.getTask(taskNumber);
         try {
-            LocalDateTime snoozedEndTime = amount.addTo(
-                    schedule.taskTimes().getEndTime());
-            validateNewEndTime(schedule, snoozedEndTime, currentTime);
+            TaskTimes snoozedTimes = task.createSnoozedTimes(amount);
+            task.createRescheduledTimes(
+                    snoozedTimes.getStartTime(),
+                    snoozedTimes.getEndTime(),
+                    currentTime);
         } catch (DateTimeException exception) {
             throw new TaskSchedulingException(
                     TaskSchedulingException.Reason.TIME_OVERFLOW, exception);
@@ -88,9 +86,10 @@ class TaskSchedulingService {
         if (endTime == null || currentTime == null) {
             throw new IllegalArgumentException("Snooze validation values cannot be null.");
         }
-        TaskSchedule schedule = getTaskSchedule(taskNumber);
-        validateTimedTask(taskNumber);
-        validateNewEndTime(schedule, endTime, currentTime);
+        Task task = taskList.getTask(taskNumber);
+        TaskTimes currentTimes = task.getTaskTimes();
+        task.createRescheduledTimes(
+                currentTimes.getStartTime(), endTime, currentTime);
     }
 
     /**
@@ -111,36 +110,7 @@ class TaskSchedulingService {
         if (endTime == null || currentTime == null) {
             throw new IllegalArgumentException("Rescheduling values cannot be null.");
         }
-        TaskSchedule schedule = getTaskSchedule(taskNumber);
-        validateTimedTask(taskNumber);
-        if (schedule.taskType() == Task.TaskType.DEADLINE) {
-            validateNewEndTime(schedule, endTime, currentTime);
-            return TaskTimes.makeDeadlineTimes(endTime);
-        }
-        if (startTime == null) {
-            throw new IllegalArgumentException("Event start time cannot be null.");
-        }
-        if (endTime.isBefore(startTime)) {
-            throw new TaskSchedulingException(
-                    TaskSchedulingException.Reason.END_BEFORE_START);
-        }
-        return TaskTimes.makeEventTimes(startTime, endTime);
-    }
-
-    /** Validates a new ending time against a deadline or event's schedule. */
-    private void validateNewEndTime(
-            TaskSchedule schedule,
-            LocalDateTime endTime,
-            LocalDateTime currentTime) {
-        if (schedule.taskType() == Task.TaskType.DEADLINE
-                && endTime.isBefore(currentTime)) {
-            throw new TaskSchedulingException(
-                    TaskSchedulingException.Reason.PAST_DEADLINE);
-        }
-        if (schedule.taskType() == Task.TaskType.EVENT
-                && endTime.isBefore(schedule.taskTimes().getStartTime())) {
-            throw new TaskSchedulingException(
-                    TaskSchedulingException.Reason.END_BEFORE_START);
-        }
+        return taskList.getTask(taskNumber).createRescheduledTimes(
+                startTime, endTime, currentTime);
     }
 }

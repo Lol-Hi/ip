@@ -95,6 +95,19 @@ class TaskListTest {
         assertEquals("buy bread", taskViews.get(1).description());
     }
 
+    /** Verifies that display text retains stored task numbers and task text. */
+    @Test
+    void toDisplayString_filteredTasks_returnsOriginalNumbersAndTaskText() {
+        TaskList taskList = new TaskList();
+        taskList.addTask(new TodoTask("first task"));
+        taskList.addTask(new TodoTask("read book"));
+        taskList.addTask(new TodoTask("third task"));
+        TaskList matchingTasks = taskList.createView(
+                null, task -> task.matchesDescription("book"));
+
+        assertEquals("2.[T][ ] read book", matchingTasks.toDisplayString());
+    }
+
     /** Verifies that a date-search result retains its search-date context. */
     @Test
     void getSearchDate_dateSearch_returnsSearchDate() {
@@ -165,19 +178,6 @@ class TaskListTest {
                 taskList.replaceTasks(loadedTasks));
         assertEquals("Task cannot be null.", exception.getMessage());
         assertTaskViews(taskList, List.of(1), List.of("existing task"));
-    }
-
-    /** Verifies that non-positive task numbers are rejected by IndexedTask. */
-    @Test
-    void constructIndexedTask_nonPositiveNumber_throwsIllegalArgumentException() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                new TaskList.IndexedTask(0, new TodoTask("read book")));
-
-        assertEquals("Task number must be positive.", exception.getMessage());
-        exception = assertThrows(IllegalArgumentException.class, () ->
-                new TaskList.IndexedTask(1, null));
-
-        assertEquals("Task cannot be null.", exception.getMessage());
     }
 
     /** Verifies that a task-list view preserves original task numbers. */

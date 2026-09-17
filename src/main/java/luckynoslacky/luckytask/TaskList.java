@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -158,6 +159,18 @@ public class TaskList {
     }
 
     /**
+     * Returns the numbered command-line representation of every task in this
+     * list.
+     *
+     * @return numbered task text in display order
+     */
+    public String toDisplayString() {
+        return indexedTasks.stream()
+                .map(IndexedTask::toDisplayString)
+                .collect(Collectors.joining("\n"));
+    }
+
+    /**
      * Returns whether this task list contains no matching tasks.
      *
      * @return true if no indexed tasks are stored
@@ -208,9 +221,9 @@ public class TaskList {
      * @param taskNumber original task number
      * @param task task being represented
      */
-    public record IndexedTask(int taskNumber, Task task) {
+    private record IndexedTask(int taskNumber, Task task) {
         /** Validates the invariant of an indexed task. */
-        public IndexedTask {
+        private IndexedTask {
             if (taskNumber <= 0) {
                 throw new IllegalArgumentException(
                         "Task number must be positive.");
@@ -218,6 +231,11 @@ public class TaskList {
             if (task == null) {
                 throw new IllegalArgumentException("Task cannot be null.");
             }
+        }
+
+        /** Returns this indexed task's numbered command-line text. */
+        private String toDisplayString() {
+            return taskNumber + "." + task;
         }
 
     }
