@@ -36,7 +36,7 @@ memory while the application is running and persisted automatically to disk.
 2. Select **Open** and choose the project directory.
 3. Configure the project SDK and language level to use JDK 25. See the
    [IntelliJ IDEA JDK instructions](https://www.jetbrains.com/help/idea/sdk.html#set-up-jdk).
-4. Open `src/main/java/LuckyNoSlacky.java`.
+4. Open `src/main/java/luckynoslacky/LuckyNoSlacky.java`.
 5. Right-click the file and select **Run `LuckyNoSlacky.main()`**.
 
 The application starts with the following banner:
@@ -60,14 +60,13 @@ Limpeh is LuckyNoSlacky, and I will confirm make sure you're lucky and not slack
 
 ### Run using the command line
 
-From the project root, compile the project and run the chatbot with:
+From the project root, run the chatbot with:
 
 ```bash
-./gradlew build
-java -cp build/classes/java/main luckynoslacky.LuckyNoSlacky
+./gradlew run
 ```
 
-On Windows, use `gradlew.bat build` instead of `./gradlew build`.
+On Windows, use `gradlew.bat run` instead of `./gradlew run`.
 
 ### Run the JavaFX GUI
 
@@ -79,6 +78,11 @@ From the project root, launch the graphical interface with:
 
 On Windows, use `gradlew.bat runGui` instead. Ensure that Java 25 is
 configured before launching the application.
+
+The GUI uses the same commands as the command-line interface. Enter a command
+in the input field and press Enter or click **Send**. Task results are shown as
+task cards, while warnings and system errors are displayed separately. After
+`bye`, the goodbye message is shown before the GUI closes.
 
 ### Run using the released JAR
 
@@ -122,8 +126,9 @@ Task type, isCompleted, Description, startTime, endTime
 ```
 
 The data directory and CSV file are created automatically when the first task
-change is saved. If the data file does not exist when the chatbot starts, the
-chatbot starts with an empty task list. 
+change is saved. If the data file does not exist or is empty when the chatbot
+starts, the chatbot starts with an empty task list. `Task type` is stored as
+`T`, `D`, or `E`, and `isCompleted` is stored as `0` or `1`.
 
 The time fields are used as follows:
 
@@ -163,7 +168,7 @@ trailing spaces are ignored.
 | Mark Task as Done     | `mark <number>`                                                   | Marks the specified task as done. |
 | Unmark Task as Undone | `unmark <number>`                                                 | Marks the specified task as not done. |
 | Delete Task           | `delete <number>`                                                 | Removes the specified task from the list. |
-| Find Tasks             | `find [<description>] [/on <date>]`                               | Finds tasks by description, date, or both. |
+| Find Tasks             | `find [<description>] [/on <date/time>]`                           | Finds tasks by description, date, or both. |
 | Snooze Task            | `snooze <number> [/by <duration>]`                                | Extends a timed task by a duration. |
 | Snooze Task            | `snooze <number> [/to <date/time>]`                               | Replaces a timed task's ending time. |
 | Reschedule Deadline    | `resched <number> /to <date/time>`                                | Replaces a deadline's date/time. |
@@ -201,21 +206,21 @@ list
 Tasks are displayed using a type marker and a completion marker:
 
 ```text
-1.[T][ ] borrow book
-2.[D][X] return book (by: Tue Oct 15 2030, 2.15pm)
-3.[E][ ] project meeting (from: Wed Oct 16 2030, 2.00pm to: Wed Oct 16 2030, 4.00pm)
+1.[📌][❗] borrow book
+2.[⏳][✅] return book (by: Tue Oct 15 2030, 2.15pm)
+3.[📆][❗] project meeting (from: Wed Oct 16 2030, 2.00pm to: Wed Oct 16 2030, 4.00pm)
 ```
 
 #### Type markers
 
-- `[T]` represents a ToDo.
-- `[D]` represents a Deadline.
-- `[E]` represents an Event.
+- `[📌]` represents a ToDo.
+- `[⏳]` represents a Deadline.
+- `[📆]` represents an Event.
 
 #### Completion markers
 
-- `[ ]` means the task is not done.
-- `[X]` means the task is done.
+- `[❗]` means the task is not done.
+- `[✅]` means the task is done.
 
 ### Marking and Unmarking Tasks
 
@@ -280,10 +285,10 @@ Date-only searches include:
 Description-only searches can match ToDos, Deadlines, and Events,
 using the regular task-list header.
 
-If there are no tasks found, LuckyNoSlacky replies:
+If `list` or a `find` query has no matching tasks, LuckyNoSlacky replies:
 
 ```text
-Wah, you very free hor, got nothing to do sia!
+Chill lah bro got nothing yet lah!
 ```
 
 ### Snoozing tasks
@@ -305,6 +310,54 @@ years. Abbreviations such as `1h`, `1hr`, `1mo`, and `1yr` are accepted.
 Natural-language forms such as `one more week` and `half an hour` are also
 supported.
 
+### Accepted duration formats
+
+The duration supplied after `/by` consists of one or more duration components.
+Each component has a non-negative number followed by a supported unit. Numbers
+may be whole numbers or decimals, and whitespace between the number and unit is
+optional:
+
+```text
+<duration> ::= <component> [ <component> ... ]
+<component> ::= <amount> [whitespace] <unit>
+<amount> ::= <digits> | <digits>.<digits>
+```
+
+The unit names and abbreviations are case-insensitive:
+
+| Unit | Accepted forms | Decimal amounts |
+|------|-----------------|------------------|
+| Year | `year`, `years`, `yr`, `yrs` | No |
+| Month | `month`, `months`, `mo`, `mos` | No |
+| Week | `week`, `weeks` | No |
+| Day | `day`, `days`, `d`, `ds` | Yes |
+| Hour | `hour`, `hours`, `h`, `hs`, `hr`, `hrs` | Yes |
+| Minute | `minute`, `minutes`, `min`, `mins` | Yes |
+
+Multiple components must be separated by whitespace and written in this order:
+years, months, weeks, days, hours, then minutes. Each unit may appear at most
+once. For example, `1 month 2 days 30 minutes` and `1hr 30mins` are accepted,
+but `1 hour 2 hours`, `2 days 1 month`, and `1h30min` are rejected.
+
+Natural-language forms are also accepted:
+
+- The number words `a`, `an`, and `one` through `ten` may be used with full unit
+  names, optionally followed by `more`: `a week`, `two days`, and `one more
+  week`.
+- `half a` or `half an` may be used with minutes, hours, days, or weeks,
+  including accepted abbreviations: `half an hour`, `half an hr`, and `half a
+  week`. Half-month and half-year values are not supported.
+- Decimal amounts are supported for days, hours, and minutes only. Decimal
+  weeks, months, and years are rejected. Therefore `1.5 hours` is accepted,
+  while `1.5 weeks` and `1.5 months` are rejected.
+- Negative amounts, unsupported units, missing amounts or units, and malformed
+  combinations are rejected. A duration must contain at least one valid
+  component.
+
+After a valid duration, ordinary trailing commentary is allowed, but a
+trailing slash marker is rejected. For example, `snooze 1 /by 2 hours please`
+is accepted, while `snooze 1 /by 2 hours /please` is rejected.
+
 ### Rescheduling tasks
 
 ```text
@@ -316,6 +369,8 @@ resched 3 /to Friday 6pm /from next Monday 2pm
 
 Event markers may appear in either order. Event start and end times are
 validated before the task is changed, and omitted event times remain unchanged.
+Past deadlines are rejected. Past event starts and ends are allowed as long as
+the event end is not before its start.
 
 ### Slash handling
 
@@ -356,25 +411,29 @@ chatbot. Examples include:
 The chatbot accepts the following date forms:
 
 - ISO-style dates: `2030-10-15`, `2030/10/15`.
-- Day-first numeric dates: `15/10/2030`, `15-10-2030`.
+- Day-first numeric dates: `15/10/2030`, `15-10-2030`; day and month may be
+  one or two digits.
 - Text dates: `15 Oct 2030`, `15 October 2030`, `Oct 15 2030`,
   `October 15 2030`.
-- Dates with weekdays: `Tue Oct 15 2030`, `Tuesday, October 15 2030`.
+- Dates with weekdays: `Tue Oct 15 2030`, `Tuesday, October 15 2030`; both
+  full and three-letter weekday names are accepted.
+- A year by itself: `2030`; this resolves to 1 January of that year.
 - Dates without a year: `June 6th`; the current year is used unless that date
   has passed, in which case the next year is used.
+- A month by itself: `June` or `Jun`; this resolves to the first day of the
+  current year, or the next year if that month has passed.
 - Named relative dates: `today`, `tomorrow`/`tmr`, and `yesterday`/`ytd`; these
   resolve relative to the current date.
 - Days of a month without a month: `the 15th`; the current month is used unless
   that date has passed, in which case the next month is used.
 - A weekday alone: `Monday`; this resolves to the next occurrence of Monday.
 - Current-week weekdays: `this Monday` through `this Sunday` refer to the
-  Monday-to-Sunday week containing today. Past dates are allowed for event
-  starts, but not for deadlines or event ends.
+  Monday-to-Sunday week containing today.
 - Following-week weekdays: `next Wednesday` refers to the Wednesday in the
   week beginning with the following Sunday. `next next Wednesday` and `the
   following Wednesday` refer to the week after that.
-- Upcoming weekdays: `this coming Wednesday` and `the coming Tuesday` refer to
-  the next occurrence strictly after today.
+- Upcoming weekdays: `coming Wednesday`, `this coming Wednesday`, and `the
+  coming Tuesday` refer to the next occurrence strictly after today.
 - Relative months and years use the same offsets: `this month`/`this year`
   means the current period, `next` means the following period, and `next next`
   or `the following` means the period after that.
@@ -384,7 +443,10 @@ The chatbot accepts the following date forms:
 The chatbot accepts these time forms:
 
 - 24-hour time: `14:15`, `14:15:30`.
-- 12-hour time: `2pm`, `2 pm`, `2:15pm`, `2:15 pm`, `2.15pm`, `2.15 pm`.
+- 12-hour time: `2pm`, `2 pm`, `2:15pm`, `2:15 pm`, `2.15pm`, `2.15 pm`, with
+  optional seconds such as `2:15:30pm`. Dotted meridiems such as `2 a.m.`
+  are also accepted.
+- Standalone compact `HHMM` time: `2359`.
 - Compact `HHMM` time when it appears where an invalid year would otherwise be
   expected: `25 Aug 0000` means 25 August of the current year at `00:00`.
 
@@ -397,6 +459,10 @@ or tomorrow if it has passed. A date without a time uses `00:00` for an event
 start and `23:59` for an event end or deadline. Listed task times use the
 format `Tue Oct 15 2030, 2.15pm`.
 
+An ISO date and time may use `T` as the separator, such as
+`2030-10-15T2.15pm`. Plain trailing commentary after a valid date/time is
+accepted when it does not begin with a slash marker.
+
 For events, a time-only end uses the event start as its reference. If the end
 time is later than the start time, it uses the start date; otherwise, it uses
 the next date. For example, an event from `25 Aug 2026 11pm` to `1am` ends on
@@ -408,30 +474,30 @@ the next date. For example, an event from `25 Aug 2026 11pm` to `1am` ends on
 todo borrow book
   ____________________________________________________________
   Got one more thing to remember ah:
-    [T][ ] borrow book
+    [📌][❗] borrow book
   Now you got 1 tasks to settle.
   ____________________________________________________________
 deadline return book /by 2030-10-15 14:15
   ____________________________________________________________
   Got one more thing to remember ah:
-    [D][ ] return book (by: Tue Oct 15 2030, 2.15pm)
+    [⏳][❗] return book (by: Tue Oct 15 2030, 2.15pm)
   Now you got 2 tasks to settle.
   ____________________________________________________________
 list
   ____________________________________________________________
   Nah, all these things you need to do:
-  1.[T][ ] borrow book
-  2.[D][ ] return book (by: Tue Oct 15 2030, 2.15pm)
+  1.[📌][❗] borrow book
+  2.[⏳][❗] return book (by: Tue Oct 15 2030, 2.15pm)
   ____________________________________________________________
 mark 1
   ____________________________________________________________
   Swee lah you're done with this task:
-    [T][X] borrow book
+    [📌][✅] borrow book
   ____________________________________________________________
 unmark 1
   ____________________________________________________________
   Eh salah you're not done with this task ah, must remember to do ah!
-    [T][ ] borrow book
+    [📌][❗] borrow book
   ____________________________________________________________
 
 bye
@@ -448,8 +514,27 @@ Run the automated tests from the project root with:
 ./gradlew test
 ```
 
+This runs the JUnit tests. The documented command-line integration tests are
+excluded from this task and can be run with:
+
+```bash
+./gradlew clitest
+```
+
+The JavaFX GUI regression tests can be run with:
+
+```bash
+./gradlew guiTest
+```
+
+To run all three test suites, use:
+
+```bash
+./gradlew test clitest guiTest
+```
+
 The tests cover task storage, completion state, task subclasses, task parsing,
-and invalid input.
+invalid input, and documented command-line and GUI behavior.
 
 Generate the aggregate JaCoCo coverage report with:
 
